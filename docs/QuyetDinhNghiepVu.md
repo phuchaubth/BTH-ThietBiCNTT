@@ -16,3 +16,41 @@ Các quyết định dưới đây **thay thế** nội dung tương ứng trong
 - Số phiếu: dùng `SEQUENCE` SQL Server / khoá ghi để không trùng khi tạo đồng thời.
 - QR: cấu hình `App:PublicBaseUrl` thay vì `Request.Host` (chạy sau reverse proxy).
 - Dashboard: giới hạn số liệu theo khoa với vai trò khoa; ẩn menu không có quyền.
+
+## Danh mục tham số hệ thống (Quản trị → Tham số hệ thống)
+
+Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã**: lưu ở bảng `ThamSoHeThongs`, Quản trị chỉnh tại màn hình *Tham số hệ thống* (có kiểm tra kiểu/khoảng giá trị, nút khôi phục mặc định, ghi nhật ký), hiệu lực ngay (cache 10 phút, xoá khi lưu). Ngày nghỉ lễ khai báo ở bảng `NgayNghis` cùng màn hình. Chỉ cấu hình kỹ thuật (chuỗi kết nối CSDL, nhà cung cấp CSDL) nằm trong `appsettings.json`.
+
+| Nhóm | Mã | Tham số | Kiểu | Mặc định |
+|---|---|---|---|---|
+| Thông tin đơn vị | `DonVi.CoQuanChuQuan` | Cơ quan chủ quản | Văn bản | SỞ Y TẾ .................. |
+| Thông tin đơn vị | `DonVi.TenBenhVien` | Tên bệnh viện | Văn bản | BỆNH VIỆN .................. |
+| Thông tin đơn vị | `DonVi.TenPhongCNTT` | Tên đơn vị quản lý | Văn bản | PHÒNG CÔNG NGHỆ THÔNG TIN |
+| Thông tin đơn vị | `DonVi.DiaChiTruyCap` | Địa chỉ truy cập hệ thống | Văn bản | (trống) |
+| SLA sửa chữa | `Sla.GioKhanCap` | Hạn xử lý mức Khẩn cấp | Số thực | 2 giờ |
+| SLA sửa chữa | `Sla.GioCao` | Hạn xử lý mức Cao | Số thực | 8 giờ |
+| SLA sửa chữa | `Sla.GioTrungBinh` | Hạn xử lý mức Trung bình | Số thực | 24 giờ |
+| SLA sửa chữa | `Sla.GioThap` | Hạn xử lý mức Thấp | Số thực | 72 giờ |
+| SLA sửa chữa | `Sla.HeSoKhoaTrongYeu` | Hệ số rút ngắn cho khoa trọng yếu | Số thực | 0.5 × hạn |
+| SLA sửa chữa | `Sla.KhoaTrongYeu24h` | Khoa trọng yếu tính SLA 24/7 | Bật/Tắt | true |
+| SLA sửa chữa | `Sla.GioBatDau` | Giờ hành chính bắt đầu | Giờ | 07:00 |
+| SLA sửa chữa | `Sla.GioKetThuc` | Giờ hành chính kết thúc | Giờ | 17:00 |
+| SLA sửa chữa | `Sla.NgayLamViec` | Ngày làm việc trong tuần | Thứ trong tuần | 2,3,4,5,6,7 |
+| SLA sửa chữa | `Sla.TamDungKhiCho` | Tạm dừng SLA khi chờ linh kiện / gửi hãng | Bật/Tắt | true |
+| SLA sửa chữa | `Sla.NhacTruocPhut` | Nhắc KTV trước khi đến hạn | Số nguyên | 30 phút |
+| Nghiệm thu | `NghiemThu.TuDongSauNgay` | Tự động nghiệm thu sau | Số nguyên | 3 ngày |
+| Điều chuyển | `DieuChuyen.NguongDuyetLanhDao` | Ngưỡng giá trị cần Lãnh đạo duyệt | Số nguyên | 30000000 đ |
+| Bảo trì định kỳ | `BaoTri.SinhLenhTruocNgay` | Sinh lệnh bảo trì trước ngày đến hạn | Số nguyên | 0 ngày |
+| Bảo trì định kỳ | `BaoTri.HanHoanThanhNgay` | Thời hạn hoàn thành lệnh bảo trì | Số nguyên | 7 ngày |
+| Bảo trì định kỳ | `BaoTri.ChuKyQuetGio` | Chu kỳ quét kế hoạch đến hạn | Số nguyên | 6 giờ |
+| Bảo trì định kỳ | `BaoTri.CanhBaoDenHanNgay` | Hiển thị cảnh báo kế hoạch sắp đến hạn | Số nguyên | 7 ngày |
+| Tài sản | `TaiSan.CanhBaoBaoHanhNgay` | Cảnh báo sắp hết bảo hành trước | Số nguyên | 60 ngày |
+| Tài sản | `TaiSan.NguongChiPhiSuaPhanTram` | Ngưỡng chi phí sửa chữa / nguyên giá | Số nguyên | 50 % |
+| Tài sản | `TaiSan.TuoiThoMacDinhNam` | Tuổi thọ mặc định khi tạo loại thiết bị | Số nguyên | 5 năm |
+| Kho vật tư | `Kho.ChoXuatAm` | Cho phép xuất kho vượt tồn | Bật/Tắt | false |
+| Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
+| Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |
+| Bảo mật | `BaoMat.PhienCNTTGio` | Thời gian giữ phiên (CNTT, KTV, Lãnh đạo) | Số nguyên | 8 giờ |
+| Bảo mật | `BaoMat.ChoGhiNhoVoiKhoa` | Cho 'Ghi nhớ đăng nhập' với tài khoản khoa | Bật/Tắt | false |
+
+Thêm tham số mới: khai báo mã trong lớp `TS` và một dòng trong `ThamSoMacDinh.DanhSach()` (`ThietBiCNTT.Infrastructure/Services/ThamSoService.cs`); lần khởi động sau hệ thống tự thêm vào CSDL, giữ nguyên các giá trị đã chỉnh.

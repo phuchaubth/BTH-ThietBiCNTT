@@ -54,19 +54,6 @@ public class PhieuSuaChua : BaseEntity
     /// <summary>Thời gian ngừng máy (giờ) = từ lúc báo đến lúc hoàn thành.</summary>
     public double? ThoiGianDungMayGio => NgayHoanThanh is null ? null : (NgayHoanThanh.Value - NgayYeuCau).TotalHours;
 
-    /// <summary>Tính hạn SLA theo mức ưu tiên và khoa trọng yếu.</summary>
-    public static TimeSpan TinhSla(MucDoUuTien uuTien, bool khoaTrongYeu)
-    {
-        var gio = uuTien switch
-        {
-            MucDoUuTien.KhanCap => 2,
-            MucDoUuTien.Cao => 8,
-            MucDoUuTien.TrungBinh => 24,
-            _ => 72
-        };
-        return TimeSpan.FromHours(khoaTrongYeu ? Math.Max(1, gio / 2) : gio);
-    }
-
     private void YeuCau(params TrangThaiPhieuSuaChua[] hopLe)
     {
         if (!hopLe.Contains(TrangThai))

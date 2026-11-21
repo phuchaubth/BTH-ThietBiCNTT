@@ -6,6 +6,7 @@
     var tongChiPhi = Model.PhieuSuaChuas.Sum(p => p.TongChiPhi);
     var dungMay = sc.Where(p => p.ThoiGianDungMayGio != null).Sum(p => p.ThoiGianDungMayGio!.Value);
     var tuoi = Model.TuoiNam(homNay);
+    var nguongPct = ThamSo.SoNguyen(TS.NguongChiPhiSuaPhanTram);
 }
 <div class="page-head">
     <h1>@Model.MaTaiSan · @Model.Ten</h1> @Html.Raw(Badge.Html(Model.TrangThai))
@@ -87,7 +88,7 @@
                 <div class="col-6"><dt>Tổng thời gian dừng</dt><dd>@dungMay.ToString("N1") giờ</dd></div>
                 <div class="col-12"><dt>Tổng chi phí sở hữu (TCO)</dt><dd class="fw-semibold">@((Model.NguyenGia + tongChiPhi).ToString("N0")) đ</dd></div>
             </dl>
-            @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * 0.5m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt 50% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
+            @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * nguongPct / 100m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt @nguongPct% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
         </div></div>
         <div class="card"><div class="card-header">Dòng thời gian</div><div class="card-body">
             <ul class="timeline">

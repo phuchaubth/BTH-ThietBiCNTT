@@ -55,12 +55,14 @@ public class LichSuService(AppDbContext db)
 }
 
 /// <summary>Sinh lệnh công việc bảo trì định kỳ cho các kế hoạch đến hạn.</summary>
-public class BaoTriService(AppDbContext db, SoPhieuService soPhieu)
+public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo)
 {
     public async Task<int> SinhLenhDenHanAsync(DateOnly homNay, CancellationToken ct = default)
     {
+        var mocSinh = homNay.AddDays(thamSo.SoNguyen(TS.BaoTriSinhTruocNgay));
+        var hanNgay = thamSo.SoNguyen(TS.BaoTriHanHoanThanhNgay);
         var keHoachs = await db.KeHoachBaoTris
-            .Where(k => k.DangApDung && k.NgayTiepTheo <= homNay).ToListAsync(ct);
+            .Where(k => k.DangApDung && k.NgayTiepTheo <= mocSinh).ToListAsync(ct);
         var dem = 0;
         foreach (var kh in keHoachs)
         {
@@ -86,7 +88,7 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu)
                     MoTaSuCo = $"[Bảo trì định kỳ] {kh.Ten}\n{kh.Checklist}",
                     UuTien = MucDoUuTien.Thap,
                     NgayYeuCau = now,
-                    HanXuLy = homNay.AddDays(7).ToDateTime(TimeOnly.MaxValue),
+                    HanXuLy = (kh.NgayTiepTheo > homNay ? kh.NgayTiepTheo : homNay).AddDays(hanNgay).ToDateTime(TimeOnly.MaxValue),
                     KyThuatVien = kh.KyThuatVien,
                     KeHoachBaoTriId = kh.Id,
                     NguoiYeuCau = "Hệ thống (PM)"
@@ -102,14 +104,14 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu)
 }
 
 public record ThongKeKhoa(string Khoa, int SoLuong, decimal GiaTri);
-public record DashboardDto(
+public record DashboardDto(int SoNgayCanhBaoBaoHanh, int SoNgayCanhBaoBaoTri,
     int TongTaiSan, decimal TongNguyenGia, int DangSuDung, int DangSuaChua, int Hong, int ChoThanhLy,
     int PhieuMo, int PhieuQuaHan, int BaoTriDenHan, double? MttrGio, double TyLeDungSla,
     int SapHetBaoHanh, int VatTuDuoiDinhMuc, int TaiSanQuaTuoiTho,
     List<ThongKeKhoa> TheoKhoa, List<(string Nhom, int SoLuong)> TheoNhom,
     List<PhieuSuaChua> PhieuMoiNhat, List<(string Thang, int SoPhieu, decimal ChiPhi)> SuaChuaTheoThang);
 
-public class DashboardService(AppDbContext db)
+public class DashboardService(AppDbContext db, ThamSoService thamSo)
 {
     public async Task<DashboardDto> LayAsync()
     {
@@ -153,7 +155,9 @@ public class DashboardService(AppDbContext db)
             return (m.ToString("MM/yy"), trong.Count, trong.Sum(p => p.ChiPhiThueNgoai + p.VatTu));
         }).ToList();
 
-        return new DashboardDto(
+        var ngayBh = thamSo.SoNguyen(TS.CanhBaoBaoHanhNgay);
+        var ngayBt = thamSo.SoNguyen(TS.BaoTriCanhBaoNgay);
+        return new DashboardDto(ngayBh, ngayBt,
             TongTaiSan: await ts.CountAsync(),
             TongNguyenGia: await ts.SumAsync(t => t.NguyenGia),
             DangSuDung: Dem(TrangThaiTaiSan.DangSuDung),
@@ -162,10 +166,10 @@ public class DashboardService(AppDbContext db)
             ChoThanhLy: Dem(TrangThaiTaiSan.ChoThanhLy),
             PhieuMo: await phieuMo.CountAsync(),
             PhieuQuaHan: await phieuMo.CountAsync(p => p.HanXuLy < now),
-            BaoTriDenHan: await db.KeHoachBaoTris.CountAsync(k => k.DangApDung && k.NgayTiepTheo <= homNay.AddDays(7)),
+            BaoTriDenHan: await db.KeHoachBaoTris.CountAsync(k => k.DangApDung && k.NgayTiepTheo <= homNay.AddDays(ngayBt)),
             MttrGio: daXong.Count == 0 ? null : daXong.Average(p => (p.NgayHoanThanh!.Value - p.NgayYeuCau).TotalHours),
             TyLeDungSla: daXong.Count == 0 ? 100 : 100.0 * daXong.Count(p => p.NgayHoanThanh <= p.HanXuLy) / daXong.Count,
-            SapHetBaoHanh: await ts.CountAsync(t => t.HanBaoHanh >= homNay && t.HanBaoHanh <= homNay.AddDays(60)),
+            SapHetBaoHanh: await ts.CountAsync(t => t.HanBaoHanh >= homNay && t.HanBaoHanh <= homNay.AddDays(ngayBh)),
             VatTuDuoiDinhMuc: await db.VatTus.CountAsync(v => v.TonKho <= v.TonToiThieu),
             TaiSanQuaTuoiTho: quaTuoi,
             TheoKhoa: theoKhoa, TheoNhom: theoNhom,

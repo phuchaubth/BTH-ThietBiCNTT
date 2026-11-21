@@ -36,6 +36,8 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
+        services.AddMemoryCache();
+        services.AddScoped<ThamSoService>();
         services.AddScoped<SoPhieuService>();
         services.AddScoped<LichSuService>();
         services.AddScoped<BaoTriService>();

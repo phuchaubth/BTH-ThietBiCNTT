@@ -26,7 +26,7 @@
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="DangSuDung"><div class="card kpi"><div class="label">Đang sử dụng</div><div class="value text-success">@Model.DangSuDung</div></div></a></div>
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="DangSuaChua"><div class="card kpi"><div class="label">Đang sửa chữa</div><div class="value text-warning">@Model.DangSuaChua</div></div></a></div>
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="Hong"><div class="card kpi"><div class="label">Hỏng</div><div class="value text-danger">@Model.Hong</div></div></a></div>
-    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-hetBaoHanh="true"><div class="card kpi"><div class="label">Hết BH trong 60 ngày</div><div class="value">@Model.SapHetBaoHanh</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-hetBaoHanh="true"><div class="card kpi"><div class="label">Hết BH trong @Model.SoNgayCanhBaoBaoHanh ngày</div><div class="value">@Model.SapHetBaoHanh</div></div></a></div>
     <div class="col-6 col-md-4 col-xl-2"><div class="card kpi"><div class="label">Quá tuổi thọ khuyến nghị</div><div class="value">@Model.TaiSanQuaTuoiTho</div><div class="sub">Cân nhắc thay thế</div></div></div>
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="VatTu" asp-action="Index"><div class="card kpi"><div class="label">Vật tư dưới định mức</div><div class="value @(Model.VatTuDuoiDinhMuc > 0 ? "text-danger" : "")">@Model.VatTuDuoiDinhMuc</div></div></a></div>
 </div>
@@ -95,7 +95,7 @@
                         <tr><td>@ten</td><td class="text-end fw-semibold">@n.SoLuong</td></tr>
                     }
                 </table>
-                <div class="small mt-2"><i class="bi bi-calendar2-check"></i> <a asp-controller="KeHoachBaoTri" asp-action="Index">@Model.BaoTriDenHan kế hoạch bảo trì đến hạn trong 7 ngày</a></div>
+                <div class="small mt-2"><i class="bi bi-calendar2-check"></i> <a asp-controller="KeHoachBaoTri" asp-action="Index">@Model.BaoTriDenHan kế hoạch bảo trì đến hạn trong @Model.SoNgayCanhBaoBaoTri ngày</a></div>
             </div>
         </div>
     </div>

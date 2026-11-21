@@ -20,7 +20,7 @@ public class TaiSanFormVm
     public string? LyDoThayDoi { get; set; }
 }
 
-public class TaiSanController(AppDbContext db, LichSuService lichSu) : Controller
+public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo) : Controller
 {
     private IQueryable<TaiSan> PhamViTaiSan()
     {
@@ -45,7 +45,8 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu) : Controlle
         if (hetBaoHanh == true)
         {
             var d = DateOnly.FromDateTime(DateTime.Today);
-            query = query.Where(t => t.HanBaoHanh >= d && t.HanBaoHanh <= d.AddDays(60));
+            var n = thamSo.SoNguyen(TS.CanhBaoBaoHanhNgay);
+            query = query.Where(t => t.HanBaoHanh >= d && t.HanBaoHanh <= d.AddDays(n));
         }
         return query;
     }
@@ -103,7 +104,9 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu) : Controlle
     {
         var ma = await db.TaiSans.Where(t => t.Id == id).Select(t => t.MaTaiSan).FirstOrDefaultAsync();
         if (ma is null) return NotFound();
-        var url = $"{Request.Scheme}://{Request.Host}/qr/{Uri.EscapeDataString(ma)}";
+        var goc = thamSo.Chuoi(TS.DiaChiTruyCap).TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(goc)) goc = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+        var url = $"{goc}/qr/{Uri.EscapeDataString(ma)}";
         using var gen = new QRCodeGenerator();
         using var data = gen.CreateQrCode(url, QRCodeGenerator.ECCLevel.M);
         return File(new PngByteQRCode(data).GetGraphic(8), "image/png");
@@ -191,11 +194,11 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu) : Controlle
 
     private async Task NapDanhMuc(int? boQuaId = null)
     {
-        ViewBag.Khoa = new SelectList(await db.KhoaPhongs.Where(k => k.DangHoatDong).OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
-        ViewBag.Loai = new SelectList(await db.LoaiThietBis.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
-        ViewBag.Ncc = new SelectList(await db.NhaCungCaps.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
-        ViewBag.ViTri = new SelectList(await db.ViTris.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
-        ViewBag.Cha = new SelectList(await db.TaiSans.Where(t => t.Id != boQuaId && t.TrangThai != TrangThaiTaiSan.DaThanhLy)
+        ViewBag.DsKhoa = new SelectList(await db.KhoaPhongs.Where(k => k.DangHoatDong).OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsLoai = new SelectList(await db.LoaiThietBis.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsNcc = new SelectList(await db.NhaCungCaps.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsViTri = new SelectList(await db.ViTris.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsCha = new SelectList(await db.TaiSans.Where(t => t.Id != boQuaId && t.TrangThai != TrangThaiTaiSan.DaThanhLy)
             .OrderBy(t => t.MaTaiSan).Select(t => new { t.Id, Ten = t.MaTaiSan + " - " + t.Ten }).ToListAsync(), "Id", "Ten");
     }
 }

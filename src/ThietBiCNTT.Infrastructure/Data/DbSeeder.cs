@@ -10,6 +10,7 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles, bool duLieuMau)
     {
+        await Services.ThamSoService.DongBoAsync(db);
         foreach (var r in VaiTro.TatCa)
             if (!await roles.RoleExistsAsync(r)) await roles.CreateAsync(new IdentityRole(r));
 
@@ -155,7 +156,7 @@ public static class DbSeeder
             {
                 SoPhieu = $"SC-{ngay:yyMM}-{n:D4}", TaiSanId = t.Id, KhoaPhongId = t.KhoaPhongId,
                 NguoiYeuCau = "Điều dưỡng trưởng", MoTaSuCo = loi[rnd.Next(loi.Length)], UuTien = uuTien,
-                NgayYeuCau = ngay, HanXuLy = ngay + PhieuSuaChua.TinhSla(uuTien, trongYeu),
+                NgayYeuCau = ngay, HanXuLy = ThietBiCNTT.Domain.Common.SlaCalculator.TinhHan(ngay, uuTien, trongYeu, SlaThamSo.MacDinh),
             };
             if (t.TrangThai == TrangThaiTaiSan.DangSuDung)
             {

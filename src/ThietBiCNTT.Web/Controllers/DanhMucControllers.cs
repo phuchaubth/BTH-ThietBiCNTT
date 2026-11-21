@@ -25,7 +25,9 @@ public abstract class DanhMucController<T>(AppDbContext db) : Controller where T
         return View("~/Views/Shared/DanhMucIndex.cshtml", await query.OrderBy(x => x.Id).Take(500).ToListAsync());
     }
 
-    public IActionResult Create() { ViewData["Title"] = "Thêm " + TieuDe.ToLower(); return View("~/Views/Shared/DanhMucForm.cshtml", new T()); }
+    protected virtual T TaoMoi() => new();
+
+    public IActionResult Create() { ViewData["Title"] = "Thêm " + TieuDe.ToLower(); return View("~/Views/Shared/DanhMucForm.cshtml", TaoMoi()); }
 
     public async Task<IActionResult> Edit(int id)
     {
@@ -65,8 +67,9 @@ public class KhoaPhongController(AppDbContext db) : DanhMucController<KhoaPhong>
     protected override IQueryable<KhoaPhong> TimKiem(IQueryable<KhoaPhong> q, string s) => q.Where(x => x.Ma.Contains(s) || x.Ten.Contains(s));
 }
 
-public class LoaiThietBiController(AppDbContext db) : DanhMucController<LoaiThietBi>(db)
+public class LoaiThietBiController(AppDbContext db, ThietBiCNTT.Infrastructure.Services.ThamSoService thamSo) : DanhMucController<LoaiThietBi>(db)
 {
+    protected override LoaiThietBi TaoMoi() => new() { TuoiThoNam = thamSo.SoNguyen(ThietBiCNTT.Infrastructure.Services.TS.TuoiThoMacDinhNam) };
     protected override string TieuDe => "Loại thiết bị";
     protected override string[] Cot => [nameof(LoaiThietBi.Ma), nameof(LoaiThietBi.Ten), nameof(LoaiThietBi.Nhom), nameof(LoaiThietBi.CoLuuTruDuLieu), nameof(LoaiThietBi.TuoiThoNam)];
     protected override IQueryable<LoaiThietBi> TimKiem(IQueryable<LoaiThietBi> q, string s) => q.Where(x => x.Ma.Contains(s) || x.Ten.Contains(s));

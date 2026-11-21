@@ -64,12 +64,13 @@ public static class UserExtensions
     public static bool LaDuyet(this ClaimsPrincipal u) => u.IsInRole(VaiTro.QuanTri) || u.IsInRole(VaiTro.LanhDao);
 }
 
-/// <summary>Chạy nền: mỗi 6 giờ sinh lệnh bảo trì định kỳ cho kế hoạch đến hạn.</summary>
+/// <summary>Chạy nền: theo chu kỳ tham số BaoTri.ChuKyQuetGio, sinh lệnh bảo trì định kỳ cho kế hoạch đến hạn.</summary>
 public class BaoTriBackgroundService(IServiceScopeFactory scopes, ILogger<BaoTriBackgroundService> log) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         await Task.Delay(TimeSpan.FromSeconds(20), ct);
+        var chuKy = 6;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -78,12 +79,13 @@ public class BaoTriBackgroundService(IServiceScopeFactory scopes, ILogger<BaoTri
                 var n = await scope.ServiceProvider.GetRequiredService<BaoTriService>()
                     .SinhLenhDenHanAsync(DateOnly.FromDateTime(DateTime.Today), ct);
                 if (n > 0) log.LogInformation("Đã sinh {N} lệnh bảo trì định kỳ", n);
+                chuKy = scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.BaoTriChuKyQuetGio);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 log.LogError(ex, "Lỗi sinh lệnh bảo trì định kỳ");
             }
-            await Task.Delay(TimeSpan.FromHours(6), ct);
+            await Task.Delay(TimeSpan.FromHours(Math.Clamp(chuKy, 1, 24)), ct);
         }
     }
 }
@@ -117,4 +119,16 @@ public static class PhamVi
 
     /// <summary>Người dùng chỉ được xem dữ liệu khoa mình (trừ CNTT, Lãnh đạo).</summary>
     public static bool XemToanVien(this ClaimsPrincipal u) => u.LaCNTT() || u.IsInRole(VaiTro.LanhDao);
+}
+
+/// <summary>QĐ-05: Nhân viên/Trưởng khoa tự đăng xuất sau N phút không thao tác; CNTT/KTV/Lãnh đạo giữ phiên M giờ.</summary>
+public static class PhienDangNhap
+{
+    public static bool LaTaiKhoanKhoa(ClaimsPrincipal u) => !(u.LaCNTT() || u.IsInRole(VaiTro.LanhDao));
+    public static bool LaTaiKhoanKhoa(IEnumerable<string> roles) =>
+        !roles.Any(r => r is VaiTro.QuanTri or VaiTro.CanBoCNTT or VaiTro.LanhDao);
+
+    public static TimeSpan GioiHan(ClaimsPrincipal u, ThamSoService ts) => LaTaiKhoanKhoa(u)
+        ? TimeSpan.FromMinutes(ts.SoNguyen(TS.PhienKhoaPhut))
+        : TimeSpan.FromHours(ts.SoNguyen(TS.PhienCNTTGio));
 }

@@ -12,7 +12,7 @@
             <div class="card"><div class="card-header">Thông tin tài sản</div><div class="card-body row g-3">
                 <div class="col-md-4"><label asp-for="TaiSan.MaTaiSan" class="form-label"></label><input asp-for="TaiSan.MaTaiSan" class="form-control" placeholder="VD: PC-0123" /><span asp-validation-for="TaiSan.MaTaiSan" class="text-danger small"></span></div>
                 <div class="col-md-8"><label asp-for="TaiSan.Ten" class="form-label"></label><input asp-for="TaiSan.Ten" class="form-control" /><span asp-validation-for="TaiSan.Ten" class="text-danger small"></span></div>
-                <div class="col-md-4"><label asp-for="TaiSan.LoaiThietBiId" class="form-label"></label><select asp-for="TaiSan.LoaiThietBiId" asp-items="ViewBag.Loai" class="form-select"></select></div>
+                <div class="col-md-4"><label asp-for="TaiSan.LoaiThietBiId" class="form-label"></label><select asp-for="TaiSan.LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select"></select></div>
                 <div class="col-md-4"><label asp-for="TaiSan.Hang" class="form-label"></label><input asp-for="TaiSan.Hang" class="form-control" /></div>
                 <div class="col-md-4"><label asp-for="TaiSan.Model" class="form-label"></label><input asp-for="TaiSan.Model" class="form-control" /></div>
                 <div class="col-md-4"><label asp-for="TaiSan.SoSerial" class="form-label"></label><input asp-for="TaiSan.SoSerial" class="form-control" /></div>
@@ -21,13 +21,13 @@
                 <div class="col-md-4"><label asp-for="TaiSan.NguyenGia" class="form-label"></label><input asp-for="TaiSan.NguyenGia" class="form-control" type="number" step="1000" /></div>
                 <div class="col-md-4"><label asp-for="TaiSan.NgayMua" class="form-label"></label><input asp-for="TaiSan.NgayMua" class="form-control" type="date" /></div>
                 <div class="col-md-4"><label asp-for="TaiSan.NgaySuDung" class="form-label"></label><input asp-for="TaiSan.NgaySuDung" class="form-control" type="date" /></div>
-                <div class="col-md-4"><label asp-for="TaiSan.NhaCungCapId" class="form-label"></label><select asp-for="TaiSan.NhaCungCapId" asp-items="ViewBag.Ncc" class="form-select"><option value="">—</option></select></div>
+                <div class="col-md-4"><label asp-for="TaiSan.NhaCungCapId" class="form-label"></label><select asp-for="TaiSan.NhaCungCapId" asp-items="ViewBag.DsNcc" class="form-select"><option value="">—</option></select></div>
                 <div class="col-md-4"><label asp-for="TaiSan.HanBaoHanh" class="form-label"></label><input asp-for="TaiSan.HanBaoHanh" class="form-control" type="date" /></div>
                 <div class="col-md-4"><label asp-for="TaiSan.SoHopDong" class="form-label"></label><input asp-for="TaiSan.SoHopDong" class="form-control" /></div>
-                <div class="col-md-6"><label asp-for="TaiSan.KhoaPhongId" class="form-label"></label><select asp-for="TaiSan.KhoaPhongId" asp-items="ViewBag.Khoa" class="form-select"><option value="">— Kho CNTT —</option></select>
+                <div class="col-md-6"><label asp-for="TaiSan.KhoaPhongId" class="form-label"></label><select asp-for="TaiSan.KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">— Kho CNTT —</option></select>
                     @if (!moi) { <div class="form-text">Đổi khoa/phòng phải qua phiếu điều chuyển.</div> }</div>
                 <div class="col-md-6"><label asp-for="TaiSan.NguoiSuDung" class="form-label"></label><input asp-for="TaiSan.NguoiSuDung" class="form-control" /></div>
-                <div class="col-md-6"><label asp-for="TaiSan.TaiSanChaId" class="form-label"></label><select asp-for="TaiSan.TaiSanChaId" asp-items="ViewBag.Cha" class="form-select"><option value="">—</option></select></div>
+                <div class="col-md-6"><label asp-for="TaiSan.TaiSanChaId" class="form-label"></label><select asp-for="TaiSan.TaiSanChaId" asp-items="ViewBag.DsCha" class="form-select"><option value="">—</option></select></div>
                 <div class="col-md-6"><label asp-for="TaiSan.ChiSoBoDem" class="form-label"></label><input asp-for="TaiSan.ChiSoBoDem" class="form-control" type="number" /></div>
                 <div class="col-12"><label asp-for="TaiSan.GhiChu" class="form-label"></label><textarea asp-for="TaiSan.GhiChu" class="form-control" rows="2"></textarea></div>
             </div></div>

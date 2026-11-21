@@ -28,6 +28,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DeXuatThanhLy> DeXuatThanhLys => Set<DeXuatThanhLy>();
     public DbSet<ChiTietThanhLy> ChiTietThanhLys => Set<ChiTietThanhLy>();
     public DbSet<NhatKyHeThong> NhatKyHeThongs => Set<NhatKyHeThong>();
+    public DbSet<ThamSoHeThong> ThamSoHeThongs => Set<ThamSoHeThong>();
+    public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -89,6 +91,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
              .OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<NhatKyHeThong>().HasIndex(x => x.ThoiGian);
+        b.Entity<ThamSoHeThong>().Property(x => x.ToiThieu).HasPrecision(18, 2);
+        b.Entity<ThamSoHeThong>().Property(x => x.ToiDa).HasPrecision(18, 2);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken ct = default)

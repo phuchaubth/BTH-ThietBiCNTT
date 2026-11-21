@@ -59,10 +59,10 @@ public class VatTu : BaseEntity
 
     public bool DuoiTonToiThieu => TonKho <= TonToiThieu;
 
-    public void XuatKho(decimal soLuong)
+    public void XuatKho(decimal soLuong, bool choXuatAm = false)
     {
         if (soLuong <= 0) throw new DomainException("Số lượng xuất phải lớn hơn 0.");
-        if (soLuong > TonKho) throw new DomainException($"Vật tư '{Ten}' không đủ tồn kho (còn {TonKho}).");
+        if (!choXuatAm && soLuong > TonKho) throw new DomainException($"Vật tư '{Ten}' không đủ tồn kho (còn {TonKho}).");
         TonKho -= soLuong;
     }
 }

@@ -24,7 +24,7 @@ public class BaoHongVm
     public bool XacNhanTrung { get; set; }
 }
 
-public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users) : Controller
+public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo) : Controller
 {
     private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
 
@@ -95,7 +95,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         {
             SoPhieu = await soPhieu.TaoAsync("SC"), TaiSanId = ts!.Id, KhoaPhongId = ts.KhoaPhongId,
             MoTaSuCo = vm.MoTaSuCo.Trim(), UuTien = vm.UuTien, NguoiYeuCau = vm.NguoiYeuCau, DienThoaiLienHe = vm.DienThoaiLienHe,
-            NgayYeuCau = now, HanXuLy = now + PhieuSuaChua.TinhSla(vm.UuTien, ts.KhoaPhong?.LaKhoaTrongYeu == true),
+            NgayYeuCau = now, HanXuLy = thamSo.TinhHanSla(now, vm.UuTien, ts.KhoaPhong?.LaKhoaTrongYeu == true),
         };
         db.PhieuSuaChuas.Add(p);
         await db.SaveChangesAsync();
@@ -207,7 +207,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         try
         {
             if (p.DaDong || p.TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành.");
-            v.XuatKho(soLuong);
+            v.XuatKho(soLuong, thamSo.BatTat(TS.KhoChoXuatAm));
             db.ChiTietVatTuSuaChuas.Add(new ChiTietVatTuSuaChua { PhieuSuaChuaId = id, VatTuId = vatTuId, SoLuong = soLuong, DonGia = v.DonGia });
             db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, LaHeThong = true,
                 NoiDung = $"Xuất kho {soLuong} {v.DonViTinh} {v.Ten}" });

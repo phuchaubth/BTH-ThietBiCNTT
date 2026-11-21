@@ -1,0 +1,127 @@
+@model List<ThamSoHeThong>
+@{
+    ViewData["Title"] = "Tham số hệ thống";
+    var nhoms = Model.Select(x => x.Nhom).Distinct().ToList();
+    nhoms.Add("Ngày nghỉ");
+    var chon = ViewData["nhom"] as string ?? nhoms[0];
+    var ngayNghi = (List<NgayNghi>)ViewBag.NgayNghi;
+    var viDu = (List<(MucDoUuTien UuTien, DateTime KhoaThuong, DateTime KhoaTrongYeu)>)ViewBag.ViDu;
+    var thuTen = new Dictionary<string, string> { ["2"] = "T2", ["3"] = "T3", ["4"] = "T4", ["5"] = "T5", ["6"] = "T6", ["7"] = "T7", ["8"] = "CN" };
+    string Id(string ma) => ma.Replace(".", "_");
+}
+<div class="page-head">
+    <h1>Tham số hệ thống</h1>
+    <span class="text-muted small ms-2">Thay đổi có hiệu lực ngay, không cần khởi động lại. Mọi thay đổi được ghi nhật ký.</span>
+</div>
+<div class="row g-3">
+    <div class="col-lg-3">
+        <div class="list-group">
+            @foreach (var n in nhoms)
+            {
+                var dem = n == "Ngày nghỉ" ? ngayNghi.Count : Model.Count(x => x.Nhom == n);
+                <a class="list-group-item list-group-item-action d-flex @(n == chon ? "active" : "")" asp-action="Index" asp-route-nhom="@n">@n <span class="ms-auto badge @(n == chon ? "bg-light text-dark" : "bg-secondary")">@dem</span></a>
+            }
+        </div>
+    </div>
+    <div class="col-lg-9">
+        @if (chon == "Ngày nghỉ")
+        {
+            <div class="card">
+                <div class="card-header">Ngày nghỉ lễ (không tính SLA giờ hành chính)</div>
+                <div class="card-body">
+                    <form asp-action="ThemNgayNghi" method="post" class="row g-2 align-items-end mb-3">
+                        <div class="col-sm-3"><label class="form-label small">Từ ngày</label><input type="date" name="tuNgay" class="form-control form-control-sm" required /></div>
+                        <div class="col-sm-3"><label class="form-label small">Đến ngày</label><input type="date" name="denNgay" class="form-control form-control-sm" /></div>
+                        <div class="col-sm-4"><label class="form-label small">Tên</label><input name="ten" class="form-control form-control-sm" placeholder="VD: Tết Nguyên đán" required /></div>
+                        <div class="col-sm-2"><button class="btn btn-sm btn-primary w-100">Thêm</button></div>
+                    </form>
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Ngày</th><th>Thứ</th><th>Tên</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var d in ngayNghi)
+                        {
+                            <tr><td>@d.Ngay.ToString("dd/MM/yyyy")</td><td>@(d.Ngay.DayOfWeek == DayOfWeek.Sunday ? "CN" : "T" + ((int)d.Ngay.DayOfWeek + 1))</td><td>@d.Ten</td>
+                                <td class="text-end"><form asp-action="XoaNgayNghi" method="post" class="d-inline"><input type="hidden" name="ngay" value="@d.Ngay.ToString("yyyy-MM-dd")" /><button class="btn btn-sm btn-link text-danger p-0">Xoá</button></form></td></tr>
+                        }
+                        @if (ngayNghi.Count == 0) { <tr><td colspan="4" class="text-muted text-center py-3">Chưa khai báo ngày nghỉ.</td></tr> }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <form asp-action="Luu" method="post">
+                <input type="hidden" name="nhom" value="@chon" />
+                <div class="card">
+                    <div class="card-header">@chon</div>
+                    <div class="list-group list-group-flush">
+                    @foreach (var t in Model.Where(x => x.Nhom == chon))
+                    {
+                        var khacMacDinh = t.GiaTri != t.GiaTriMacDinh;
+                        <div class="list-group-item py-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-6">
+                                    <label class="fw-semibold" for="@Id(t.Ma)">@t.Ten</label>
+                                    @if (!string.IsNullOrEmpty(t.MoTa)) { <div class="small text-muted">@t.MoTa</div> }
+                                    <div class="small text-muted font-monospace" style="font-size:.72rem">@t.Ma</div>
+                                </div>
+                                <div class="col-md-4">
+                                    @switch (t.Kieu)
+                                    {
+                                        case KieuThamSo.BatTat:
+                                            <div class="form-check form-switch">
+                                                <input type="hidden" name="co[@t.Ma]" value="false" />
+                                                <input class="form-check-input" type="checkbox" role="switch" id="@Id(t.Ma)" name="co[@t.Ma]" value="true" @(t.GiaTri == "true" ? "checked" : "") />
+                                                <label class="form-check-label small" for="@Id(t.Ma)">@(t.GiaTri == "true" ? "Đang bật" : "Đang tắt")</label>
+                                            </div>
+                                            break;
+                                        case KieuThamSo.ThuTrongTuan:
+                                            var dsThu = t.GiaTri.Split(',');
+                                            <input type="hidden" name="thu[@t.Ma]" value="_" />
+                                            <div class="d-flex flex-wrap gap-1" role="group" aria-labelledby="@Id(t.Ma)">
+                                                @foreach (var (so, ten) in thuTen)
+                                                {
+                                                    <input type="checkbox" class="btn-check" id="@(Id(t.Ma))_@so" name="thu[@t.Ma]" value="@so" @(dsThu.Contains(so) ? "checked" : "") />
+                                                    <label class="btn btn-sm btn-outline-primary" for="@(Id(t.Ma))_@so">@ten</label>
+                                                }
+                                            </div>
+                                            break;
+                                        default:
+                                            var type = t.Kieu switch { KieuThamSo.Gio => "time", KieuThamSo.VanBan => "text", _ => "number" };
+                                            <div class="input-group input-group-sm">
+                                                <input class="form-control" id="@Id(t.Ma)" name="giaTri[@t.Ma]" value="@t.GiaTri" type="@type"
+                                                       step="@(t.Kieu == KieuThamSo.SoThuc ? "any" : "1")" min="@t.ToiThieu?.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="@t.ToiDa?.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                                @if (t.DonVi is not null) { <span class="input-group-text">@t.DonVi</span> }
+                                            </div>
+                                            break;
+                                    }
+                                </div>
+                                <div class="col-md-2 text-md-end small">
+                                    @if (khacMacDinh)
+                                    {
+                                        <div class="text-muted">Mặc định: @t.GiaTriMacDinh</div>
+                                        <button class="btn btn-link btn-sm p-0" formaction="@Url.Action("KhoiPhuc", new { ma = t.Ma, nhom = chon })" formnovalidate>Khôi phục</button>
+                                    }
+                                    @if (t.NgayCapNhat is { } n) { <div class="text-muted" style="font-size:.72rem">@n.ToString("dd/MM/yy HH:mm") · @t.NguoiCapNhat</div> }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    </div>
+                    <div class="card-footer bg-white"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu nhóm "@chon"</button></div>
+                </div>
+            </form>
+            @if (chon == "SLA sửa chữa")
+            {
+                <div class="card mt-3">
+                    <div class="card-header">Ví dụ với tham số hiện tại: yêu cầu gửi lúc @(((DateTime)ViewBag.MocViDu).ToString("HH:mm dd/MM/yyyy (dddd)", new System.Globalization.CultureInfo("vi-VN")))</div>
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Mức ưu tiên</th><th>Khoa thường (giờ hành chính)</th><th>Khoa trọng yếu</th></tr></thead>
+                        <tbody>@foreach (var v in viDu) { <tr><td>@Html.Raw(Badge.Html(v.UuTien))</td><td>@v.KhoaThuong.ToString("HH:mm dd/MM")</td><td>@v.KhoaTrongYeu.ToString("HH:mm dd/MM")</td></tr> }</tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+</div>
