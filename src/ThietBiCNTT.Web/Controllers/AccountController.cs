@@ -36,4 +36,20 @@ public class AccountController(SignInManager<AppUser> signIn, UserManager<AppUse
     public async Task<IActionResult> Logout() { await signIn.SignOutAsync(); return RedirectToAction(nameof(Login)); }
 
     public IActionResult AccessDenied() => View();
+
+    [Authorize, HttpGet]
+    public IActionResult DoiMatKhau() => View();
+
+    [Authorize, HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DoiMatKhau(string matKhauCu, string matKhauMoi, string nhapLai)
+    {
+        if (matKhauMoi != nhapLai) { ViewData["Error"] = "Mật khẩu nhập lại không khớp."; return View(); }
+        var u = await users.GetUserAsync(User);
+        if (u is null) return RedirectToAction(nameof(Login));
+        var rs = await users.ChangePasswordAsync(u, matKhauCu ?? "", matKhauMoi ?? "");
+        if (!rs.Succeeded) { ViewData["Error"] = string.Join(" ", rs.Errors.Select(NguoiDungController.DichLoi)); return View(); }
+        await signIn.RefreshSignInAsync(u);
+        TempData["ok"] = "Đã đổi mật khẩu.";
+        return Redirect("/");
+    }
 }

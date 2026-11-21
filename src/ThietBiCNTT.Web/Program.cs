@@ -5,6 +5,7 @@ using ThietBiCNTT.Infrastructure.Identity;
 using ThietBiCNTT.Web.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using ThietBiCNTT.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<AppUser>, AppClaimsFactory>();
+// Khoá tài khoản / đổi quyền / đặt lại mật khẩu → phiên đang mở bị đăng xuất trong vòng 1 phút.
+builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
 builder.Services.ConfigureApplicationCookie(o =>
 {
     o.LoginPath = "/Account/Login";
@@ -64,6 +67,12 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = vi;
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = vi;
 builder.Services.AddHostedService<BaoTriBackgroundService>();
 
+// Lưu khoá mã hoá cookie ra thư mục cố định: IIS recycle app pool không làm người dùng bị đăng xuất.
+if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+        .SetApplicationName("ThietBiCNTT");
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -71,10 +80,11 @@ using (var scope = app.Services.CreateScope())
     var sp = scope.ServiceProvider;
     var db = sp.GetRequiredService<AppDbContext>();
     if (db.IsSqlite()) await db.Database.EnsureCreatedAsync();
-    else await db.Database.MigrateAsync();
+    else if (app.Configuration.GetValue("Database:AutoMigrate", true)) await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(db, sp.GetRequiredService<UserManager<AppUser>>(),
         sp.GetRequiredService<RoleManager<IdentityRole>>(),
-        duLieuMau: app.Configuration.GetValue("SeedSampleData", false));
+        duLieuMau: app.Configuration.GetValue("SeedSampleData", false),
+        matKhauAdmin: app.Configuration["Seed:AdminPassword"]);
 }
 
 if (!app.Environment.IsDevelopment())

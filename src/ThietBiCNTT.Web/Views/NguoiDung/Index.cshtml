@@ -1,0 +1,29 @@
+@model List<AppUser>
+@{ ViewData["Title"] = "Người dùng"; var roles = (Dictionary<string, string>)ViewBag.Roles; }
+<div class="page-head">
+    <h1>Người dùng</h1>
+    <form class="d-flex gap-2 ms-2" method="get">
+        <input name="q" value="@ViewData["q"]" class="form-control form-control-sm" placeholder="Tên đăng nhập, họ tên" aria-label="Tìm người dùng" />
+        <select name="vaiTro" class="form-select form-select-sm" aria-label="Vai trò"><option value="">— Vai trò —</option>
+            @foreach (var r in VaiTro.TatCa) { <option value="@r" selected="@(r == (string?)ViewData["vaiTro"])">@VaiTro.TenHienThi(r)</option> }</select>
+        <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+    </form>
+    <div class="actions"><a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-person-plus"></i> Thêm người dùng</a></div>
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Khoa/phòng</th><th>Liên hệ</th><th>Trạng thái</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var u in Model)
+    {
+        <tr class="@(u.DangHoatDong ? "" : "text-muted")">
+            <td class="fw-semibold font-monospace">@u.UserName</td><td>@u.HoTen</td>
+            <td class="small">@VaiTro.TenHienThi(roles[u.Id])</td><td class="small">@u.KhoaPhong?.Ten</td>
+            <td class="small">@u.Email<div>@u.PhoneNumber</div></td>
+            <td>@if (u.DangHoatDong) { <span class="badge bg-success">Hoạt động</span> } else { <span class="badge bg-secondary">Đã khoá</span> }</td>
+            <td class="text-end"><a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a></td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div></div>

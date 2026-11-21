@@ -11,6 +11,7 @@
 | Đặc tả yêu cầu phần mềm (SRS v1.1, có đối chiếu SpeedMaint) | [docs/SRS.md](docs/SRS.md) |
 | Tài liệu thiết kế hệ thống | [docs/ThietKeHeThong.md](docs/ThietKeHeThong.md) |
 | Mockup giao diện (mã nguồn các artboard) | [docs/mockup/](docs/mockup/) |
+| **Hướng dẫn triển khai trên IIS** (kèm script trong `deploy/`) | [docs/TrienKhaiIIS.md](docs/TrienKhaiIIS.md) |
 | Quyết định nghiệp vụ & danh mục tham số hệ thống | [docs/QuyetDinhNghiepVu.md](docs/QuyetDinhNghiepVu.md) |
 
 ## Kiểm thử

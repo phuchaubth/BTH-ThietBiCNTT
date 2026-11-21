@@ -8,7 +8,7 @@ namespace ThietBiCNTT.Infrastructure.Data;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles, bool duLieuMau)
+    public static async Task SeedAsync(AppDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles, bool duLieuMau, string? matKhauAdmin = null)
     {
         await Services.ThamSoService.DongBoAsync(db);
         foreach (var r in VaiTro.TatCa)
@@ -64,7 +64,8 @@ public static class DbSeeder
 
         var cntt = await db.KhoaPhongs.FirstAsync(k => k.Ma == "CNTT");
         var cc = await db.KhoaPhongs.FirstAsync(k => k.Ma == "CC");
-        await TaoUser(users, "admin", "Quản trị hệ thống", cntt.Id, VaiTro.QuanTri);
+        // Mật khẩu admin lần đầu: lấy từ cấu hình Seed:AdminPassword (chỉ dùng khi tài khoản chưa tồn tại).
+        await TaoUser(users, "admin", "Quản trị hệ thống", cntt.Id, VaiTro.QuanTri, matKhauAdmin);
         if (duLieuMau)
         {
             await TaoUser(users, "ktv1", "Nguyễn Văn An (KTV)", cntt.Id, VaiTro.CanBoCNTT);
@@ -76,13 +77,14 @@ public static class DbSeeder
         }
     }
 
-    private static async Task TaoUser(UserManager<AppUser> users, string userName, string hoTen, int? khoaId, string role)
+    private static async Task TaoUser(UserManager<AppUser> users, string userName, string hoTen, int? khoaId, string role, string? matKhau = null)
     {
         if (await users.FindByNameAsync(userName) is not null) return;
         var u = new AppUser { UserName = userName, Email = $"{userName}@benhvien.local", EmailConfirmed = true, HoTen = hoTen, KhoaPhongId = khoaId };
         // Mật khẩu mặc định — BẮT BUỘC đổi khi triển khai thật.
-        var rs = await users.CreateAsync(u, "Abc@12345");
-        if (rs.Succeeded) await users.AddToRoleAsync(u, role);
+        var rs = await users.CreateAsync(u, string.IsNullOrWhiteSpace(matKhau) ? "Abc@12345" : matKhau);
+        if (!rs.Succeeded) throw new InvalidOperationException($"Không tạo được tài khoản {userName}: " + string.Join("; ", rs.Errors.Select(e => e.Description)));
+        await users.AddToRoleAsync(u, role);
     }
 
     private static async Task TaoDuLieuMau(AppDbContext db)

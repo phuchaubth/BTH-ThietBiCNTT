@@ -1,0 +1,20 @@
+@model ThietBiCNTT.Web.Controllers.NguoiDungVm
+@{ var moi = Model.Id is null; ViewData["Title"] = moi ? "Thêm người dùng" : "Sửa người dùng " + Model.UserName; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:720px"><div class="card-body">
+<form asp-action="Save" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="UserName" class="form-label">Tên đăng nhập</label><input asp-for="UserName" class="form-control font-monospace" readonly="@(!moi)" autocomplete="off" /></div>
+    <div class="col-md-6"><label asp-for="HoTen" class="form-label">Họ tên</label><input asp-for="HoTen" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="VaiTro" class="form-label">Vai trò</label><select asp-for="VaiTro" asp-items="ViewBag.DsVaiTro" class="form-select"></select></div>
+    <div class="col-md-6"><label asp-for="KhoaPhongId" class="form-label">Khoa/phòng</label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">—</option></select>
+        <div class="form-text">Bắt buộc với Trưởng khoa / Nhân viên (giới hạn dữ liệu theo khoa).</div></div>
+    <div class="col-md-6"><label asp-for="Email" class="form-label">Email</label><input asp-for="Email" class="form-control" type="email" /></div>
+    <div class="col-md-6"><label asp-for="DienThoai" class="form-label">Điện thoại</label><input asp-for="DienThoai" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="MatKhau" class="form-label">@(moi ? "Mật khẩu ban đầu" : "Đặt lại mật khẩu (để trống nếu giữ nguyên)")</label><input asp-for="MatKhau" type="password" class="form-control" autocomplete="new-password" />
+        <div class="form-text">Tối thiểu 8 ký tự, có chữ hoa, chữ thường và chữ số.</div></div>
+    <div class="col-md-6 d-flex align-items-end"><div class="form-check"><input asp-for="DangHoatDong" class="form-check-input" /><label asp-for="DangHoatDong" class="form-check-label">Đang hoạt động (bỏ chọn để khoá tài khoản)</label></div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>
