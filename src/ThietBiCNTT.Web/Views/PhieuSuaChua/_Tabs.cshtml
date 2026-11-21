@@ -1,0 +1,5 @@
+@{ var a = ViewContext.RouteData.Values["action"]?.ToString(); }
+<div class="btn-group btn-group-sm" role="group" aria-label="Kiểu xem">
+    <a asp-action="Index" class="btn btn-outline-secondary @(a == "Index" ? "active" : "")"><i class="bi bi-list-ul"></i> Danh sách</a>
+    <a asp-action="Kanban" class="btn btn-outline-secondary @(a == "Kanban" ? "active" : "")"><i class="bi bi-kanban"></i> Kanban</a>
+</div>

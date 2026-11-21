@@ -4,4 +4,7 @@
     <Project Path="src/ThietBiCNTT.Infrastructure/ThietBiCNTT.Infrastructure.csproj" />
     <Project Path="src/ThietBiCNTT.Web/ThietBiCNTT.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ThietBiCNTT.Tests/ThietBiCNTT.Tests.csproj" />
+  </Folder>
 </Solution>

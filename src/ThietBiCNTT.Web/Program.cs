@@ -8,7 +8,14 @@ using Microsoft.AspNetCore.Authentication;
 using ThietBiCNTT.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+// Chạy từ mã nguồn (dotnet run) ở môi trường khác Development (VD: Demo): dùng file tĩnh từ thư mục build.
+// Bản publish (IIS/Production) không cần dòng này.
+if (!builder.Environment.IsProduction())
+    builder.WebHost.UseStaticWebAssets();
 
+// Giữ nguyên chữ tiếng Việt có dấu trong HTML (mặc định Razor mã hoá thành &#x...;)
+builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o =>
+    o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -47,7 +54,14 @@ builder.Services.AddControllersWithViews(o =>
 {
     // Mặc định mọi trang đều yêu cầu đăng nhập.
     o.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
+    // Đọc số trong form/query theo InvariantCulture (dấu chấm thập phân) dù hiển thị theo vi-VN.
+    var i = o.ValueProviderFactories.IndexOf(o.ValueProviderFactories.OfType<Microsoft.AspNetCore.Mvc.ModelBinding.FormValueProviderFactory>().Single());
+    o.ValueProviderFactories[i] = new InvariantValueProviderFactory();
 });
+// Hiển thị số/ngày theo tiếng Việt: 14.200.000 · 21/11/2026
+var vi = new System.Globalization.CultureInfo("vi-VN");
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = vi;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = vi;
 builder.Services.AddHostedService<BaoTriBackgroundService>();
 
 var app = builder.Build();

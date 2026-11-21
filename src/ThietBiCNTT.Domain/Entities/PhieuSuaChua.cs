@@ -28,6 +28,10 @@ public class PhieuSuaChua : BaseEntity
     [Display(Name = "Bắt đầu xử lý")] public DateTime? NgayBatDau { get; set; }
     [Display(Name = "Thời điểm hoàn thành")] public DateTime? NgayHoanThanh { get; set; }
     [Display(Name = "Thời điểm nghiệm thu")] public DateTime? NgayNghiemThu { get; set; }
+    /// <summary>QĐ-04: đang tạm dừng SLA (chờ linh kiện / gửi hãng) từ thời điểm này.</summary>
+    public DateTime? BatDauTamDung { get; set; }
+    /// <summary>Tổng thời gian đã tạm dừng (giây) — trừ khỏi thời gian xử lý khi tính MTTR.</summary>
+    public long TongTamDungGiay { get; set; }
 
     [StringLength(100), Display(Name = "Kỹ thuật viên")] public string? KyThuatVien { get; set; }
     [Display(Name = "Hình thức xử lý")] public HinhThucXuLy? HinhThucXuLy { get; set; }
@@ -49,10 +53,25 @@ public class PhieuSuaChua : BaseEntity
     public decimal ChiPhiVatTu => VatTus.Sum(v => v.ThanhTien);
     public decimal TongChiPhi => ChiPhiVatTu + ChiPhiThueNgoai;
     public bool DaDong => TrangThai is TrangThaiPhieuSuaChua.DaNghiemThu or TrangThaiPhieuSuaChua.DaHuy;
-    public bool QuaHan(DateTime now) => !DaDong && TrangThai != TrangThaiPhieuSuaChua.HoanThanh && now > HanXuLy;
+    public bool DangTamDung => BatDauTamDung is not null;
+    public bool QuaHan(DateTime now) => !DaDong && !DangTamDung && TrangThai != TrangThaiPhieuSuaChua.HoanThanh && now > HanXuLy;
+    public bool HoanThanhDungHan => NgayHoanThanh is not null && NgayHoanThanh <= HanXuLy;
 
     /// <summary>Thời gian ngừng máy (giờ) = từ lúc báo đến lúc hoàn thành.</summary>
     public double? ThoiGianDungMayGio => NgayHoanThanh is null ? null : (NgayHoanThanh.Value - NgayYeuCau).TotalHours;
+    /// <summary>Thời gian xử lý hiệu dụng (giờ) = dừng máy trừ thời gian tạm dừng chờ linh kiện/hãng.</summary>
+    public double? ThoiGianXuLyGio => ThoiGianDungMayGio is { } g ? Math.Max(0, g - TongTamDungGiay / 3600.0) : null;
+
+    /// <summary>Hàm dời hạn khi hết tạm dừng: (hạn cũ, lúc bắt đầu tạm dừng, lúc tiếp tục) → hạn mới.</summary>
+    public delegate DateTime DoiHanSla(DateTime hanCu, DateTime batDauTamDung, DateTime tiepTuc);
+
+    private void KetThucTamDung(DateTime now, DoiHanSla? doiHan)
+    {
+        if (BatDauTamDung is not { } s) return;
+        TongTamDungGiay += (long)Math.Max(0, (now - s).TotalSeconds);
+        if (doiHan is not null) HanXuLy = doiHan(HanXuLy, s, now);
+        BatDauTamDung = null;
+    }
 
     private void YeuCau(params TrangThaiPhieuSuaChua[] hopLe)
     {
@@ -70,25 +89,32 @@ public class PhieuSuaChua : BaseEntity
         TrangThai = TrangThaiPhieuSuaChua.DaTiepNhan;
     }
 
-    public void BatDauXuLy(DateTime now)
+    public void BatDauXuLy(DateTime now, DoiHanSla? doiHan = null)
     {
         YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.ChoLinhKien, TrangThaiPhieuSuaChua.GuiHang);
+        KetThucTamDung(now, doiHan);
         NgayBatDau ??= now;
         TrangThai = TrangThaiPhieuSuaChua.DangXuLy;
     }
 
-    public void TamDung(TrangThaiPhieuSuaChua lyDo)
+    /// <param name="dungSla">QĐ-04: true = dừng đồng hồ SLA trong thời gian chờ (tham số Sla.TamDungKhiCho).</param>
+    public void TamDung(TrangThaiPhieuSuaChua lyDo, DateTime now, bool dungSla = true)
     {
         if (lyDo is not (TrangThaiPhieuSuaChua.ChoLinhKien or TrangThaiPhieuSuaChua.GuiHang))
             throw new DomainException("Lý do tạm dừng không hợp lệ.");
-        YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy);
+        YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.ChoLinhKien, TrangThaiPhieuSuaChua.GuiHang);
+        if (TrangThai == lyDo) return;
+        NgayBatDau ??= now;
+        if (dungSla) BatDauTamDung ??= now;
         TrangThai = lyDo;
     }
 
-    public void HoanThanh(string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai, DateTime now)
+    public void HoanThanh(string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai, DateTime now, DoiHanSla? doiHan = null)
     {
-        YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.GuiHang);
+        YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.GuiHang, TrangThaiPhieuSuaChua.ChoLinhKien);
         if (string.IsNullOrWhiteSpace(bienPhap)) throw new DomainException("Phải nhập biện pháp khắc phục.");
+        if (gioCong < 0 || chiPhiThueNgoai < 0) throw new DomainException("Giờ công / chi phí không được âm.");
+        KetThucTamDung(now, doiHan);
         NguyenNhan = nguyenNhan;
         BienPhapKhacPhuc = bienPhap;
         GioCong = gioCong;
@@ -98,14 +124,32 @@ public class PhieuSuaChua : BaseEntity
         TrangThai = TrangThaiPhieuSuaChua.HoanThanh;
     }
 
+    /// <summary>
+    /// QĐ-01: chỉ người báo hỏng hoặc Trưởng khoa của khoa sở hữu được nghiệm thu; KTV xử lý phiếu không tự nghiệm thu.
+    /// </summary>
+    public bool DuocNghiemThu(string? userName, bool laTruongKhoa, int? khoaCuaUser) =>
+        !string.IsNullOrEmpty(userName) && !string.Equals(userName, KyThuatVien, StringComparison.OrdinalIgnoreCase)
+        && (string.Equals(userName, NguoiTao, StringComparison.OrdinalIgnoreCase) || (laTruongKhoa && khoaCuaUser is not null && khoaCuaUser == KhoaPhongId));
+
     public void NghiemThu(string nguoiNghiemThu, int? danhGia, string? yKien, DateTime now)
     {
         YeuCau(TrangThaiPhieuSuaChua.HoanThanh);
+        if (danhGia is < 1 or > 5) throw new DomainException("Đánh giá từ 1 đến 5.");
         NguoiNghiemThu = nguoiNghiemThu;
         DanhGia = danhGia;
         YKienNguoiDung = yKien;
         NgayNghiemThu = now;
         TrangThai = TrangThaiPhieuSuaChua.DaNghiemThu;
+    }
+
+    /// <summary>QĐ-01: phiếu hoàn thành quá N ngày không phản hồi → hệ thống tự nghiệm thu.</summary>
+    public bool TuDongNghiemThu(int soNgay, DateTime now)
+    {
+        if (soNgay <= 0 || TrangThai != TrangThaiPhieuSuaChua.HoanThanh || NgayHoanThanh is null || NgayHoanThanh.Value.AddDays(soNgay) > now) return false;
+        NguoiNghiemThu = "Hệ thống (tự động sau " + soNgay + " ngày)";
+        NgayNghiemThu = now;
+        TrangThai = TrangThaiPhieuSuaChua.DaNghiemThu;
+        return true;
     }
 
     /// <summary>Người dùng không đồng ý nghiệm thu → trả lại cho KTV.</summary>
@@ -120,6 +164,7 @@ public class PhieuSuaChua : BaseEntity
     public void Huy(string lyDo)
     {
         if (DaDong || TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành/đóng, không thể huỷ.");
+        BatDauTamDung = null;
         YKienNguoiDung = lyDo;
         TrangThai = TrangThaiPhieuSuaChua.DaHuy;
     }

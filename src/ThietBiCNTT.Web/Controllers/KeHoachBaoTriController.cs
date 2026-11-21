@@ -69,8 +69,8 @@ public class KeHoachBaoTriController(AppDbContext db, BaoTriService baoTri) : Co
 
     private async Task Nap()
     {
-        ViewBag.Loai = new SelectList(await db.LoaiThietBis.OrderBy(l => l.Ten).ToListAsync(), "Id", "Ten");
-        ViewBag.TaiSan = new SelectList(await db.TaiSans.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy).OrderBy(t => t.MaTaiSan)
+        ViewBag.DsLoai = new SelectList(await db.LoaiThietBis.OrderBy(l => l.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsTaiSan = new SelectList(await db.TaiSans.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy).OrderBy(t => t.MaTaiSan)
             .Select(t => new { t.Id, Ten = t.MaTaiSan + " - " + t.Ten }).ToListAsync(), "Id", "Ten");
     }
 }

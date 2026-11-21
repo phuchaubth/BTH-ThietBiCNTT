@@ -1,0 +1,43 @@
+@model ThietBiCNTT.Web.Controllers.BaoHongVm
+@{
+    ViewData["Title"] = "Báo hỏng thiết bị";
+    var trung = ViewBag.Trung as List<PhieuSuaChua>;
+    var goiY = new[] { "Không vào được mạng / HIS", "Không lên nguồn", "Chạy chậm, treo máy", "Máy in kẹt giấy / không in", "Màn hình lỗi", "Lỗi phần mềm" };
+}
+<div class="page-head"><h1>Báo hỏng thiết bị</h1></div>
+<div class="card" style="max-width:760px"><div class="card-body">
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    @if (trung is not null)
+    {
+        <div class="alert alert-warning" role="alert">
+            <b>Thiết bị này đang có yêu cầu chưa xử lý xong:</b>
+            <ul class="mb-2">@foreach (var t in trung) { <li><a asp-action="Details" asp-route-id="@t.Id" class="fw-semibold">@t.SoPhieu</a> · @t.MoTaSuCo.Split('\n')[0] · @t.TrangThai.Ten() @(t.KyThuatVien is null ? "" : "· " + t.KyThuatVien)</li> }</ul>
+            Nếu là cùng sự cố, hãy mở phiếu trên để bổ sung trao đổi. Nếu là lỗi khác, bấm <b>"Vẫn gửi yêu cầu mới"</b>.
+            <input type="hidden" name="XacNhanTrung" value="true" />
+        </div>
+    }
+    <div class="mb-3">
+        <label asp-for="TaiSanId" class="form-label">Thiết bị <span class="text-danger">*</span></label>
+        <select asp-for="TaiSanId" asp-items="ViewBag.TaiSan" class="form-select"><option value="0">— Chọn thiết bị (hoặc quét QR trên tem) —</option></select>
+    </div>
+    <div class="mb-2">
+        <span class="form-label d-block small text-muted">Hiện tượng thường gặp</span>
+        <div class="d-flex flex-wrap gap-1">
+            @foreach (var g in goiY) { <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="var t=document.getElementById('MoTaSuCo'); t.value = t.value ? t.value + '; @g' : '@g'; t.focus()">@g</button> }
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MoTaSuCo" class="form-label">Mô tả sự cố <span class="text-danger">*</span></label>
+        <textarea asp-for="MoTaSuCo" class="form-control" rows="4" placeholder="Báo lỗi gì, từ lúc nào, đã thử gì…"></textarea>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-md-4"><label asp-for="UuTien" class="form-label">Mức độ ảnh hưởng</label><select asp-for="UuTien" asp-items="@EnumExtensions.ToSelectList<MucDoUuTien>()" class="form-select"></select>
+            <div class="form-text">Khẩn cấp = ảnh hưởng trực tiếp người bệnh.</div></div>
+        <div class="col-md-4"><label asp-for="NguoiYeuCau" class="form-label">Người báo</label><input asp-for="NguoiYeuCau" class="form-control" /></div>
+        <div class="col-md-4"><label asp-for="DienThoaiLienHe" class="form-label">SĐT liên hệ</label><input asp-for="DienThoaiLienHe" class="form-control" /></div>
+    </div>
+    <button class="btn btn-danger"><i class="bi bi-send"></i> @(trung is null ? "Gửi yêu cầu" : "Vẫn gửi yêu cầu mới")</button>
+    <a href="javascript:history.back()" class="btn btn-link">Huỷ</a>
+</form>
+</div></div>

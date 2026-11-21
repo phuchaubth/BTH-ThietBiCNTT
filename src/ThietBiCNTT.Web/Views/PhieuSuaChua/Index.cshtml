@@ -1,0 +1,44 @@
+@model PagedList<PhieuSuaChua>
+@{
+    ViewData["Title"] = "Yêu cầu & công việc";
+    bool cuaToi = (bool)ViewData["cuaToi"]!, quaHan = (bool)ViewData["quaHan"]!, dangMo = (bool)ViewData["dangMo"]!;
+}
+<div class="page-head">
+    <h1>Yêu cầu & công việc bảo trì</h1>
+    <partial name="_Tabs" />
+    <div class="actions"><a asp-action="Create" class="btn btn-sm btn-danger"><i class="bi bi-exclamation-triangle"></i> Báo hỏng</a></div>
+</div>
+<form method="get" class="card card-body py-2 mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-2"><label class="form-label small mb-0" for="tt">Trạng thái</label><select id="tt" name="trangThai" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList((TrangThaiPhieuSuaChua?)ViewData["trangThai"])"><option value="">— Tất cả —</option></select></div>
+        <div class="col-6 col-md-3"><label class="form-label small mb-0" for="kh">Khoa/phòng</label><select id="kh" name="khoa" class="form-select form-select-sm" asp-items="ViewBag.DsKhoa"><option value="">— Tất cả —</option></select></div>
+        <div class="col-6 col-md-2"><label class="form-label small mb-0" for="lo">Loại</label><select id="lo" name="loai" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList((LoaiCongViec?)ViewData["loai"])"><option value="">— Tất cả —</option></select></div>
+        <div class="col-md-4 d-flex flex-wrap gap-3 small">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="dangMo" value="true" id="dm" @(dangMo ? "checked" : "") /><input type="hidden" name="dangMo" value="false" /><label class="form-check-label" for="dm">Chỉ phiếu đang mở</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="cuaToi" value="true" id="ct" @(cuaToi ? "checked" : "") /><label class="form-check-label" for="ct">Việc của tôi</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="quaHan" value="true" id="qh" @(quaHan ? "checked" : "") /><label class="form-check-label" for="qh">Quá hạn SLA</label></div>
+        </div>
+        <div class="col-md-1"><button class="btn btn-sm btn-primary w-100">Lọc</button></div>
+    </div>
+</form>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Số phiếu</th><th>Thiết bị / sự cố</th><th>Khoa</th><th>Ưu tiên</th><th>KTV</th><th>Trạng thái</th><th>SLA</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model.Items)
+    {
+        <tr>
+            <td class="fw-semibold text-nowrap"><a asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a>@if (p.LoaiCongViec == LoaiCongViec.BaoTriDinhKy) { <div><span class="badge bg-light text-dark border">Bảo trì</span></div> }</td>
+            <td><span class="small fw-semibold">@p.TaiSan?.MaTaiSan</span> · @p.MoTaSuCo.Split('\n')[0]<div class="small text-muted">@p.TaiSan?.Ten · @p.NgayYeuCau.ToString("HH:mm dd/MM")</div></td>
+            <td class="small">@p.KhoaPhong?.Ten</td>
+            <td>@Html.Raw(Badge.Html(p.UuTien))</td>
+            <td class="small">@p.KyThuatVien</td>
+            <td>@Html.Raw(Badge.Html(p.TrangThai))</td>
+            <td class="small text-nowrap"><partial name="_SlaText" model="p" /></td>
+        </tr>
+    }
+    @if (Model.Items.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Không có phiếu phù hợp.</td></tr> }
+    </tbody>
+</table>
+</div></div>
+<partial name="_Pager" model="(Model.Page, Model.TotalPages, Model.Total)" />

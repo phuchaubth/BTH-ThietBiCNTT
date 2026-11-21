@@ -79,6 +79,8 @@ public class BaoTriBackgroundService(IServiceScopeFactory scopes, ILogger<BaoTri
                 var n = await scope.ServiceProvider.GetRequiredService<BaoTriService>()
                     .SinhLenhDenHanAsync(DateOnly.FromDateTime(DateTime.Today), ct);
                 if (n > 0) log.LogInformation("Đã sinh {N} lệnh bảo trì định kỳ", n);
+                var nt = await scope.ServiceProvider.GetRequiredService<NghiemThuTuDongService>().ChayAsync(DateTime.Now, ct);
+                if (nt > 0) log.LogInformation("Tự động nghiệm thu {N} phiếu", nt);
                 chuKy = scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.BaoTriChuKyQuetGio);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -131,4 +133,22 @@ public static class PhienDangNhap
     public static TimeSpan GioiHan(ClaimsPrincipal u, ThamSoService ts) => LaTaiKhoanKhoa(u)
         ? TimeSpan.FromMinutes(ts.SoNguyen(TS.PhienKhoaPhut))
         : TimeSpan.FromHours(ts.SoNguyen(TS.PhienCNTTGio));
+}
+
+/// <summary>
+/// Hiển thị theo văn hoá vi-VN (14.200.000 đ, dd/MM/yyyy) nhưng đọc dữ liệu form/query theo InvariantCulture,
+/// vì input type=number của trình duyệt luôn gửi dấu chấm thập phân ("0.5").
+/// </summary>
+public class InvariantValueProviderFactory : Microsoft.AspNetCore.Mvc.ModelBinding.IValueProviderFactory
+{
+    public async Task CreateValueProviderAsync(Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderFactoryContext context)
+    {
+        var req = context.ActionContext.HttpContext.Request;
+        if (req.HasFormContentType)
+        {
+            var form = await req.ReadFormAsync();
+            context.ValueProviders.Add(new Microsoft.AspNetCore.Mvc.ModelBinding.FormValueProvider(
+                Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Form, form, System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
 }

@@ -5,12 +5,14 @@ using ThietBiCNTT.Domain.Common;
 using ThietBiCNTT.Domain.Entities;
 using ThietBiCNTT.Domain.Enums;
 using ThietBiCNTT.Infrastructure.Data;
+using ThietBiCNTT.Infrastructure.Identity;
 using ThietBiCNTT.Infrastructure.Services;
 using ThietBiCNTT.Web.Infrastructure;
 
 namespace ThietBiCNTT.Web.Controllers;
 
-public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu) : Controller
+/// <summary>Điều chuyển tài sản — QĐ-02: duyệt nhiều cấp theo giá trị (tham số DieuChuyen.NguongDuyetLanhDao).</summary>
+public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo) : Controller
 {
     private IQueryable<PhieuDieuChuyen> PhamVi()
     {
@@ -19,12 +21,24 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
         return q;
     }
 
-    public async Task<IActionResult> Index(TrangThaiDieuChuyen? trangThai)
+    /// <summary>Người dùng hiện tại có quyền duyệt cấp đang chờ của phiếu không.</summary>
+    private bool CoQuyenDuyet(PhieuDieuChuyen p) => p.TrangThai == TrangThaiDieuChuyen.ChoDuyet && p.CapHienTai switch
+    {
+        PhieuDieuChuyen.CapTruongKhoa => User.IsInRole(VaiTro.QuanTri) || (User.IsInRole(VaiTro.TruongKhoa) && User.KhoaPhongId() == p.TuKhoaPhongId),
+        PhieuDieuChuyen.CapCNTT => User.LaCNTT(),
+        PhieuDieuChuyen.CapLanhDao => User.IsInRole(VaiTro.LanhDao) || User.IsInRole(VaiTro.QuanTri),
+        _ => false
+    } && !string.Equals(p.NguoiTao, User.Identity?.Name, StringComparison.OrdinalIgnoreCase);
+
+    public async Task<IActionResult> Index(TrangThaiDieuChuyen? trangThai, bool choToiDuyet = false)
     {
         var q = PhamVi().Include(p => p.TuKhoaPhong).Include(p => p.DenKhoaPhong).Include(p => p.ChiTiets).AsNoTracking();
         if (trangThai is not null) q = q.Where(p => p.TrangThai == trangThai);
-        ViewData["trangThai"] = trangThai;
-        return View(await q.OrderByDescending(p => p.Id).Take(200).ToListAsync());
+        var ds = await q.OrderByDescending(p => p.Id).Take(300).ToListAsync();
+        if (choToiDuyet) ds = ds.Where(CoQuyenDuyet).ToList();
+        ViewData["trangThai"] = trangThai; ViewData["choToiDuyet"] = choToiDuyet;
+        ViewBag.CoQuyen = ds.Where(CoQuyenDuyet).Select(p => p.Id).ToHashSet();
+        return View(ds);
     }
 
     public async Task<IActionResult> Create(int? tuKhoa, int[]? taiSanIds)
@@ -39,26 +53,46 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
     public async Task<IActionResult> Create(PhieuDieuChuyen input, int[] taiSanIds, bool guiDuyet)
     {
         if (!User.XemToanVien() && input.TuKhoaPhongId != User.KhoaPhongId()) return Forbid();
+        ModelState.Remove(nameof(PhieuDieuChuyen.SoPhieu));
         var dsTs = await db.TaiSans.Where(t => taiSanIds.Contains(t.Id)).ToListAsync();
         if (dsTs.Count == 0) ModelState.AddModelError("", "Chọn ít nhất một tài sản.");
         if (dsTs.Any(t => t.KhoaPhongId != input.TuKhoaPhongId)) ModelState.AddModelError("", "Có tài sản không thuộc khoa đi.");
         if (dsTs.Any(t => t.TrangThai is TrangThaiTaiSan.DaThanhLy or TrangThaiTaiSan.ChoThanhLy)) ModelState.AddModelError("", "Có tài sản đang/đã thanh lý.");
+        foreach (var loi in await KiemTraXungDot(taiSanIds, 0)) ModelState.AddModelError("", loi);
         if (!ModelState.IsValid) { await Nap(input.TuKhoaPhongId); ViewData["chon"] = taiSanIds; return View(input); }
 
-        input.SoPhieu = await soPhieu.TaoAsync("DC");
         input.ChiTiets = dsTs.Select(t => new ChiTietDieuChuyen { TaiSanId = t.Id, TaiSan = t }).ToList();
-        try { if (guiDuyet) input.GuiDuyet(); }
+        try { if (guiDuyet) input.GuiDuyet(thamSo.SoLon(TS.DieuChuyenNguongLanhDao)); }
         catch (DomainException ex) { ModelState.AddModelError("", ex.Message); await Nap(input.TuKhoaPhongId); ViewData["chon"] = taiSanIds; return View(input); }
         db.PhieuDieuChuyens.Add(input);
-        await db.SaveChangesAsync();
-        TempData["ok"] = $"Đã tạo phiếu {input.SoPhieu}" + (guiDuyet ? " và gửi duyệt." : " (nháp).");
+        await db.LuuMoiAsync(soPhieu, "DC", so => input.SoPhieu = so);
+        TempData["ok"] = $"Đã tạo phiếu {input.SoPhieu}" + (guiDuyet ? $" và gửi duyệt ({input.CacCap().Count()} cấp)." : " (nháp).");
         return RedirectToAction(nameof(Details), new { id = input.Id });
+    }
+
+    /// <summary>Tài sản không được nằm trong phiếu điều chuyển khác đang mở, hoặc đang có phiếu sửa chữa chưa xong.</summary>
+    private async Task<List<string>> KiemTraXungDot(IEnumerable<int> taiSanIds, int boQuaPhieuId)
+    {
+        var ids = taiSanIds.ToList();
+        var loi = new List<string>();
+        var dcMo = await db.ChiTietDieuChuyens.Where(c => ids.Contains(c.TaiSanId) && c.PhieuDieuChuyenId != boQuaPhieuId
+                && (c.PhieuDieuChuyen!.TrangThai == TrangThaiDieuChuyen.Nhap || c.PhieuDieuChuyen.TrangThai == TrangThaiDieuChuyen.ChoDuyet || c.PhieuDieuChuyen.TrangThai == TrangThaiDieuChuyen.DaDuyet))
+            .Select(c => new { c.TaiSan!.MaTaiSan, c.PhieuDieuChuyen!.SoPhieu }).ToListAsync();
+        loi.AddRange(dcMo.Select(x => $"{x.MaTaiSan} đang nằm trong phiếu {x.SoPhieu}."));
+        var scMo = await db.PhieuSuaChuas.Where(p => ids.Contains(p.TaiSanId) && p.TrangThai != TrangThaiPhieuSuaChua.DaNghiemThu
+                && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy && p.TrangThai != TrangThaiPhieuSuaChua.HoanThanh)
+            .Select(p => new { p.TaiSan!.MaTaiSan, p.SoPhieu }).ToListAsync();
+        loi.AddRange(scMo.Select(x => $"{x.MaTaiSan} đang có phiếu sửa chữa {x.SoPhieu} chưa xong."));
+        return loi;
     }
 
     public async Task<IActionResult> Details(int id)
     {
         var p = await Load(id, tracking: false);
-        return p is null ? NotFound() : View(p);
+        if (p is null) return NotFound();
+        ViewBag.CoQuyenDuyet = CoQuyenDuyet(p);
+        ViewBag.Nguong = thamSo.SoLon(TS.DieuChuyenNguongLanhDao);
+        return View(p);
     }
 
     public async Task<IActionResult> InBienBan(int id)
@@ -69,29 +103,41 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
 
     private Task<PhieuDieuChuyen?> Load(int id, bool tracking)
     {
-        var q = PhamVi().Include(p => p.TuKhoaPhong).Include(p => p.DenKhoaPhong)
+        var q = PhamVi().Include(p => p.TuKhoaPhong).Include(p => p.DenKhoaPhong).Include(p => p.DenViTri)
+            .Include(p => p.BuocDuyets)
             .Include(p => p.ChiTiets).ThenInclude(c => c.TaiSan).ThenInclude(t => t!.LoaiThietBi);
-        return (tracking ? q : q.AsNoTracking()).FirstOrDefaultAsync(p => p.Id == id);
+        return (tracking ? q : q.AsNoTracking()).AsSplitQuery().FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    private async Task<IActionResult> ThucHien(int id, Func<PhieuDieuChuyen, string> action)
+    private async Task<IActionResult> ThucHien(int id, Func<PhieuDieuChuyen, Task<string>> action)
     {
         var p = await Load(id, tracking: true);
         if (p is null) return NotFound();
-        try { TempData["ok"] = action(p); await db.SaveChangesAsync(); }
+        try { TempData["ok"] = await action(p); await db.SaveChangesAsync(); }
         catch (DomainException ex) { TempData["err"] = ex.Message; }
         return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> GuiDuyet(int id) => ThucHien(id, p => { p.GuiDuyet(); return "Đã gửi duyệt."; });
+    public Task<IActionResult> GuiDuyet(int id) => ThucHien(id, async p =>
+    {
+        if (!string.Equals(p.NguoiTao, User.Identity?.Name, StringComparison.OrdinalIgnoreCase) && !User.LaCNTT())
+            throw new DomainException("Chỉ người lập phiếu hoặc Phòng CNTT được gửi duyệt.");
+        var loi = await KiemTraXungDot(p.ChiTiets.Select(c => c.TaiSanId), p.Id);
+        if (loi.Count > 0) throw new DomainException(string.Join(" ", loi));
+        p.GuiDuyet(thamSo.SoLon(TS.DieuChuyenNguongLanhDao));
+        return $"Đã gửi duyệt. Chờ: {PhieuDieuChuyen.TenCap(p.CapHienTai)}.";
+    });
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> Duyet(int id, bool dongY, string? yKien) => ThucHien(id, p =>
     {
-        if (!User.LaDuyet() && !User.LaCNTT()) throw new DomainException("Bạn không có quyền duyệt.");
-        p.Duyet(User.HoTen(), dongY, yKien, DateTime.Now);
-        return dongY ? "Đã duyệt phiếu." : "Đã từ chối phiếu.";
+        if (!CoQuyenDuyet(p)) throw new DomainException($"Bạn không có quyền duyệt cấp '{PhieuDieuChuyen.TenCap(p.CapHienTai)}' của phiếu này.");
+        var cap = p.CapHienTai;
+        p.Duyet(User.Identity!.Name!, User.HoTen(), dongY, yKien, DateTime.Now);
+        return Task.FromResult(!dongY ? "Đã từ chối phiếu."
+            : p.TrangThai == TrangThaiDieuChuyen.DaDuyet ? "Đã duyệt cấp cuối. Phòng CNTT có thể bàn giao."
+            : $"Đã duyệt cấp '{PhieuDieuChuyen.TenCap(cap)}'. Chờ: {PhieuDieuChuyen.TenCap(p.CapHienTai)}.");
     });
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -100,16 +146,31 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
         if (!User.LaCNTT()) throw new DomainException("Chỉ Phòng CNTT xác nhận bàn giao.");
         p.BanGiao(DateTime.Now);
         foreach (var ct in p.ChiTiets)
-            lichSu.Ghi(ct.TaiSanId, LoaiSuKien.DieuChuyen, $"{p.SoPhieu}: {p.TuKhoaPhong?.Ten} → {p.DenKhoaPhong?.Ten}" + (p.NguoiNhan is null ? "" : $", người nhận {p.NguoiNhan}"), User.Identity?.Name);
-        return "Đã bàn giao, tài sản đã được cập nhật khoa/phòng mới.";
+            lichSu.Ghi(ct.TaiSanId, LoaiSuKien.DieuChuyen, $"{p.SoPhieu}: {p.TuKhoaPhong?.Ten ?? "Kho CNTT"} → {p.DenKhoaPhong?.Ten}" + (p.NguoiNhan is null ? "" : $", người nhận {p.NguoiNhan}"), User.Identity?.Name);
+        return Task.FromResult("Đã bàn giao, tài sản đã được cập nhật khoa/phòng mới.");
     });
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Huy(int id)
+    {
+        var p = await Load(id, tracking: true);
+        if (p is null) return NotFound();
+        if (p.TrangThai is not (TrangThaiDieuChuyen.Nhap or TrangThaiDieuChuyen.TuChoi)) { TempData["err"] = "Chỉ huỷ được phiếu nháp hoặc bị từ chối."; return RedirectToAction(nameof(Details), new { id }); }
+        if (!string.Equals(p.NguoiTao, User.Identity?.Name, StringComparison.OrdinalIgnoreCase) && !User.LaCNTT()) return Forbid();
+        db.PhieuDieuChuyens.Remove(p);
+        await db.SaveChangesAsync();
+        TempData["ok"] = $"Đã huỷ phiếu {p.SoPhieu}.";
+        return RedirectToAction(nameof(Index));
+    }
 
     private async Task Nap(int? tuKhoa)
     {
         var khoa = await db.KhoaPhongs.Where(k => k.DangHoatDong).OrderBy(k => k.Ten).ToListAsync();
-        ViewBag.Khoa = new SelectList(khoa, "Id", "Ten");
-        ViewBag.TaiSan = tuKhoa is null ? new List<TaiSan>() : await db.TaiSans.Include(t => t.LoaiThietBi).AsNoTracking()
+        ViewBag.DsKhoa = new SelectList(khoa, "Id", "Ten");
+        ViewBag.DsViTri = new SelectList(await db.ViTris.OrderBy(v => v.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsTaiSan = await db.TaiSans.Include(t => t.LoaiThietBi).AsNoTracking()
             .Where(t => t.KhoaPhongId == tuKhoa && t.TrangThai != TrangThaiTaiSan.DaThanhLy && t.TrangThai != TrangThaiTaiSan.ChoThanhLy)
             .OrderBy(t => t.MaTaiSan).ToListAsync();
+        ViewBag.Nguong = thamSo.SoLon(TS.DieuChuyenNguongLanhDao);
     }
 }

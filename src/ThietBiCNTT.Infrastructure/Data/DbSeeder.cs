@@ -149,7 +149,10 @@ public static class DbSeeder
         foreach (var t in dsTs.Where(t => t.TrangThai != TrangThaiTaiSan.DangSuDung).Concat(dsTs.Take(25)))
         {
             n++;
-            var ngay = now.AddDays(-rnd.Next(0, 330)).AddHours(-rnd.Next(0, 10));
+            // Phiếu còn mở (thiết bị hỏng/đang sửa) là phiếu gần đây; phiếu đã xong rải đều 11 tháng.
+            var ngay = t.TrangThai == TrangThaiTaiSan.DangSuDung
+                ? now.AddDays(-rnd.Next(1, 330)).AddHours(-rnd.Next(0, 10))
+                : now.AddHours(-rnd.Next(1, 30));
             var uuTien = (MucDoUuTien)rnd.Next(1, 5);
             var trongYeu = dsKhoa.First(k => k.Id == t.KhoaPhongId).LaKhoaTrongYeu;
             var p = new PhieuSuaChua
@@ -157,11 +160,12 @@ public static class DbSeeder
                 SoPhieu = $"SC-{ngay:yyMM}-{n:D4}", TaiSanId = t.Id, KhoaPhongId = t.KhoaPhongId,
                 NguoiYeuCau = "Điều dưỡng trưởng", MoTaSuCo = loi[rnd.Next(loi.Length)], UuTien = uuTien,
                 NgayYeuCau = ngay, HanXuLy = ThietBiCNTT.Domain.Common.SlaCalculator.TinhHan(ngay, uuTien, trongYeu, SlaThamSo.MacDinh),
+                NguoiTao = "nhanvien",
             };
             if (t.TrangThai == TrangThaiTaiSan.DangSuDung)
             {
                 p.TiepNhan("ktv1", HinhThucXuLy.TuSua, ngay.AddMinutes(rnd.Next(10, 120)));
-                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), 0, ngay.AddHours(rnd.Next(1, 40)));
+                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), 0, ngay.AddHours(rnd.Next(1, 30)));
                 if (rnd.Next(3) > 0) p.NghiemThu("Điều dưỡng trưởng", rnd.Next(3, 6), null, p.NgayHoanThanh!.Value.AddHours(2));
             }
             else if (t.TrangThai == TrangThaiTaiSan.DangSuaChua)

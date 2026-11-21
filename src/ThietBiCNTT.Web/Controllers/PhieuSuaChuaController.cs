@@ -48,7 +48,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         if (quaHan) q = q.Where(p => p.HanXuLy < now && p.TrangThai != TrangThaiPhieuSuaChua.HoanThanh && !Dong.Contains(p.TrangThai));
         var total = await q.CountAsync();
         var items = await q.OrderByDescending(p => p.UuTien).ThenBy(p => p.HanXuLy).Skip((page - 1) * size).Take(size).ToListAsync();
-        ViewBag.Khoa = new SelectList(await db.KhoaPhongs.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten", khoa);
+        ViewBag.DsKhoa = new SelectList(await db.KhoaPhongs.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten", khoa);
         ViewData["trangThai"] = trangThai; ViewData["loai"] = loai; ViewData["cuaToi"] = cuaToi; ViewData["quaHan"] = quaHan; ViewData["dangMo"] = dangMo;
         return View(new PagedList<PhieuSuaChua>(items, page, size, total));
     }
@@ -93,12 +93,12 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         var now = DateTime.Now;
         var p = new PhieuSuaChua
         {
-            SoPhieu = await soPhieu.TaoAsync("SC"), TaiSanId = ts!.Id, KhoaPhongId = ts.KhoaPhongId,
+            TaiSanId = ts!.Id, KhoaPhongId = ts.KhoaPhongId,
             MoTaSuCo = vm.MoTaSuCo.Trim(), UuTien = vm.UuTien, NguoiYeuCau = vm.NguoiYeuCau, DienThoaiLienHe = vm.DienThoaiLienHe,
             NgayYeuCau = now, HanXuLy = thamSo.TinhHanSla(now, vm.UuTien, ts.KhoaPhong?.LaKhoaTrongYeu == true),
         };
         db.PhieuSuaChuas.Add(p);
-        await db.SaveChangesAsync();
+        await db.LuuMoiAsync(soPhieu, "SC", so => p.SoPhieu = so);
         lichSu.Ghi(ts.Id, LoaiSuKien.SuaChua, $"Báo hỏng {p.SoPhieu}: {p.MoTaSuCo}", User.Identity?.Name);
         await db.SaveChangesAsync();
         TempData["ok"] = $"Đã gửi yêu cầu {p.SoPhieu}. Hạn xử lý: {p.HanXuLy:HH:mm dd/MM}.";
@@ -119,7 +119,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
             .Select(u => new { u.UserName, Ten = $"{u.HoTen} ({u.UserName})" }), "UserName", "Ten", p.KyThuatVien);
         ViewBag.Ncc = new SelectList(await db.NhaCungCaps.OrderBy(n => n.Ten).ToListAsync(), "Id", "Ten", p.NhaCungCapId);
         ViewBag.VatTu = new SelectList(await db.VatTus.Where(v => v.TonKho > 0).OrderBy(v => v.Ten)
-            .Select(v => new { v.Id, Ten = $"{v.Ma} - {v.Ten} (tồn {v.TonKho} {v.DonViTinh})" }).ToListAsync(), "Id", "Ten");
+            .Select(v => new { v.Id, Ten = v.Ma + " - " + v.Ten + " (tồn " + ((double)v.TonKho).ToString() + " " + v.DonViTinh + ")" }).ToListAsync(), "Id", "Ten");
         ViewBag.LichSuThietBi = await db.PhieuSuaChuas.AsNoTracking().Where(x => x.TaiSanId == p.TaiSanId && x.Id != p.Id)
             .OrderByDescending(x => x.NgayYeuCau).Take(5).ToListAsync();
         return View(p);
@@ -131,7 +131,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
     {
         if (chiCNTT && !User.LaCNTT()) return Forbid();
         var p = await PhamVi().Include(x => x.TaiSan).ThenInclude(t => t!.LoaiThietBi)
-                    .Include(x => x.VatTus).FirstOrDefaultAsync(x => x.Id == id);
+                    .Include(x => x.KhoaPhong).Include(x => x.VatTus).FirstOrDefaultAsync(x => x.Id == id);
         if (p is null) return NotFound();
         var truoc = p.TrangThai;
         try
@@ -167,27 +167,51 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         }
     }
 
+    /// <summary>QĐ-04: hàm dời hạn SLA khi hết tạm dừng, theo lịch của khoa phiếu.</summary>
+    private PhieuSuaChua.DoiHanSla DoiHan(PhieuSuaChua p)
+    {
+        var sla = thamSo.Sla();
+        var h24 = SlaCalculator.Tinh24h(p.KhoaPhong?.LaKhoaTrongYeu == true, sla);
+        return (han, bd, tiep) => SlaCalculator.DoiHanSauTamDung(han, bd, tiep, h24, sla);
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> TiepNhan(int id, string kyThuatVien, HinhThucXuLy hinhThuc, int? nhaCungCapId) =>
         ThucHien(id, p => { p.TiepNhan(kyThuatVien, hinhThuc, DateTime.Now); p.NhaCungCapId = nhaCungCapId; return $"Đã giao cho {kyThuatVien}."; });
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> BatDau(int id) => ThucHien(id, p => { p.BatDauXuLy(DateTime.Now); return "Đã bắt đầu xử lý."; });
+    public Task<IActionResult> BatDau(int id) => ThucHien(id, p =>
+    {
+        var dangDung = p.DangTamDung;
+        p.BatDauXuLy(DateTime.Now, DoiHan(p));
+        return dangDung ? $"Tiếp tục xử lý. Hạn SLA mới: {p.HanXuLy:HH:mm dd/MM}." : "Đã bắt đầu xử lý.";
+    });
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> TamDung(int id, TrangThaiPhieuSuaChua lyDo) => ThucHien(id, p => { p.TamDung(lyDo); return "Đã cập nhật."; });
+    public Task<IActionResult> TamDung(int id, TrangThaiPhieuSuaChua lyDo) => ThucHien(id, p =>
+    {
+        var dung = thamSo.BatTat(TS.SlaTamDungKhiCho);
+        p.TamDung(lyDo, DateTime.Now, dung);
+        return dung ? "Đã chuyển trạng thái, đồng hồ SLA tạm dừng." : "Đã chuyển trạng thái.";
+    });
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> HoanThanh(int id, string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai) =>
-        ThucHien(id, p => { p.HoanThanh(nguyenNhan, bienPhap, gioCong, chiPhiThueNgoai, DateTime.Now); return "Đã hoàn thành, chờ người dùng nghiệm thu."; });
+        ThucHien(id, p => { p.HoanThanh(nguyenNhan, bienPhap, gioCong, chiPhiThueNgoai, DateTime.Now, DoiHan(p)); return "Đã hoàn thành, chờ khoa nghiệm thu."; });
+
+    private void KiemTraQuyenNghiemThu(PhieuSuaChua p)
+    {
+        if (!p.DuocNghiemThu(User.Identity?.Name, User.IsInRole(VaiTro.TruongKhoa), User.KhoaPhongId()))
+            throw new DomainException("Chỉ người báo hỏng hoặc Trưởng khoa/phòng được nghiệm thu (KTV xử lý phiếu không tự nghiệm thu).");
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> NghiemThu(int id, int? danhGia, string? yKien) =>
-        ThucHien(id, p => { p.NghiemThu(User.HoTen(), danhGia, yKien, DateTime.Now); return "Đã nghiệm thu. Cảm ơn bạn!"; }, chiCNTT: false);
+        ThucHien(id, p => { KiemTraQuyenNghiemThu(p); p.NghiemThu(User.HoTen(), danhGia, yKien, DateTime.Now); return "Đã nghiệm thu. Cảm ơn bạn!"; }, chiCNTT: false);
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> TraLai(int id, string yKien) =>
-        ThucHien(id, p => { if (string.IsNullOrWhiteSpace(yKien)) throw new DomainException("Nhập lý do chưa đạt."); p.TraLai(yKien); return "Đã trả lại cho KTV."; }, chiCNTT: false);
+        ThucHien(id, p => { KiemTraQuyenNghiemThu(p); if (string.IsNullOrWhiteSpace(yKien)) throw new DomainException("Nhập lý do chưa đạt."); p.TraLai(yKien); return "Đã trả lại cho KTV."; }, chiCNTT: false);
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> Huy(int id, string lyDo) =>

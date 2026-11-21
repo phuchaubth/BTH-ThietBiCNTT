@@ -1,0 +1,17 @@
+@model PhieuSuaChua
+@{
+    var now = DateTime.Now;
+    string text; string css;
+    if (Model.DaDong || Model.TrangThai == TrangThaiPhieuSuaChua.HoanThanh)
+    { text = Model.HoanThanhDungHan ? "đúng SLA" : "trễ SLA"; css = Model.HoanThanhDungHan ? "text-success" : "text-danger"; }
+    else if (Model.DangTamDung) { text = "tạm dừng SLA"; css = "text-secondary"; }
+    else
+    {
+        var con = Model.HanXuLy - now;
+        css = con < TimeSpan.Zero ? "overdue" : con < TimeSpan.FromHours(1) ? "text-warning fw-semibold" : "text-muted";
+        var abs = con.Duration();
+        var s = abs.TotalHours >= 24 ? $"{(int)abs.TotalDays} ngày" : abs.TotalMinutes >= 60 ? $"{(int)abs.TotalHours} giờ {abs.Minutes} ph" : $"{(int)abs.TotalMinutes} ph";
+        text = con < TimeSpan.Zero ? "quá " + s : "còn " + s;
+    }
+}
+<span class="@css" title="Hạn @Model.HanXuLy.ToString("HH:mm dd/MM/yyyy")">@text</span>

@@ -1,0 +1,14 @@
+@model PhieuDieuChuyen
+@{ Layout = "_Print"; ViewData["Title"] = "Biên bản " + Model.SoPhieu; var i = 1; }
+<partial name="_HeaderBenhVien" />
+<h3>BIÊN BẢN BÀN GIAO TÀI SẢN ĐIỀU CHUYỂN</h3>
+<p class="text-center">Số: <b>@Model.SoPhieu</b></p>
+<p>Hôm nay, ngày @((Model.NgayBanGiao ?? DateTime.Now).ToString("dd/MM/yyyy")), chúng tôi gồm:</p>
+<p><b>Bên giao:</b> @(Model.TuKhoaPhong?.Ten ?? "Phòng Công nghệ thông tin (kho)")<br /><b>Bên nhận:</b> @Model.DenKhoaPhong?.Ten @(Model.NguoiNhan is null ? "" : "– Người nhận: " + Model.NguoiNhan)<br /><b>Lý do:</b> @Model.LyDo</p>
+<p>Cùng tiến hành bàn giao các tài sản sau:</p>
+<table class="bb w-100 mb-3">
+    <tr><th>STT</th><th>Mã TS</th><th>Tên tài sản</th><th>Số serial</th><th>Nguyên giá</th><th>Tình trạng</th></tr>
+    @foreach (var c in Model.ChiTiets) { <tr><td>@(i++)</td><td>@c.TaiSan?.MaTaiSan</td><td>@c.TaiSan?.Ten</td><td>@c.TaiSan?.SoSerial</td><td class="text-end">@c.TaiSan?.NguyenGia.ToString("N0")</td><td>@(c.TinhTrang ?? "Hoạt động bình thường")</td></tr> }
+</table>
+<p>Ý kiến duyệt: @string.Join("; ", Model.BuocDuyets.Where(b => b.DongY && b.LuotGui == Model.LuotGui).OrderBy(b => b.Cap).Select(b => $"{PhieuDieuChuyen.TenCap(b.Cap)}: {b.TenNguoiDuyet} ({b.ThoiGian:dd/MM/yyyy})"))</p>
+<div class="ky"><div><b>Bên giao</b><br /><i>(Ký, ghi rõ họ tên)</i></div><div><b>Bên nhận</b><br /><i>(Ký, ghi rõ họ tên)</i></div><div><b>Phòng CNTT</b><br /><i>(Ký, ghi rõ họ tên)</i></div></div>

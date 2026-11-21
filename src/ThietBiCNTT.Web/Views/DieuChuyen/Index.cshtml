@@ -1,0 +1,36 @@
+@model List<PhieuDieuChuyen>
+@{
+    ViewData["Title"] = "Điều chuyển";
+    var coQuyen = (HashSet<int>)ViewBag.CoQuyen;
+    var choToi = (bool)ViewData["choToiDuyet"]!;
+}
+<div class="page-head">
+    <h1>Điều chuyển tài sản</h1>
+    <div class="actions">
+        <a asp-action="Index" asp-route-choToiDuyet="@(!choToi)" class="btn btn-sm @(choToi ? "btn-primary" : "btn-outline-primary")"><i class="bi bi-check2-square"></i> Chờ tôi duyệt @(coQuyen.Count > 0 && !choToi ? $"({coQuyen.Count})" : "")</a>
+        <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Lập phiếu</a>
+    </div>
+</div>
+<form method="get" class="mb-3 d-flex gap-2" style="max-width:380px">
+    <select name="trangThai" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList((TrangThaiDieuChuyen?)ViewData["trangThai"])" aria-label="Trạng thái"><option value="">— Tất cả trạng thái —</option></select>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Số phiếu</th><th>Từ → Đến</th><th>Số TS</th><th class="text-end">Tổng nguyên giá</th><th>Người lập</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        <tr class="@(coQuyen.Contains(p.Id) ? "table-warning" : "")">
+            <td class="fw-semibold"><a asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a><div class="small text-muted fw-normal">@p.NgayTao.ToString("dd/MM/yyyy")</div></td>
+            <td class="small">@(p.TuKhoaPhong?.Ten ?? "Kho CNTT") <i class="bi bi-arrow-right"></i> @p.DenKhoaPhong?.Ten</td>
+            <td>@p.ChiTiets.Count</td>
+            <td class="text-end small">@(p.TongNguyenGia > 0 ? p.TongNguyenGia.ToString("N0") : "—")</td>
+            <td class="small">@p.NguoiTao</td>
+            <td>@Html.Raw(Badge.Html(p.TrangThai)) @if (p.TrangThai == TrangThaiDieuChuyen.ChoDuyet) { <div class="small text-muted">Chờ: @PhieuDieuChuyen.TenCap(p.CapHienTai)</div> }</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có phiếu điều chuyển.</td></tr> }
+    </tbody>
+</table>
+</div></div>

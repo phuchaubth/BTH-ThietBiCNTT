@@ -1,6 +1,8 @@
 @{
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
     string Act(params string[] names) => names.Contains(c) ? "active" : "";
+    var cntt = User.LaCNTT();
+    var quanLy = cntt || User.IsInRole(VaiTro.LanhDao);
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -23,11 +25,11 @@
         <a class="nav-item @Act("TaiSan")" asp-controller="TaiSan" asp-action="Index"><i class="bi bi-pc-display"></i> Tài sản & cấu hình</a>
         <div class="nav-section">Bảo trì</div>
         <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
-        <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a>
-        <a class="nav-item @Act("VatTu")" asp-controller="VatTu" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a>
+        @if (quanLy) { <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a> }
+        @if (cntt) { <a class="nav-item @Act("VatTu")" asp-controller="VatTu" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a> }
         <div class="nav-section">Nghiệp vụ</div>
         <a class="nav-item @Act("DieuChuyen")" asp-controller="DieuChuyen" asp-action="Index"><i class="bi bi-arrow-left-right"></i> Điều chuyển</a>
-        <a class="nav-item @Act("ThanhLy")" asp-controller="ThanhLy" asp-action="Index"><i class="bi bi-trash3"></i> Thanh lý</a>
+        @if (quanLy) { <a class="nav-item @Act("ThanhLy")" asp-controller="ThanhLy" asp-action="Index"><i class="bi bi-trash3"></i> Thanh lý</a> }
         @if (User.LaCNTT())
         {
             <div class="nav-section">Danh mục</div>

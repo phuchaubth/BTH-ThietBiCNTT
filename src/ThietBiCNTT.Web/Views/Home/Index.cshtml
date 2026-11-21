@@ -8,7 +8,7 @@
 }
 <div class="page-head">
     <h1>Tổng quan trang thiết bị CNTT</h1>
-    <span class="text-muted small ms-2">Cập nhật @now.ToString("HH:mm dd/MM/yyyy")</span>
+    <span class="text-muted small ms-2">@(Model.LaToanVien ? "Toàn bệnh viện" : "Khoa/phòng của bạn") · cập nhật @now.ToString("HH:mm dd/MM/yyyy")</span>
     <div class="actions">
         <a asp-controller="PhieuSuaChua" asp-action="Kanban" class="btn btn-sm btn-outline-primary"><i class="bi bi-kanban"></i> Bảng công việc</a>
         @if (User.LaCNTT()) { <a asp-controller="TaiSan" asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm tài sản</a> }
@@ -41,7 +41,7 @@
                 @foreach (var p in Model.PhieuMoiNhat)
                 {
                     <tr>
-                        <td><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a></td>
+                        <td class="text-nowrap"><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a></td>
                         <td class="small">@p.TaiSan?.MaTaiSan<div class="text-muted text-truncate" style="max-width:200px">@p.MoTaSuCo</div></td>
                         <td class="small">@p.KhoaPhong?.Ten</td>
                         <td>@Html.Raw(Badge.Html(p.UuTien))</td>

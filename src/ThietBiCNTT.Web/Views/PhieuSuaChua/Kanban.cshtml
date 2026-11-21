@@ -1,0 +1,46 @@
+@model List<PhieuSuaChua>
+@{
+    ViewData["Title"] = "Bảng công việc";
+    var cot = new (string Ten, TrangThaiPhieuSuaChua[] TrangThai)[]
+    {
+        ("Mới", [TrangThaiPhieuSuaChua.Moi]),
+        ("Đã tiếp nhận", [TrangThaiPhieuSuaChua.DaTiepNhan]),
+        ("Đang xử lý", [TrangThaiPhieuSuaChua.DangXuLy]),
+        ("Chờ linh kiện / hãng", [TrangThaiPhieuSuaChua.ChoLinhKien, TrangThaiPhieuSuaChua.GuiHang]),
+        ("Chờ nghiệm thu", [TrangThaiPhieuSuaChua.HoanThanh]),
+        ("Đã nghiệm thu (7 ngày)", [TrangThaiPhieuSuaChua.DaNghiemThu]),
+    };
+    var cuaToi = (bool)ViewData["cuaToi"]!;
+    var now = DateTime.Now;
+}
+<div class="page-head">
+    <h1>Yêu cầu & công việc bảo trì</h1>
+    <partial name="_Tabs" />
+    <div class="actions">
+        <a asp-action="Kanban" asp-route-cuaToi="@(!cuaToi)" class="btn btn-sm @(cuaToi ? "btn-primary" : "btn-outline-primary")"><i class="bi bi-person-check"></i> Việc của tôi</a>
+        <a asp-action="Create" class="btn btn-sm btn-danger"><i class="bi bi-exclamation-triangle"></i> Báo hỏng</a>
+    </div>
+</div>
+<div class="kanban">
+    @foreach (var c in cot)
+    {
+        var ds = Model.Where(p => c.TrangThai.Contains(p.TrangThai)).ToList();
+        <section class="col-k" aria-label="@c.Ten">
+            <h6><span>@c.Ten</span><span>@ds.Count</span></h6>
+            @foreach (var p in ds)
+            {
+                <a class="k-card d-block text-decoration-none text-reset p@((int)p.UuTien) @(p.QuaHan(now) ? "border border-danger" : "")" asp-action="Details" asp-route-id="@p.Id">
+                    <div class="d-flex"><b>@p.SoPhieu</b><span class="ms-auto small"><partial name="_SlaText" model="p" /></span></div>
+                    <div class="my-1">@p.MoTaSuCo.Split('\n')[0]</div>
+                    <div class="small text-muted">@p.TaiSan?.MaTaiSan · @p.KhoaPhong?.Ten</div>
+                    <div class="d-flex align-items-center mt-1 small">
+                        @Html.Raw(Badge.Html(p.UuTien))
+                        @if (p.TrangThai == TrangThaiPhieuSuaChua.GuiHang) { <span class="badge bg-secondary ms-1">Gửi hãng</span> }
+                        @if (p.KyThuatVien is not null) { <span class="ms-auto text-muted"><i class="bi bi-person"></i> @p.KyThuatVien</span> }
+                    </div>
+                </a>
+            }
+        </section>
+    }
+</div>
+<div class="small text-muted mt-2">Viền trái: <span class="text-danger">đỏ</span> khẩn cấp · <span class="text-warning">cam</span> cao · <span class="text-info">xanh</span> trung bình · xám thấp/bảo trì. Viền đỏ quanh thẻ = quá hạn SLA.</div>

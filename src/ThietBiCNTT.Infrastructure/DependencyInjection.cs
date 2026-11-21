@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<LichSuService>();
         services.AddScoped<BaoTriService>();
         services.AddScoped<DashboardService>();
+        services.AddScoped<NghiemThuTuDongService>();
         return services;
     }
 

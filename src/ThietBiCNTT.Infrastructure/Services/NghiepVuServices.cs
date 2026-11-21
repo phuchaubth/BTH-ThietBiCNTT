@@ -24,6 +24,23 @@ public class SoPhieuService(AppDbContext db)
     }
 }
 
+public static class LuuSoPhieu
+{
+    /// <summary>
+    /// Lưu bản ghi mới có số phiếu duy nhất: nếu hai người tạo cùng lúc và trùng số (vi phạm unique index),
+    /// sinh lại số và thử lại (tối đa 5 lần).
+    /// </summary>
+    public static async Task LuuMoiAsync(this AppDbContext db, SoPhieuService soPhieu, string tienTo, Action<string> ganSo, CancellationToken ct = default)
+    {
+        for (var lan = 1; ; lan++)
+        {
+            ganSo(await soPhieu.TaoAsync(tienTo));
+            try { await db.SaveChangesAsync(ct); return; }
+            catch (DbUpdateException) when (lan < 5) { await Task.Delay(Random.Shared.Next(20, 120), ct); }
+        }
+    }
+}
+
 public class LichSuService(AppDbContext db)
 {
     public void Ghi(int taiSanId, LoaiSuKien loai, string noiDung, string? nguoi) =>
@@ -40,6 +57,8 @@ public class LichSuService(AppDbContext db)
         {
             moi.TaiSanId = ts.Id; moi.NgayCapNhat = DateTime.Now;
             ts.CauHinh = moi;
+            if (ts.Id != 0) Ghi(ts.Id, LoaiSuKien.CauHinh, "Khai báo cấu hình: " + string.Join("; ",
+                CauHinh.CacTruong.Select(f => (f, v: (string?)typeof(CauHinh).GetProperty(f)!.GetValue(moi))).Where(x => !string.IsNullOrWhiteSpace(x.v)).Select(x => $"{x.f}={x.v}")), nguoi);
             return;
         }
         var thayDoi = ts.CauHinh.SoSanh(moi).ToList();
@@ -79,9 +98,8 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
                 if (daCo) continue;
                 var ts = await db.TaiSans.FindAsync([tsId], ct);
                 var now = DateTime.Now;
-                db.PhieuSuaChuas.Add(new PhieuSuaChua
+                var phieu = new PhieuSuaChua
                 {
-                    SoPhieu = await soPhieu.TaoAsync("BT"),
                     LoaiCongViec = LoaiCongViec.BaoTriDinhKy,
                     TaiSanId = tsId,
                     KhoaPhongId = ts?.KhoaPhongId,
@@ -92,8 +110,9 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
                     KyThuatVien = kh.KyThuatVien,
                     KeHoachBaoTriId = kh.Id,
                     NguoiYeuCau = "Hệ thống (PM)"
-                });
-                await db.SaveChangesAsync(ct); // lưu từng phiếu để số phiếu kế tiếp không trùng
+                };
+                db.PhieuSuaChuas.Add(phieu);
+                await db.LuuMoiAsync(soPhieu, "BT", so => phieu.SoPhieu = so, ct);
                 dem++;
             }
             kh.DayLichTiep();
@@ -106,29 +125,31 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
 public record ThongKeKhoa(string Khoa, int SoLuong, decimal GiaTri);
 public record DashboardDto(int SoNgayCanhBaoBaoHanh, int SoNgayCanhBaoBaoTri,
     int TongTaiSan, decimal TongNguyenGia, int DangSuDung, int DangSuaChua, int Hong, int ChoThanhLy,
-    int PhieuMo, int PhieuQuaHan, int BaoTriDenHan, double? MttrGio, double TyLeDungSla,
+    int PhieuMo, int PhieuQuaHan, int BaoTriDenHan, double? MttrGio, double TyLeDungSla, bool LaToanVien,
     int SapHetBaoHanh, int VatTuDuoiDinhMuc, int TaiSanQuaTuoiTho,
     List<ThongKeKhoa> TheoKhoa, List<(string Nhom, int SoLuong)> TheoNhom,
     List<PhieuSuaChua> PhieuMoiNhat, List<(string Thang, int SoPhieu, decimal ChiPhi)> SuaChuaTheoThang);
 
 public class DashboardService(AppDbContext db, ThamSoService thamSo)
 {
-    public async Task<DashboardDto> LayAsync()
+    /// <param name="khoaId">null = toàn viện; có giá trị = chỉ số liệu của khoa đó (vai trò khoa).</param>
+    public async Task<DashboardDto> LayAsync(int? khoaId = null)
     {
         var now = DateTime.Now;
         var homNay = DateOnly.FromDateTime(now);
-        var ts = db.TaiSans.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy);
+        var ts = db.TaiSans.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy && (khoaId == null || t.KhoaPhongId == khoaId));
+        var phamViPhieu = db.PhieuSuaChuas.Where(p => khoaId == null || p.KhoaPhongId == khoaId);
 
         var demTrangThai = await ts.GroupBy(t => t.TrangThai).Select(g => new { g.Key, N = g.Count() }).ToListAsync();
         int Dem(TrangThaiTaiSan s) => demTrangThai.FirstOrDefault(x => x.Key == s)?.N ?? 0;
 
-        var phieuMo = db.PhieuSuaChuas.Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaNghiemThu
+        var phieuMo = phamViPhieu.Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaNghiemThu
                                                && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy
                                                && p.TrangThai != TrangThaiPhieuSuaChua.HoanThanh);
         var tu = now.AddDays(-90);
-        var daXong = await db.PhieuSuaChuas
+        var daXong = await phamViPhieu
             .Where(p => p.NgayHoanThanh != null && p.NgayHoanThanh >= tu && p.LoaiCongViec == LoaiCongViec.SuaChua)
-            .Select(p => new { p.NgayYeuCau, p.NgayHoanThanh, p.HanXuLy }).ToListAsync();
+            .Select(p => new { p.NgayYeuCau, p.NgayHoanThanh, p.HanXuLy, p.TongTamDungGiay }).ToListAsync();
 
         var loaiMap = await db.LoaiThietBis.ToDictionaryAsync(l => l.Id);
         var dsTuoi = await ts.Select(t => new { t.LoaiThietBiId, t.NgaySuDung, t.NgayMua }).ToListAsync();
@@ -147,7 +168,7 @@ public class DashboardService(AppDbContext db, ThamSoService thamSo)
             .Select(x => (x.Key.ToString(), x.N)).ToList();
 
         var tu12 = new DateTime(now.Year, now.Month, 1).AddMonths(-11);
-        var sc = await db.PhieuSuaChuas.Where(p => p.NgayYeuCau >= tu12)
+        var sc = await phamViPhieu.Where(p => p.NgayYeuCau >= tu12)
             .Select(p => new { p.NgayYeuCau, p.ChiPhiThueNgoai, VatTu = p.VatTus.Sum(v => v.SoLuong * v.DonGia) }).ToListAsync();
         var theoThang = Enumerable.Range(0, 12).Select(i => tu12.AddMonths(i)).Select(m =>
         {
@@ -165,17 +186,36 @@ public class DashboardService(AppDbContext db, ThamSoService thamSo)
             Hong: Dem(TrangThaiTaiSan.Hong),
             ChoThanhLy: Dem(TrangThaiTaiSan.ChoThanhLy),
             PhieuMo: await phieuMo.CountAsync(),
-            PhieuQuaHan: await phieuMo.CountAsync(p => p.HanXuLy < now),
+            PhieuQuaHan: await phieuMo.CountAsync(p => p.HanXuLy < now && p.BatDauTamDung == null),
             BaoTriDenHan: await db.KeHoachBaoTris.CountAsync(k => k.DangApDung && k.NgayTiepTheo <= homNay.AddDays(ngayBt)),
-            MttrGio: daXong.Count == 0 ? null : daXong.Average(p => (p.NgayHoanThanh!.Value - p.NgayYeuCau).TotalHours),
+            MttrGio: daXong.Count == 0 ? null : daXong.Average(p => Math.Max(0, (p.NgayHoanThanh!.Value - p.NgayYeuCau).TotalHours - p.TongTamDungGiay / 3600.0)),
             TyLeDungSla: daXong.Count == 0 ? 100 : 100.0 * daXong.Count(p => p.NgayHoanThanh <= p.HanXuLy) / daXong.Count,
+            LaToanVien: khoaId == null,
             SapHetBaoHanh: await ts.CountAsync(t => t.HanBaoHanh >= homNay && t.HanBaoHanh <= homNay.AddDays(ngayBh)),
             VatTuDuoiDinhMuc: await db.VatTus.CountAsync(v => v.TonKho <= v.TonToiThieu),
             TaiSanQuaTuoiTho: quaTuoi,
             TheoKhoa: theoKhoa, TheoNhom: theoNhom,
-            PhieuMoiNhat: await db.PhieuSuaChuas.Include(p => p.TaiSan).Include(p => p.KhoaPhong)
+            PhieuMoiNhat: await phamViPhieu.Include(p => p.TaiSan).Include(p => p.KhoaPhong)
                 .Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaNghiemThu && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy)
                 .OrderByDescending(p => p.UuTien).ThenBy(p => p.HanXuLy).Take(8).ToListAsync(),
             SuaChuaTheoThang: theoThang);
+    }
+}
+
+/// <summary>QĐ-01: tự động nghiệm thu phiếu đã hoàn thành quá N ngày (tham số NghiemThu.TuDongSauNgay).</summary>
+public class NghiemThuTuDongService(AppDbContext db, ThamSoService thamSo)
+{
+    public async Task<int> ChayAsync(DateTime now, CancellationToken ct = default)
+    {
+        var soNgay = thamSo.SoNguyen(TS.NghiemThuTuDongSauNgay);
+        if (soNgay <= 0) return 0;
+        var moc = now.AddDays(-soNgay);
+        var ds = await db.PhieuSuaChuas.Where(p => p.TrangThai == TrangThaiPhieuSuaChua.HoanThanh && p.NgayHoanThanh <= moc).ToListAsync(ct);
+        foreach (var p in ds)
+            if (p.TuDongNghiemThu(soNgay, now))
+                db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = p.Id, ThoiGian = now, NguoiViet = "system", LaHeThong = true,
+                    NoiDung = $"Hoàn thành → Đã nghiệm thu (tự động sau {soNgay} ngày không phản hồi)" });
+        await db.SaveChangesAsync(ct);
+        return ds.Count;
     }
 }

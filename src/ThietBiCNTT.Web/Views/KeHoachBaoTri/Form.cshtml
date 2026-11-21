@@ -1,0 +1,25 @@
+@model KeHoachBaoTri
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm kế hoạch bảo trì" : "Sửa kế hoạch bảo trì"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:820px"><div class="card-body">
+<form asp-action="Save" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-12"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: Vệ sinh máy tính 6 tháng" /></div>
+    <div class="col-md-6"><label asp-for="LoaiThietBiId" class="form-label"></label><select asp-for="LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select"><option value="">—</option></select>
+        <div class="form-text">Áp dụng cho mọi thiết bị đang sử dụng thuộc loại này…</div></div>
+    <div class="col-md-6"><label asp-for="TaiSanId" class="form-label"></label><select asp-for="TaiSanId" asp-items="ViewBag.DsTaiSan" class="form-select"><option value="">—</option></select>
+        <div class="form-text">…hoặc chỉ một thiết bị cụ thể (ưu tiên nếu chọn).</div></div>
+    <div class="col-md-4"><label asp-for="ChuKyNgay" class="form-label"></label>
+        <div class="input-group"><input asp-for="ChuKyNgay" class="form-control" type="number" min="1" />
+            <button type="button" class="btn btn-outline-secondary" onclick="ChuKyNgay.value=30">Tháng</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="ChuKyNgay.value=90">Quý</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="ChuKyNgay.value=180">6T</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="ChuKyNgay.value=365">Năm</button></div></div>
+    <div class="col-md-4"><label asp-for="NgayTiepTheo" class="form-label"></label><input asp-for="NgayTiepTheo" class="form-control" type="date" /></div>
+    <div class="col-md-4"><label asp-for="KyThuatVien" class="form-label"></label><input asp-for="KyThuatVien" class="form-control" placeholder="tên đăng nhập KTV" /></div>
+    <div class="col-12"><label asp-for="Checklist" class="form-label"></label><textarea asp-for="Checklist" class="form-control" rows="6" placeholder="Mỗi dòng một mục kiểm tra"></textarea></div>
+    <div class="col-12"><div class="form-check"><input asp-for="DangApDung" class="form-check-input" /><label asp-for="DangApDung" class="form-check-label"></label></div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>

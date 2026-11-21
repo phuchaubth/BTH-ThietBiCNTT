@@ -11,6 +11,14 @@
 | Đặc tả yêu cầu phần mềm (SRS v1.1, có đối chiếu SpeedMaint) | [docs/SRS.md](docs/SRS.md) |
 | Tài liệu thiết kế hệ thống | [docs/ThietKeHeThong.md](docs/ThietKeHeThong.md) |
 | Mockup giao diện (mã nguồn các artboard) | [docs/mockup/](docs/mockup/) |
+| Quyết định nghiệp vụ & danh mục tham số hệ thống | [docs/QuyetDinhNghiepVu.md](docs/QuyetDinhNghiepVu.md) |
+
+## Kiểm thử
+
+```bash
+dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
+python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
+```
 
 ## Cấu trúc
 
@@ -25,16 +33,16 @@ src/
 
 ```bash
 cd src/ThietBiCNTT.Web
-ASPNETCORE_ENVIRONMENT=Demo dotnet run
+ASPNETCORE_ENVIRONMENT=Demo dotnet run --no-launch-profile
 ```
 Dùng SQLite + dữ liệu mẫu. Tài khoản mẫu (mật khẩu `Abc@12345`): `admin`, `ktv1`, `ktv2`, `truongkhoacc`, `lanhdao`, `nhanvien`.
 
 ## Chạy với SQL Server
 
 1. Sửa `ConnectionStrings:DefaultConnection` trong `src/ThietBiCNTT.Web/appsettings.json`.
-2. Tạo migration lần đầu:
+2. Migration `KhoiTao` đã có sẵn; hoặc xuất script SQL cho DBA:
    ```bash
    dotnet tool install --global dotnet-ef
-   dotnet ef migrations add KhoiTao -p src/ThietBiCNTT.Infrastructure -s src/ThietBiCNTT.Web -o Data/Migrations
+   dotnet ef migrations script --idempotent -p src/ThietBiCNTT.Infrastructure -o khoitao.sql
    ```
 3. `dotnet run --project src/ThietBiCNTT.Web`: ứng dụng tự áp migration và tạo tài khoản `admin` (mật khẩu `Abc@12345`, **đổi ngay** khi triển khai).

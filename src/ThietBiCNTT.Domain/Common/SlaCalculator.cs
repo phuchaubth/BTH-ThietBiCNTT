@@ -48,6 +48,36 @@ public static class SlaCalculator
         return t;
     }
 
+    /// <summary>Số giờ làm việc giữa hai thời điểm (theo khung giờ hành chính, trừ ngày nghỉ).</summary>
+    public static TimeSpan GioLamViecGiua(DateTime tu, DateTime den, SlaThamSo ts)
+    {
+        if (den <= tu) return TimeSpan.Zero;
+        if (ts.GioKetThuc <= ts.GioBatDau || ts.NgayLamViec.Count == 0) return den - tu;
+        var tong = TimeSpan.Zero;
+        for (var ngay = DateOnly.FromDateTime(tu); ngay <= DateOnly.FromDateTime(den); ngay = ngay.AddDays(1))
+        {
+            if (!LaNgayLamViec(ngay, ts)) continue;
+            var a = Max(ngay.ToDateTime(ts.GioBatDau), tu);
+            var b = Min(ngay.ToDateTime(ts.GioKetThuc), den);
+            if (b > a) tong += b - a;
+        }
+        return tong;
+    }
+
+    /// <summary>QĐ-04: hết tạm dừng → dời hạn: phần thời gian còn lại lúc bắt đầu dừng được tính tiếp từ lúc tiếp tục.</summary>
+    public static DateTime DoiHanSauTamDung(DateTime hanCu, DateTime batDauTamDung, DateTime tiepTuc, bool tinh24h, SlaThamSo ts)
+    {
+        if (tiepTuc <= batDauTamDung) return hanCu;
+        if (tinh24h) return hanCu + (tiepTuc - batDauTamDung);
+        var conLai = GioLamViecGiua(batDauTamDung, hanCu, ts);
+        return conLai <= TimeSpan.Zero ? Max(hanCu, tiepTuc) : CongGioLamViec(tiepTuc, conLai, ts);
+    }
+
+    public static bool Tinh24h(bool khoaTrongYeu, SlaThamSo ts) => khoaTrongYeu && ts.KhoaTrongYeu24h;
+
+    private static DateTime Max(DateTime a, DateTime b) => a > b ? a : b;
+    private static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
+
     public static bool LaNgayLamViec(DateOnly ngay, SlaThamSo ts) =>
         ts.NgayLamViec.Contains(ngay.DayOfWeek) && !ts.NgayNghi.Contains(ngay);
 }

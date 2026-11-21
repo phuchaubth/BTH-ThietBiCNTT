@@ -1,0 +1,28 @@
+@model List<ChiTietThanhLy>
+@{ ViewData["Title"] = "Ổ cứng thu hồi"; var chuaHuy = (bool)ViewData["chuaHuy"]!; }
+<div class="page-head">
+    <h1>Ổ cứng thu hồi từ thanh lý</h1>
+    <div class="actions"><a asp-action="OCung" asp-route-chuaHuy="@(!chuaHuy)" class="btn btn-sm btn-outline-secondary">@(chuaHuy ? "Xem cả ổ đã huỷ" : "Chỉ ổ chưa huỷ")</a></div>
+</div>
+<form asp-action="HuyOCung" method="post">
+<div class="card"><div class="table-responsive">
+<table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th></th><th>Serial ổ</th><th>Từ thiết bị</th><th>Đề xuất</th><th>Tháo bởi · ngày</th><th>Nơi lưu</th><th>Xử lý</th></tr></thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr><td>@if (c.XuLyOCung != XuLyOCung.HuyVatLy) { <input type="checkbox" class="form-check-input" name="chiTietIds" value="@c.Id" aria-label="Chọn @c.SerialOCung" /> }</td>
+            <td class="font-monospace">@c.SerialOCung</td><td>@c.TaiSan?.MaTaiSan · @c.TaiSan?.Ten</td>
+            <td><a asp-action="Details" asp-route-id="@c.DeXuatThanhLyId">@c.DeXuatThanhLy?.SoPhieu</a></td>
+            <td class="small">@c.NguoiThao · @c.NgayThao?.ToString("dd/MM/yyyy")</td><td class="small">@c.NoiLuuOCung</td>
+            <td class="small">@c.XuLyOCung?.Ten() @(c.BienBanHuy is null ? "" : "· BB " + c.BienBanHuy)</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Không có ổ cứng nào.</td></tr> }
+    </tbody>
+</table>
+</div>
+<div class="card-footer bg-white d-flex gap-2" style="max-width:520px">
+    <input name="soBienBan" class="form-control form-control-sm" placeholder="Số biên bản huỷ ổ cứng" required aria-label="Số biên bản huỷ" />
+    <button class="btn btn-sm btn-danger text-nowrap">Ghi nhận đã huỷ vật lý</button>
+</div></div>
+</form>

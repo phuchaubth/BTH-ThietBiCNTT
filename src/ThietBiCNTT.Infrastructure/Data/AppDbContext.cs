@@ -25,6 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<KeHoachBaoTri> KeHoachBaoTris => Set<KeHoachBaoTri>();
     public DbSet<PhieuDieuChuyen> PhieuDieuChuyens => Set<PhieuDieuChuyen>();
     public DbSet<ChiTietDieuChuyen> ChiTietDieuChuyens => Set<ChiTietDieuChuyen>();
+    public DbSet<BuocDuyetDieuChuyen> BuocDuyetDieuChuyens => Set<BuocDuyetDieuChuyen>();
     public DbSet<DeXuatThanhLy> DeXuatThanhLys => Set<DeXuatThanhLy>();
     public DbSet<ChiTietThanhLy> ChiTietThanhLys => Set<ChiTietThanhLy>();
     public DbSet<NhatKyHeThong> NhatKyHeThongs => Set<NhatKyHeThong>();
@@ -36,7 +37,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         base.OnModelCreating(b);
 
         // SQL Server không cho nhiều đường cascade → mặc định Restrict, chỉ cascade cho chi tiết phiếu.
-        foreach (var fk in b.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+        // (chỉ áp cho bảng nghiệp vụ; giữ nguyên cascade mặc định của các bảng Identity)
+        foreach (var fk in b.Model.GetEntityTypes()
+                     .Where(e => e.ClrType.Namespace?.StartsWith("ThietBiCNTT.Domain") == true)
+                     .SelectMany(e => e.GetForeignKeys()))
             if (!fk.IsOwnership) fk.DeleteBehavior = DeleteBehavior.Restrict;
 
         foreach (var p in b.Model.GetEntityTypes().SelectMany(e => e.GetProperties())
@@ -83,7 +87,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasOne(x => x.DenKhoaPhong).WithMany().HasForeignKey(x => x.DenKhoaPhongId);
             e.HasMany(x => x.ChiTiets).WithOne(x => x.PhieuDieuChuyen).HasForeignKey(x => x.PhieuDieuChuyenId)
              .OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.BuocDuyets).WithOne(x => x.PhieuDieuChuyen).HasForeignKey(x => x.PhieuDieuChuyenId)
+             .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.DenViTri).WithMany().HasForeignKey(x => x.DenViTriId);
+            e.HasIndex(x => new { x.TrangThai, x.CapHienTai });
         });
+        b.Entity<ChiTietDieuChuyen>().HasIndex(x => x.TaiSanId);
+        b.Entity<ChiTietThanhLy>().HasIndex(x => x.SerialOCung);
         b.Entity<DeXuatThanhLy>(e =>
         {
             e.HasIndex(x => x.SoPhieu).IsUnique();

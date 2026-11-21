@@ -1,0 +1,29 @@
+@model PhieuSuaChua
+@{ Layout = "_Print"; ViewData["Title"] = "Phiếu " + Model.SoPhieu; }
+<partial name="_HeaderBenhVien" />
+<h3>PHIẾU YÊU CẦU & BIÊN BẢN SỬA CHỮA THIẾT BỊ</h3>
+<p class="text-center">Số: <b>@Model.SoPhieu</b></p>
+<table class="bb w-100 mb-3">
+    <tr><td style="width:30%">Thiết bị</td><td>@Model.TaiSan?.MaTaiSan – @Model.TaiSan?.Ten (SN: @Model.TaiSan?.SoSerial)</td></tr>
+    <tr><td>Khoa/phòng</td><td>@Model.KhoaPhong?.Ten</td></tr>
+    <tr><td>Người báo / thời điểm</td><td>@Model.NguoiYeuCau – @Model.NgayYeuCau.ToString("HH:mm dd/MM/yyyy")</td></tr>
+    <tr><td>Mô tả sự cố</td><td style="white-space:pre-line">@Model.MoTaSuCo</td></tr>
+    <tr><td>Kỹ thuật viên</td><td>@Model.KyThuatVien (@Model.HinhThucXuLy?.Ten())</td></tr>
+    <tr><td>Nguyên nhân</td><td>@Model.NguyenNhan</td></tr>
+    <tr><td>Biện pháp khắc phục</td><td>@Model.BienPhapKhacPhuc</td></tr>
+    <tr><td>Hoàn thành</td><td>@Model.NgayHoanThanh?.ToString("HH:mm dd/MM/yyyy")</td></tr>
+</table>
+@if (Model.VatTus.Count > 0)
+{
+    <table class="bb w-100 mb-3">
+        <tr><th>STT</th><th>Vật tư thay thế</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+        @{ var i = 1; }
+        @foreach (var v in Model.VatTus) { <tr><td>@(i++)</td><td>@v.VatTu?.Ten</td><td>@v.VatTu?.DonViTinh</td><td>@v.SoLuong.ToString("0.##")</td><td class="text-end">@v.DonGia.ToString("N0")</td><td class="text-end">@v.ThanhTien.ToString("N0")</td></tr> }
+        <tr><td colspan="5" class="text-end"><b>Tổng cộng (gồm thuê ngoài)</b></td><td class="text-end"><b>@Model.TongChiPhi.ToString("N0")</b></td></tr>
+    </table>
+}
+<div class="ky">
+    <div><b>Đại diện khoa/phòng</b><br /><i>(Ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiNghiemThu</div>
+    <div><b>Kỹ thuật viên</b><br /><i>(Ký, ghi rõ họ tên)</i><br /><br /><br />@Model.KyThuatVien</div>
+    <div><b>Trưởng phòng CNTT</b><br /><i>(Ký, ghi rõ họ tên)</i></div>
+</div>

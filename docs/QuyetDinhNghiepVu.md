@@ -1,6 +1,8 @@
 # Quyết định nghiệp vụ (chốt ngày 21/11/2026)
 
-Các quyết định dưới đây **thay thế** nội dung tương ứng trong `SRS.md` v1.1 và `ThietKeHeThong.md` (Phụ lục A). Sẽ được đưa vào SRS v1.2 và áp dụng khi hoàn thiện mã nguồn.
+Các quyết định dưới đây **thay thế** nội dung tương ứng trong `SRS.md` v1.1 và `ThietKeHeThong.md` (Phụ lục A).
+
+**Trạng thái (21/11/2026): cả 5 quyết định đã được áp dụng vào mã nguồn**, có unit test (`tests/ThietBiCNTT.Tests`) và kiểm thử end-to-end theo vai trò (`tests/e2e/e2e.py`).
 
 | # | Chủ đề | Quyết định | Ảnh hưởng thiết kế / mã nguồn |
 |---|---|---|---|
@@ -10,12 +12,14 @@ Các quyết định dưới đây **thay thế** nội dung tương ứng trong
 | QĐ-04 | Cách tính SLA | **Theo lịch trực + tạm dừng.** Khoa trọng yếu (Cấp cứu, HSTC, PTGMHS…) tính **24/7**. Khoa khác tính theo **giờ hành chính** (cấu hình, mặc định 7:00–17:00, T2–T7, trừ ngày lễ trong bảng `NgayNghi`). Đồng hồ **tạm dừng** khi phiếu ở trạng thái *Chờ linh kiện* / *Gửi hãng*. | Thêm `LichLamViec` + `NgayNghi`, service `SlaCalculator` tính hạn và thời gian đã dùng; `PhieuSuaChua` lưu `ThoiGianTamDung` (cộng dồn) và `BatDauTamDung`. MTTR/% đúng SLA dùng thời gian hiệu dụng. Mockup Kanban/Chi tiết phiếu hiển thị "Đang tạm dừng". |
 | QĐ-05 | Phiên đăng nhập | **Theo vai trò.** Nhân viên / Trưởng khoa: tự đăng xuất sau **30 phút** không thao tác, không cho "Ghi nhớ đăng nhập". Cán bộ CNTT / KTV / Quản trị / Lãnh đạo: **8 giờ** trượt theo hoạt động. | Cookie `ExpireTimeSpan` đặt theo vai trò khi đăng nhập (`OnSigningIn`), bỏ checkbox ghi nhớ với vai trò khoa; kiểm tra `DangHoatDong` khi đăng nhập. |
 
-## Việc kỹ thuật kèm theo (từ Phụ lục A – ThietKeHeThong.md)
+## Việc kỹ thuật kèm theo (từ Phụ lục A – ThietKeHeThong.md) — đã xử lý
 
-- Tạo migration khởi tạo cho SQL Server (`KhoiTao`).
-- Số phiếu: dùng `SEQUENCE` SQL Server / khoá ghi để không trùng khi tạo đồng thời.
-- QR: cấu hình `App:PublicBaseUrl` thay vì `Request.Host` (chạy sau reverse proxy).
-- Dashboard: giới hạn số liệu theo khoa với vai trò khoa; ẩn menu không có quyền.
+- [x] Migration khởi tạo SQL Server `KhoiTao` (`src/ThietBiCNTT.Infrastructure/Data/Migrations`).
+- [x] Số phiếu không trùng khi tạo đồng thời: unique index + sinh lại số và thử lại (`LuuSoPhieu.LuuMoiAsync`).
+- [x] QR: tham số `DonVi.DiaChiTruyCap` thay cho `Request.Host` (chạy sau reverse proxy).
+- [x] Dashboard giới hạn số liệu theo khoa với vai trò khoa; ẩn menu không có quyền.
+- [x] Hiển thị số/ngày theo vi-VN (14.200.000 đ), đọc số trong form theo dấu chấm (input type=number).
+- [x] Chặn điều chuyển tài sản đang nằm trong phiếu điều chuyển khác hoặc đang có phiếu sửa chữa mở; cập nhật vị trí khi bàn giao.
 
 ## Danh mục tham số hệ thống (Quản trị → Tham số hệ thống)
 

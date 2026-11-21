@@ -1,0 +1,123 @@
+@model DeXuatThanhLy
+@{
+    ViewData["Title"] = Model.SoPhieu;
+    var cntt = User.LaCNTT();
+    var tt = Model.TrangThai;
+    var batBuoc = (bool)ViewBag.BatBuocThaoOCung;
+    var chuaThao = Model.ChuaThaoOCung().ToList();
+    var buoc = new (string Ten, bool Xong, bool HienTai, string? Ghi)[]
+    {
+        ("1. Lập đề xuất", tt != TrangThaiThanhLy.Nhap, tt == TrangThaiThanhLy.Nhap, Model.NguoiTao + " · " + Model.NgayTao.ToString("dd/MM")),
+        ("2. Hội đồng đánh giá", tt is TrangThaiThanhLy.DaDanhGia or TrangThaiThanhLy.DaPheDuyet or TrangThaiThanhLy.DaThanhLy, tt == TrangThaiThanhLy.ChoHoiDong, Model.NgayDanhGia?.ToString("dd/MM")),
+        ("3. Quyết định", tt is TrangThaiThanhLy.DaPheDuyet or TrangThaiThanhLy.DaThanhLy, tt == TrangThaiThanhLy.DaDanhGia, Model.SoQuyetDinh),
+        ("4. Tháo ổ cứng & thực hiện", tt == TrangThaiThanhLy.DaThanhLy, tt == TrangThaiThanhLy.DaPheDuyet, chuaThao.Count == 0 ? "đủ" : $"còn {chuaThao.Count} máy"),
+        ("5. Ghi giảm tài sản", tt == TrangThaiThanhLy.DaThanhLy, false, Model.NgayHoanTat?.ToString("dd/MM")),
+    };
+    var suaChiTiet = cntt && tt is TrangThaiThanhLy.Nhap or TrangThaiThanhLy.TuChoi;
+    var i = 0;
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Thanh lý</a> › @Model.SoPhieu</div>
+<div class="page-head">
+    <h1>Đề xuất thanh lý @Model.SoPhieu</h1> @Html.Raw(Badge.Html(tt))
+    <div class="actions">
+        <a asp-action="InBienBan" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In biên bản kiểm định</a>
+        @if (cntt && tt is TrangThaiThanhLy.Nhap or TrangThaiThanhLy.TuChoi)
+        {
+            <form asp-action="GuiHoiDong" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-primary">Gửi hội đồng</button></form>
+        }
+    </div>
+</div>
+<ol class="card card-body d-flex flex-row flex-wrap gap-2 list-unstyled mb-3" aria-label="Các bước thanh lý">
+    @foreach (var b in buoc)
+    {
+        <li class="flex-fill" style="min-width:140px"><div style="height:6px;border-radius:3px;background:@(b.Xong ? "#1e7a46" : b.HienTai ? "#1d5fbf" : "#dfe4ea")"></div>
+            <div class="small fw-semibold mt-1">@b.Ten</div><div class="small text-muted">@b.Ghi</div></li>
+    }
+</ol>
+<div class="row g-3">
+    <div class="col-lg-8">
+        @if (batBuoc && chuaThao.Count > 0 && tt != TrangThaiThanhLy.TuChoi)
+        {
+            <div class="alert alert-warning small"><b>Bắt buộc tháo ổ cứng trước khi hoàn tất.</b> Máy tính, laptop, máy chủ có thể chứa dữ liệu bệnh nhân: Phòng CNTT tháo ổ lưu trữ, ghi serial và nơi lưu trước khi giao máy cho đơn vị mua/huỷ.</div>
+        }
+        <form asp-action="CapNhatChiTiet" asp-route-id="@Model.Id" method="post" id="frmCt"></form>
+        <div class="card mb-3"><div class="card-header">Danh sách tài sản (@Model.ChiTiets.Count)</div>
+            <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead><tr><th>Tài sản</th><th>Tình trạng kỹ thuật</th><th class="text-end">Giá trị còn lại</th><th>Ổ cứng</th></tr></thead>
+                <tbody>
+                @foreach (var c in Model.ChiTiets)
+                {
+                    var coLuuTru = c.TaiSan?.LoaiThietBi?.CoLuuTruDuLieu == true;
+                    <tr class="@(coLuuTru && !c.DaThaoOCung && tt == TrangThaiThanhLy.DaPheDuyet ? "table-warning" : "")">
+                        <td><a asp-controller="TaiSan" asp-action="Details" asp-route-id="@c.TaiSanId" class="fw-semibold">@c.TaiSan?.MaTaiSan</a><div class="small text-muted">@c.TaiSan?.Ten · @c.TaiSan?.KhoaPhong?.Ten</div></td>
+                        <td>@if (suaChiTiet) { <input type="hidden" name="chiTiets[@i].Id" value="@c.Id" form="frmCt" /><input name="chiTiets[@i].TinhTrang" value="@c.TinhTrang" class="form-control form-control-sm" form="frmCt" aria-label="Tình trạng @c.TaiSan?.MaTaiSan" /> } else { <span class="small">@c.TinhTrang</span> }</td>
+                        <td class="text-end">@if (suaChiTiet) { <input name="chiTiets[@i].GiaTriConLai" value="@c.GiaTriConLai.ToString("0")" type="number" min="0" step="1000" class="form-control form-control-sm text-end" style="width:130px;margin-left:auto" form="frmCt" aria-label="Giá trị còn lại @c.TaiSan?.MaTaiSan" /> } else { <span class="small">@c.GiaTriConLai.ToString("N0")</span> }</td>
+                        <td class="small">
+                            @if (!coLuuTru) { <span class="text-muted">Không có lưu trữ</span> }
+                            else if (c.DaThaoOCung) { <span class="text-success">Đã tháo · SN @c.SerialOCung</span><div class="text-muted">@c.NoiLuuOCung · @c.NguoiThao @c.NgayThao?.ToString("dd/MM HH:mm")@(c.XuLyOCung == XuLyOCung.HuyVatLy ? " · đã huỷ (BB " + c.BienBanHuy + ")" : "")</div> }
+                            else if (cntt && tt is not (TrangThaiThanhLy.DaThanhLy or TrangThaiThanhLy.TuChoi))
+                            {
+                                <form asp-action="ThaoOCung" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-1">
+                                    <input type="hidden" name="chiTietId" value="@c.Id" />
+                                    <input name="serial" class="form-control form-control-sm" style="width:130px" placeholder="Serial ổ cứng" required aria-label="Serial ổ cứng @c.TaiSan?.MaTaiSan" />
+                                    <input name="noiLuu" class="form-control form-control-sm" style="width:110px" placeholder="Nơi lưu" value="Kho CNTT" aria-label="Nơi lưu" />
+                                    <button class="btn btn-sm btn-primary">Đã tháo</button>
+                                </form>
+                            }
+                            else { <span class="text-warning">Chưa tháo</span> }
+                        </td>
+                    </tr>
+                    i++;
+                }
+                </tbody>
+            </table>
+            </div>
+            @if (suaChiTiet) { <div class="card-footer bg-white"><button form="frmCt" class="btn btn-sm btn-outline-primary">Lưu tình trạng & giá trị</button></div> }
+        </div>
+
+        @if (tt == TrangThaiThanhLy.ChoHoiDong)
+        {
+            <div class="card mb-3 border-primary"><div class="card-header">Kết quả đánh giá của hội đồng</div><div class="card-body">
+                <form asp-action="DanhGia" asp-route-id="@Model.Id" method="post">
+                    <input name="hoiDong" class="form-control form-control-sm mb-2" placeholder="Thành phần hội đồng (VD: PGĐ – Chủ tịch, TP.VTTB, TP.TCKT, TP.CNTT)" required aria-label="Thành phần hội đồng" />
+                    <textarea name="ketLuan" class="form-control form-control-sm mb-2" rows="2" placeholder="Kết luận" required aria-label="Kết luận"></textarea>
+                    <button name="dongY" value="true" class="btn btn-sm btn-success">Hội đồng đồng ý</button>
+                    <button name="dongY" value="false" class="btn btn-sm btn-outline-danger">Không đồng ý</button>
+                </form>
+            </div></div>
+        }
+        @if (tt == TrangThaiThanhLy.DaDanhGia && User.LaDuyet())
+        {
+            <div class="card mb-3 border-primary"><div class="card-header">Ghi nhận quyết định thanh lý</div><div class="card-body">
+                <form asp-action="PheDuyet" asp-route-id="@Model.Id" method="post" class="row g-2 align-items-end">
+                    <div class="col-md-4"><label class="form-label small" for="sqd">Số quyết định</label><input id="sqd" name="soQuyetDinh" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-3"><label class="form-label small" for="nqd">Ngày</label><input id="nqd" name="ngayQuyetDinh" type="date" class="form-control form-control-sm" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+                    <div class="col-md-3"><label class="form-label small" for="htl">Hình thức</label><select id="htl" name="hinhThuc" asp-items="@EnumExtensions.ToSelectList<HinhThucThanhLy>()" class="form-select form-select-sm"></select></div>
+                    <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Ghi nhận</button></div>
+                </form>
+            </div></div>
+        }
+        @if (tt == TrangThaiThanhLy.DaPheDuyet && cntt)
+        {
+            <div class="card"><div class="card-header">Hoàn tất thanh lý</div><div class="card-body">
+                <form asp-action="HoanTat" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 align-items-end">
+                    <div><label class="form-label small" for="gt">Giá trị thu hồi thực tế (đ)</label><input id="gt" name="giaTriThuHoi" type="number" min="0" step="1000" value="@Model.ChiTiets.Sum(c => c.GiaTriConLai).ToString("0")" class="form-control form-control-sm" /></div>
+                    @{ var chan = batBuoc && chuaThao.Count > 0; }
+                    <button class="btn btn-sm btn-success" disabled="@chan">Hoàn tất & ghi giảm@(chan ? $" (còn {chuaThao.Count} máy chưa tháo ổ)" : "")</button>
+                </form>
+            </div></div>
+        }
+    </div>
+    <div class="col-lg-4">
+        <div class="card"><div class="card-header">Thông tin đề xuất</div><div class="card-body">
+            <dl class="info mb-0">
+                <dt>Lý do</dt><dd>@Model.LyDo</dd>
+                <dt>Tổng nguyên giá · còn lại</dt><dd>@Model.ChiTiets.Sum(c => c.TaiSan?.NguyenGia ?? 0).ToString("N0") đ · @Model.ChiTiets.Sum(c => c.GiaTriConLai).ToString("N0") đ</dd>
+                @if (Model.HoiDong is not null) { <dt>Hội đồng</dt><dd>@Model.HoiDong</dd><dt>Kết luận</dt><dd>@Model.KetLuanHoiDong</dd> }
+                @if (Model.SoQuyetDinh is not null) { <dt>Quyết định</dt><dd>@Model.SoQuyetDinh ngày @Model.NgayQuyetDinh?.ToString("dd/MM/yyyy") · @Model.HinhThuc?.Ten()</dd> }
+                @if (Model.NgayHoanTat is not null) { <dt>Hoàn tất</dt><dd>@Model.NgayHoanTat?.ToString("dd/MM/yyyy") · thu hồi @Model.GiaTriThuHoi.ToString("N0") đ</dd> }
+            </dl>
+        </div></div>
+    </div>
+</div>
