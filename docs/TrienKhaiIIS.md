@@ -32,7 +32,9 @@ tzutil /s "SE Asia Standard Time"
 # 2. Tạo CSDL + quyền cho app pool (giá trị BTH đã điền sẵn trong script)
 sqlcmd -S localhost -E -i sql\01-tao-csdl.sql
 
-# 3. Cài website — có chứng chỉ HTTPS cho thietbi.bth.org.vn (xem 5.4):
+# 3. Cài website. Chưa có chứng chỉ → cài HTTP trước, rồi lấy chứng chỉ Let's Encrypt theo docs/ChungChiHTTPS.md:
+powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1
+#    Đã có chứng chỉ (.pfx đã import):
 powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -CertThumbprint <THUMBPRINT>
 #    (thử nghiệm chưa có chứng chỉ: bỏ -CertThumbprint)
 
@@ -283,6 +285,7 @@ Sau khi sửa: `Restart-WebAppPool ThietBiCNTT`.
   New-NetFirewallRule -DisplayName "ThietBiCNTT HTTP"  -Direction Inbound -Protocol TCP -LocalPort 80  -RemoteAddress 10.0.0.0/8 -Action Allow
   ```
 - **HTTPS**: khi đã có binding 443, ứng dụng tự chuyển hướng HTTP → HTTPS và bật HSTS.
+  **BTH chưa có chứng chỉ → làm theo [ChungChiHTTPS.md](ChungChiHTTPS.md)** (Let's Encrypt miễn phí, tự gia hạn, máy chủ không cần mở ra Internet).
   `thietbi.bth.org.vn` là **tên miền thật** (thuộc `bth.org.vn`), nên nên dùng **chứng chỉ công khai** — mọi máy tính, điện thoại đều tin cậy sẵn, không phải cài thêm chứng chỉ:
   | Cách | Khi nào dùng | Ghi chú |
   |---|---|---|

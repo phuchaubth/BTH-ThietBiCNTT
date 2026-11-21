@@ -12,6 +12,7 @@
 | Tài liệu thiết kế hệ thống | [docs/ThietKeHeThong.md](docs/ThietKeHeThong.md) |
 | Mockup giao diện (mã nguồn các artboard) | [docs/mockup/](docs/mockup/) |
 | **Hướng dẫn triển khai trên IIS** (kèm script trong `deploy/`) | [docs/TrienKhaiIIS.md](docs/TrienKhaiIIS.md) |
+| Chứng chỉ HTTPS Let's Encrypt tự gia hạn cho `thietbi.bth.org.vn` | [docs/ChungChiHTTPS.md](docs/ChungChiHTTPS.md) |
 | Quyết định nghiệp vụ & danh mục tham số hệ thống | [docs/QuyetDinhNghiepVu.md](docs/QuyetDinhNghiepVu.md) |
 
 ## Kiểm thử
