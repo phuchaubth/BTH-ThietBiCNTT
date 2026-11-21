@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Dashboard tổng quan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f4f6f9}
+a{color:#1d5fbf}a:hover{color:#123f82}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1120px; font-family: 'Be Vietnam Pro', system-ui, sans-serif; color: #1b2430; font-size: 14px; background: #f4f6f9">
+  <nav aria-label="Menu chính" style="flex: 1 1 232px; max-width: 100%; background: #0f2d4a; color: #c9d6e3; padding: 18px 0; display: flex; flex-direction: column; gap: 2px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px 18px; color: #ffffff; font-weight: 700; font-size: 17px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7cc0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M12 7v10M7 12h10"></path></svg>
+      <span>TTB CNTT</span>
+    </div>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Tổng quan</div>
+    <a href="Main.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #ffffff; background: rgba(255,255,255,.1); border-left: 3px solid #7cc0ff; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>Dashboard</a>
+    <a href="Main.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Báo cáo &amp; KPI</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Tài sản</div>
+    <a href="TaiSan.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>Tài sản &amp; cấu hình</a>
+    <a href="TaiSan.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"></path></svg>Kiểm kê</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Bảo trì</div>
+    <a href="Kanban.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"></path></svg>Yêu cầu &amp; công việc<span style="margin-left: auto; background: #c62828; color: #ffffff; border-radius: 10px; padding: 0 7px; font-size: 11px; font-weight: 600">12</span></a>
+    <a href="Kanban.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"></path></svg>Bảo trì định kỳ</a>
+    <a href="Kanban.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4h6v3H9zM9 12h6M9 16h4"></path></svg>Kiểm tra thiết bị</a>
+    <a href="Kanban.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"></path><path d="M3 7l9 4 9-4M12 11v10"></path></svg>Kho &amp; mua sắm</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Nghiệp vụ</div>
+    <a href="ThanhLy.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"></path></svg>Điều chuyển</a>
+    <a href="ThanhLy.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"></path></svg>Thanh lý</a>
+  </nav>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #ffffff; border-bottom: 1px solid #e3e7ed; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+      <label style="display: flex; align-items: center; gap: 8px; background: #f4f6f9; border: 1px solid #dfe4ea; border-radius: 8px; padding: 0 12px; height: 38px; flex: 0 1 380px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5b6675" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-5-5"></path></svg>
+        <input aria-label="Tìm kiếm nhanh" placeholder="Tìm mã TS, serial, IP, hostname…" style="border: 0; background: transparent; outline: none; font: inherit; width: 100%">
+      </label>
+      <div style="margin-left: auto; display: flex; gap: 10px; align-items: center">
+        <a href="MobileBaoHong.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; background: #c62828; color: #ffffff; border-radius: 8px; font-weight: 600; text-decoration: none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l10 18H2zM12 10v5M12 18v.5"></path></svg>Báo hỏng</a>
+        <button aria-label="Thông báo" style="width: 44px; height: 38px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; position: relative">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b2430" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"></path></svg>
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: #dbe7f7; color: #123f82; display: flex; align-items: center; justify-content: center; font-weight: 700">NA</div>
+          <div style="line-height: 1.2"><div style="font-weight: 600">Nguyễn Văn An</div><div style="font-size: 12px; color: #5b6675">Cán bộ CNTT</div></div>
+        </div>
+      </div>
+    </header>
+
+    <main style="padding: 24px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+        <div>
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700">Tổng quan trang thiết bị CNTT</h1>
+          <div style="color: #5b6675; margin-top: 4px">Toàn bệnh viện · cập nhật 09:42, 21/11/2026</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap">
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">Toàn viện ▾</button>
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">90 ngày qua ▾</button>
+          <button style="height: 38px; padding: 0 14px; border: 0; background: #1d5fbf; color: #ffffff; border-radius: 8px; font: inherit; font-weight: 600">+ Thêm tài sản</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 18px">
+          <div style="color: #5b6675; font-size: 13px">Tổng tài sản đang quản lý</div>
+          <div style="font-size: 30px; font-weight: 700; margin-top: 6px">1.284</div>
+          <div style="color: #5b6675; font-size: 12px; margin-top: 2px">Nguyên giá 18,6 tỷ đ</div>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 18px">
+          <div style="color: #5b6675; font-size: 13px">Yêu cầu / công việc đang mở</div>
+          <div style="font-size: 30px; font-weight: 700; margin-top: 6px">37</div>
+          <div style="color: #b3261e; font-size: 12px; margin-top: 2px; font-weight: 600">5 phiếu quá hạn SLA</div>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 18px">
+          <div style="color: #5b6675; font-size: 13px">MTTR · thời gian sửa TB</div>
+          <div style="font-size: 30px; font-weight: 700; margin-top: 6px">6,4 <span style="font-size: 16px; font-weight: 500">giờ</span></div>
+          <div style="color: #1e7a46; font-size: 12px; margin-top: 2px">▼ 1,2 giờ so với quý trước</div>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 18px">
+          <div style="color: #5b6675; font-size: 13px">Tỷ lệ đúng SLA</div>
+          <div style="font-size: 30px; font-weight: 700; margin-top: 6px; color: #1e7a46">91%</div>
+          <div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 8px"><div style="width: 91%; height: 8px; background: #1e7a46; border-radius: 4px"></div></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #5b6675">Đang sử dụng</div><div style="font-size: 22px; font-weight: 700; color: #1e7a46">1.163</div></div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #5b6675">Đang sửa chữa</div><div style="font-size: 22px; font-weight: 700; color: #a15c00">28</div></div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #5b6675">Hỏng chờ xử lý</div><div style="font-size: 22px; font-weight: 700; color: #b3261e">19</div></div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #5b6675">Hết BH trong 60 ngày</div><div style="font-size: 22px; font-weight: 700">42</div></div>
+        <div style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #5b6675">Quá tuổi thọ (&gt;5 năm)</div><div style="font-size: 22px; font-weight: 700">211</div></div>
+        <div style="background: #fff6e5; border: 1px solid #f2d39b; border-radius: 10px; padding: 12px 14px"><div style="font-size: 12px; color: #7a4a00">Vật tư dưới định mức</div><div style="font-size: 22px; font-weight: 700; color: #7a4a00">3</div></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px">
+        <section style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; overflow: hidden">
+          <div style="display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid #eef1f4"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Công việc ưu tiên</h2><a href="Kanban.dc.html" style="margin-left: auto; font-size: 13px">Mở bảng công việc →</a></div>
+          <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+            <thead><tr style="background: #f8f9fb; color: #5b6675; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em">
+              <th style="padding: 9px 18px">Số phiếu</th><th style="padding: 9px 8px">Thiết bị / sự cố</th><th style="padding: 9px 8px">Khoa</th><th style="padding: 9px 8px">Ưu tiên</th><th style="padding: 9px 18px 9px 8px">Hạn SLA</th></tr></thead>
+            <tbody>
+              <tr style="border-top: 1px solid #eef1f4"><td style="padding: 10px 18px"><a href="PhieuSuaChua.dc.html">SC-2611-0148</a></td><td style="padding: 10px 8px">PC-0412 · Không vào được HIS<div style="color: #5b6675; font-size: 12px">Dell OptiPlex 7010</div></td><td style="padding: 10px 8px">Cấp cứu</td><td style="padding: 10px 8px"><span style="background: #fde7e7; color: #8c1d18; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px">Khẩn cấp</span></td><td style="padding: 10px 18px 10px 8px; color: #b3261e; font-weight: 600">Quá 25 phút</td></tr>
+              <tr style="border-top: 1px solid #eef1f4"><td style="padding: 10px 18px"><a href="PhieuSuaChua.dc.html">SC-2611-0146</a></td><td style="padding: 10px 8px">PRN-0087 · Kẹt giấy liên tục<div style="color: #5b6675; font-size: 12px">HP LaserJet M404dn</div></td><td style="padding: 10px 8px">HSTC-CĐ</td><td style="padding: 10px 8px"><span style="background: #fff0db; color: #7a4a00; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px">Cao</span></td><td style="padding: 10px 18px 10px 8px">13:30 hôm nay</td></tr>
+              <tr style="border-top: 1px solid #eef1f4"><td style="padding: 10px 18px"><a href="PhieuSuaChua.dc.html">SC-2611-0143</a></td><td style="padding: 10px 8px">UPS-0021 · Kêu bíp liên tục<div style="color: #5b6675; font-size: 12px">Santak Blazer 1000</div></td><td style="padding: 10px 8px">Phẫu thuật GMHS</td><td style="padding: 10px 8px"><span style="background: #fff0db; color: #7a4a00; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px">Cao</span></td><td style="padding: 10px 18px 10px 8px">15:00 hôm nay</td></tr>
+              <tr style="border-top: 1px solid #eef1f4"><td style="padding: 10px 18px"><a href="PhieuSuaChua.dc.html">BT-2611-0031</a></td><td style="padding: 10px 8px">Vệ sinh PC định kỳ (14 máy)<div style="color: #5b6675; font-size: 12px">Kế hoạch 6 tháng</div></td><td style="padding: 10px 8px">Nội tổng hợp</td><td style="padding: 10px 8px"><span style="background: #eceff3; color: #3d4652; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px">Thấp</span></td><td style="padding: 10px 18px 10px 8px">28/11</td></tr>
+              <tr style="border-top: 1px solid #eef1f4"><td style="padding: 10px 18px"><a href="PhieuSuaChua.dc.html">SC-2611-0139</a></td><td style="padding: 10px 8px">LT-0033 · Màn hình sọc<div style="color: #5b6675; font-size: 12px">Dell Latitude 3440 · gửi hãng</div></td><td style="padding: 10px 8px">Kế hoạch TH</td><td style="padding: 10px 8px"><span style="background: #e3f1fb; color: #0b4f7a; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 12px">Trung bình</span></td><td style="padding: 10px 18px 10px 8px">25/11</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 14px 18px">
+          <h2 style="margin: 0 0 14px; font-size: 15px; font-weight: 600">Phiếu sửa chữa &amp; bảo trì · 12 tháng</h2>
+          <div style="display: flex; align-items: flex-end; gap: 8px; height: 180px; border-bottom: 1px solid #dfe4ea; padding-bottom: 2px">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">42</span><div style="width: 100%; height: 84px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">51</span><div style="width: 100%; height: 102px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">38</span><div style="width: 100%; height: 76px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">47</span><div style="width: 100%; height: 94px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">63</span><div style="width: 100%; height: 126px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">58</span><div style="width: 100%; height: 116px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">44</span><div style="width: 100%; height: 88px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">49</span><div style="width: 100%; height: 98px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">55</span><div style="width: 100%; height: 110px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">61</span><div style="width: 100%; height: 122px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #5b6675">72</span><div style="width: 100%; height: 144px; background: #9dbfe8; border-radius: 4px 4px 0 0"></div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 11px; color: #1b2430; font-weight: 600">48</span><div style="width: 100%; height: 96px; background: #1d5fbf; border-radius: 4px 4px 0 0"></div></div>
+          </div>
+          <div style="display: flex; gap: 8px; font-size: 11px; color: #5b6675; margin-top: 6px">
+            <span style="flex: 1; text-align: center">12/25</span><span style="flex: 1; text-align: center">01</span><span style="flex: 1; text-align: center">02</span><span style="flex: 1; text-align: center">03</span><span style="flex: 1; text-align: center">04</span><span style="flex: 1; text-align: center">05</span><span style="flex: 1; text-align: center">06</span><span style="flex: 1; text-align: center">07</span><span style="flex: 1; text-align: center">08</span><span style="flex: 1; text-align: center">09</span><span style="flex: 1; text-align: center">10</span><span style="flex: 1; text-align: center">11/26</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 14px; font-size: 13px">
+            <div><div style="color: #5b6675; font-size: 12px">Chi phí SC/BT 12 tháng</div><div style="font-weight: 700; font-size: 18px">486,2 triệu đ</div></div>
+            <div><div style="color: #5b6675; font-size: 12px">Ngân sách năm</div><div style="font-weight: 700; font-size: 18px">620 triệu đ</div></div>
+            <div style="flex: 1; min-width: 160px"><div style="color: #5b6675; font-size: 12px">Đã dùng 78% ngân sách</div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 8px"><div style="width: 78%; height: 8px; background: #a15c00; border-radius: 4px"></div></div></div>
+          </div>
+        </section>
+
+        <section style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 14px 18px">
+          <h2 style="margin: 0 0 14px; font-size: 15px; font-weight: 600">Tài sản theo khoa/phòng</h2>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+            <div><div style="display: flex"><span>Khoa Khám bệnh</span><b style="margin-left: auto">168</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 100%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+            <div><div style="display: flex"><span>Phòng Kế hoạch tổng hợp</span><b style="margin-left: auto">121</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 72%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+            <div><div style="display: flex"><span>Khoa Cấp cứu</span><b style="margin-left: auto">96</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 57%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+            <div><div style="display: flex"><span>Khoa Xét nghiệm</span><b style="margin-left: auto">88</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 52%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+            <div><div style="display: flex"><span>Khoa Chẩn đoán hình ảnh</span><b style="margin-left: auto">74</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 44%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+            <div><div style="display: flex"><span>Phòng Tài chính kế toán</span><b style="margin-left: auto">61</b></div><div style="height: 8px; background: #e9edf2; border-radius: 4px; margin-top: 4px"><div style="width: 36%; height: 8px; background: #1d5fbf; border-radius: 4px"></div></div></div>
+          </div>
+        </section>
+
+        <section style="background: #ffffff; border: 1px solid #e3e7ed; border-radius: 12px; padding: 14px 18px">
+          <h2 style="margin: 0 0 14px; font-size: 15px; font-weight: 600">Cảnh báo &amp; nhắc việc</h2>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+            <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: #fdeeee; border-radius: 8px"><b style="color: #8c1d18">SLA</b><span>2 phiếu khẩn cấp tại Cấp cứu, ICU đã quá hạn tiếp nhận, đã tự báo lên Trưởng phòng CNTT.</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: #fff6e5; border-radius: 8px"><b style="color: #7a4a00">Kho</b><span>SSD 256GB còn 4 (định mức 5), Trống máy in HP còn 1 (định mức 3): đã tạo đề xuất mua PR-2611-007.</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: #eaf2fc; border-radius: 8px"><b style="color: #123f82">PM</b><span>3 kế hoạch bảo trì đến hạn trong 7 ngày (vệ sinh PC, máy in, UPS phòng mổ).</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: #f1f3f6; border-radius: 8px"><b style="color: #3d4652">BH</b><span>Hợp đồng bảo hành máy chủ SV-0003 hết hạn ngày 05/01/2027.</span></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

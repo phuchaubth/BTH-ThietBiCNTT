@@ -1,0 +1,52 @@
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@model System.Collections.IEnumerable
+@{
+    var cot = (string[])ViewData["Cot"]!;
+    var ctrl = ViewContext.RouteData.Values["controller"]!.ToString();
+    var type = Model.GetType().GetGenericArguments()[0];
+    string Header(string p) => type.GetProperty(p)?.GetCustomAttribute<DisplayAttribute>()?.Name ?? p;
+    object Cell(object item, string p)
+    {
+        var v = type.GetProperty(p)!.GetValue(item);
+        return v switch
+        {
+            bool b => Html.Raw(b ? "<i class=\"bi bi-check-circle-fill text-success\"></i>" : ""),
+            Enum e => e.Ten(),
+            decimal d => d.ToString("N0"),
+            null => "",
+            _ => v.ToString()!
+        };
+    }
+}
+<div class="page-head">
+    <h1>@ViewData["Title"]</h1>
+    <form class="d-flex" method="get"><input name="q" value="@ViewData["q"]" class="form-control form-control-sm" placeholder="Tìm…" /></form>
+    <div class="actions"><a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm mới</a></div>
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr>@foreach (var c in cot) { <th>@Header(c)</th> }<th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        var id = type.GetProperty("Id")!.GetValue(item);
+        var canhBao = item is VatTu vt && vt.DuoiTonToiThieu;
+        <tr class="@(canhBao ? "table-warning" : "")">
+            @foreach (var c in cot) { <td>@Cell(item, c)</td> }
+            <td class="text-end text-nowrap">
+                @if (item is VatTu)
+                {
+                    <form asp-action="NhapKho" asp-route-id="@id" method="post" class="d-inline-flex gap-1">
+                        <input name="soLuong" type="number" step="1" min="1" class="form-control form-control-sm" style="width:80px" placeholder="SL" required />
+                        <button class="btn btn-sm btn-outline-success" title="Nhập kho"><i class="bi bi-box-arrow-in-down"></i></button>
+                    </form>
+                }
+                <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div></div>
+@if (ctrl == "VatTu") { <p class="small text-muted mt-2"><span class="badge bg-warning text-dark">Vàng</span> = tồn kho ≤ định mức tối thiểu, cần lập đề xuất mua sắm.</p> }

@@ -1,0 +1,70 @@
+@{
+    var c = ViewContext.RouteData.Values["controller"]?.ToString();
+    string Act(params string[] names) => names.Contains(c) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản lý TTB CNTT</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+<div class="app">
+    <nav class="sidebar d-print-none" id="sidebar">
+        <a class="brand" asp-controller="Home" asp-action="Index"><i class="bi bi-hospital"></i> TTB CNTT</a>
+        <div class="nav-section">Tổng quan</div>
+        <a class="nav-item @Act("Home")" asp-controller="Home" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <div class="nav-section">Tài sản</div>
+        <a class="nav-item @Act("TaiSan")" asp-controller="TaiSan" asp-action="Index"><i class="bi bi-pc-display"></i> Tài sản & cấu hình</a>
+        <div class="nav-section">Bảo trì</div>
+        <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
+        <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a>
+        <a class="nav-item @Act("VatTu")" asp-controller="VatTu" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a>
+        <div class="nav-section">Nghiệp vụ</div>
+        <a class="nav-item @Act("DieuChuyen")" asp-controller="DieuChuyen" asp-action="Index"><i class="bi bi-arrow-left-right"></i> Điều chuyển</a>
+        <a class="nav-item @Act("ThanhLy")" asp-controller="ThanhLy" asp-action="Index"><i class="bi bi-trash3"></i> Thanh lý</a>
+        @if (User.LaCNTT())
+        {
+            <div class="nav-section">Danh mục</div>
+            <a class="nav-item @Act("KhoaPhong")" asp-controller="KhoaPhong" asp-action="Index"><i class="bi bi-diagram-3"></i> Khoa/phòng</a>
+            <a class="nav-item @Act("LoaiThietBi")" asp-controller="LoaiThietBi" asp-action="Index"><i class="bi bi-tags"></i> Loại thiết bị</a>
+            <a class="nav-item @Act("NhaCungCap")" asp-controller="NhaCungCap" asp-action="Index"><i class="bi bi-building"></i> Nhà cung cấp</a>
+        }
+        @if (User.IsInRole(VaiTro.QuanTri))
+        {
+            <a class="nav-item @Act("NhatKy")" asp-controller="NhatKy" asp-action="Index"><i class="bi bi-journal-text"></i> Nhật ký hệ thống</a>
+        }
+    </nav>
+    <div class="main">
+        <header class="topbar d-print-none">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="bi bi-list"></i></button>
+            <form class="d-none d-md-flex" asp-controller="TaiSan" asp-action="Index" method="get">
+                <input class="form-control form-control-sm" name="q" placeholder="Tìm mã TS, serial, IP, hostname…" style="width:320px" />
+            </form>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <a class="btn btn-sm btn-danger" asp-controller="PhieuSuaChua" asp-action="Create"><i class="bi bi-exclamation-triangle"></i> Báo hỏng</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="small text-muted d-none d-sm-inline"><i class="bi bi-person-circle"></i> @User.Identity.Name</span>
+                    <form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-sm btn-link">Đăng xuất</button></form>
+                }
+            </div>
+        </header>
+        <main class="content">
+            @if (TempData["ok"] is string ok) { <div class="alert alert-success alert-dismissible"><i class="bi bi-check-circle"></i> @ok<button class="btn-close" data-bs-dismiss="alert"></button></div> }
+            @if (TempData["err"] is string err) { <div class="alert alert-danger alert-dismissible"><i class="bi bi-x-circle"></i> @err<button class="btn-close" data-bs-dismiss="alert"></button></div> }
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

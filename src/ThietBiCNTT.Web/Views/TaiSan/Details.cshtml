@@ -1,0 +1,101 @@
+@model TaiSan
+@{
+    ViewData["Title"] = Model.MaTaiSan;
+    var homNay = DateOnly.FromDateTime(DateTime.Today);
+    var sc = Model.PhieuSuaChuas.Where(p => p.LoaiCongViec == LoaiCongViec.SuaChua).ToList();
+    var tongChiPhi = Model.PhieuSuaChuas.Sum(p => p.TongChiPhi);
+    var dungMay = sc.Where(p => p.ThoiGianDungMayGio != null).Sum(p => p.ThoiGianDungMayGio!.Value);
+    var tuoi = Model.TuoiNam(homNay);
+}
+<div class="page-head">
+    <h1>@Model.MaTaiSan · @Model.Ten</h1> @Html.Raw(Badge.Html(Model.TrangThai))
+    <div class="actions">
+        @if (!Model.DaThanhLy) { <a asp-controller="PhieuSuaChua" asp-action="Create" asp-route-taiSanId="@Model.Id" class="btn btn-sm btn-danger"><i class="bi bi-exclamation-triangle"></i> Báo hỏng</a> }
+        @if (User.LaCNTT() && !Model.DaThanhLy)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
+            <a asp-controller="DieuChuyen" asp-action="Create" asp-route-tuKhoa="@Model.KhoaPhongId" asp-route-taiSanIds="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left-right"></i> Điều chuyển</a>
+            <a asp-action="Create" asp-route-copyFrom="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-copy"></i> Nhân bản</a>
+        }
+        <a asp-action="InTem" asp-route-ids="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In tem</a>
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3"><div class="card-header">Thông tin tài sản</div><div class="card-body">
+            <dl class="row info mb-0">
+                <div class="col-sm-4"><dt>Loại</dt><dd>@Model.LoaiThietBi?.Ten</dd></div>
+                <div class="col-sm-4"><dt>Hãng / Model</dt><dd>@Model.Hang @Model.Model</dd></div>
+                <div class="col-sm-4"><dt>Số serial</dt><dd class="font-monospace">@Model.SoSerial</dd></div>
+                <div class="col-sm-4"><dt>Khoa/phòng</dt><dd>@(Model.KhoaPhong?.Ten ?? "Kho CNTT")</dd></div>
+                <div class="col-sm-4"><dt>Người sử dụng</dt><dd>@Model.NguoiSuDung</dd></div>
+                <div class="col-sm-4"><dt>Vị trí</dt><dd>@Model.ViTri?.Ten</dd></div>
+                <div class="col-sm-4"><dt>Nguyên giá</dt><dd>@Model.NguyenGia.ToString("N0") đ</dd></div>
+                <div class="col-sm-4"><dt>Nguồn vốn</dt><dd>@Model.NguonVon.Ten()</dd></div>
+                <div class="col-sm-4"><dt>Số HĐ / hoá đơn</dt><dd>@Model.SoHopDong</dd></div>
+                <div class="col-sm-4"><dt>Ngày mua / đưa vào SD</dt><dd>@Model.NgayMua?.ToString("dd/MM/yyyy") / @Model.NgaySuDung?.ToString("dd/MM/yyyy")</dd></div>
+                <div class="col-sm-4"><dt>Nhà cung cấp</dt><dd>@Model.NhaCungCap?.Ten</dd></div>
+                <div class="col-sm-4"><dt>Hạn bảo hành</dt><dd>@Model.HanBaoHanh?.ToString("dd/MM/yyyy") @if (Model.HanBaoHanh is not null) { <span class="badge bg-@(Model.ConBaoHanh(homNay) ? "success" : "secondary")">@(Model.ConBaoHanh(homNay) ? "Còn BH" : "Hết BH")</span> }</dd></div>
+                @if (Model.TaiSanCha is not null) { <div class="col-sm-4"><dt>Thuộc thiết bị</dt><dd><a asp-action="Details" asp-route-id="@Model.TaiSanChaId">@Model.TaiSanCha.MaTaiSan</a></dd></div> }
+                @if (Model.ChiSoBoDem is not null) { <div class="col-sm-4"><dt>Bộ đếm</dt><dd>@Model.ChiSoBoDem?.ToString("N0")</dd></div> }
+                @if (!string.IsNullOrEmpty(Model.GhiChu)) { <div class="col-12"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div> }
+            </dl>
+            @if (Model.TaiSanCon.Count > 0)
+            {
+                <div class="small"><b>Thiết bị con:</b> @foreach (var c in Model.TaiSanCon) { <a class="badge bg-light text-dark border me-1" asp-action="Details" asp-route-id="@c.Id">@c.MaTaiSan</a> }</div>
+            }
+        </div></div>
+
+        @if (Model.CauHinh is { } ch)
+        {
+            <div class="card mb-3"><div class="card-header">Cấu hình <span class="small text-muted fw-normal">· cập nhật @ch.NgayCapNhat?.ToString("dd/MM/yyyy")</span></div><div class="card-body">
+                <dl class="row info mb-0">
+                    <div class="col-sm-4"><dt>CPU</dt><dd>@ch.CPU</dd></div>
+                    <div class="col-sm-4"><dt>RAM</dt><dd>@ch.RAM</dd></div>
+                    <div class="col-sm-4"><dt>Ổ cứng</dt><dd>@ch.OCung</dd></div>
+                    <div class="col-sm-4"><dt>Hệ điều hành</dt><dd>@ch.HeDieuHanh</dd></div>
+                    <div class="col-sm-4"><dt>Bản quyền</dt><dd>@ch.BanQuyen</dd></div>
+                    <div class="col-sm-4"><dt>Hostname</dt><dd class="font-monospace">@ch.Hostname</dd></div>
+                    <div class="col-sm-4"><dt>IP</dt><dd class="font-monospace">@ch.DiaChiIP</dd></div>
+                    <div class="col-sm-4"><dt>MAC</dt><dd class="font-monospace">@ch.DiaChiMAC</dd></div>
+                    <div class="col-12"><dt>Phần mềm</dt><dd>@ch.PhanMem</dd></div>
+                </dl>
+            </div></div>
+        }
+
+        <div class="card mb-3"><div class="card-header">Lịch sử sửa chữa & bảo trì (@Model.PhieuSuaChuas.Count)</div>
+            <div class="table-responsive"><table class="table table-sm mb-0">
+                <thead><tr><th>Số phiếu</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>KTV</th><th class="text-end">Chi phí</th><th>Trạng thái</th></tr></thead>
+                <tbody>@foreach (var p in Model.PhieuSuaChuas) {
+                    <tr><td><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a></td><td class="small">@p.NgayYeuCau.ToString("dd/MM/yy")</td>
+                    <td class="small">@p.LoaiCongViec.Ten()</td><td class="small">@p.MoTaSuCo.Split('\n')[0]<div class="text-muted">@p.BienPhapKhacPhuc</div></td>
+                    <td class="small">@p.KyThuatVien</td><td class="small text-end">@p.TongChiPhi.ToString("N0")</td><td>@Html.Raw(Badge.Html(p.TrangThai))</td></tr>
+                }</tbody>
+            </table></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3 text-center"><div class="card-body">
+            <img src="/TaiSan/QrImage/@Model.Id" alt="QR" style="width:160px;height:160px" />
+            <div class="small text-muted">Quét để mở hồ sơ / báo hỏng</div>
+        </div></div>
+        <div class="card mb-3"><div class="card-header">Chỉ số vận hành</div><div class="card-body">
+            <dl class="row info mb-0">
+                <div class="col-6"><dt>Tuổi thiết bị</dt><dd>@(tuoi?.ToString() ?? "—") năm @if (tuoi >= Model.LoaiThietBi?.TuoiThoNam) { <span class="badge bg-warning text-dark">Quá tuổi thọ</span> }</dd></div>
+                <div class="col-6"><dt>Số lần hỏng</dt><dd>@sc.Count</dd></div>
+                <div class="col-6"><dt>Tổng chi phí SC/BT</dt><dd>@tongChiPhi.ToString("N0") đ</dd></div>
+                <div class="col-6"><dt>Tổng thời gian dừng</dt><dd>@dungMay.ToString("N1") giờ</dd></div>
+                <div class="col-12"><dt>Tổng chi phí sở hữu (TCO)</dt><dd class="fw-semibold">@((Model.NguyenGia + tongChiPhi).ToString("N0")) đ</dd></div>
+            </dl>
+            @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * 0.5m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt 50% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
+        </div></div>
+        <div class="card"><div class="card-header">Dòng thời gian</div><div class="card-body">
+            <ul class="timeline">
+                @foreach (var l in Model.LichSu)
+                {
+                    <li><div class="small text-muted">@l.ThoiGian.ToString("dd/MM/yyyy HH:mm") · @l.NguoiThucHien</div><b class="small">@l.LoaiSuKien.Ten()</b><div class="small">@l.NoiDung</div></li>
+                }
+            </ul>
+        </div></div>
+    </div>
+</div>

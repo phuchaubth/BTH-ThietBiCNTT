@@ -1,0 +1,45 @@
+:root { --sb-w: 240px; --sb-bg: #0f2d4a; --sb-fg: #c9d6e3; --accent: #0d6efd; }
+html, body { height: 100%; }
+body { background: #f4f6f9; font-size: .925rem; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: var(--sb-w); background: var(--sb-bg); color: var(--sb-fg); flex-shrink: 0; padding: .75rem 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar .brand { display: block; color: #fff; font-weight: 700; font-size: 1.15rem; padding: .5rem 1.25rem 1rem; text-decoration: none; }
+.sidebar .nav-section { text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; opacity: .55; padding: .9rem 1.25rem .3rem; }
+.sidebar .nav-item { display: flex; gap: .6rem; align-items: center; color: var(--sb-fg); text-decoration: none; padding: .45rem 1.25rem; border-left: 3px solid transparent; }
+.sidebar .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.sidebar .nav-item.active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #4da3ff; }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar { background: #fff; border-bottom: 1px solid #e3e7ed; padding: .5rem 1rem; display: flex; gap: .75rem; align-items: center; position: sticky; top: 0; z-index: 10; }
+.content { padding: 1.25rem; }
+.page-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: 1rem; }
+.page-head h1 { font-size: 1.35rem; margin: 0; font-weight: 600; }
+.page-head .actions { margin-left: auto; display: flex; gap: .5rem; flex-wrap: wrap; }
+.card { border: 1px solid #e3e7ed; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+.card-header { background: #fff; font-weight: 600; }
+.kpi { padding: 1rem; }
+.kpi .label { color: #6c757d; font-size: .8rem; }
+.kpi .value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+.kpi .sub { font-size: .78rem; color: #6c757d; }
+.table > :not(caption) > * > * { padding: .5rem .6rem; }
+.table thead th { font-size: .78rem; text-transform: uppercase; color: #6c757d; font-weight: 600; background: #f8f9fb; }
+dl.info dt { color: #6c757d; font-weight: 500; font-size: .82rem; }
+dl.info dd { margin-bottom: .6rem; }
+.timeline { list-style: none; padding-left: 1rem; border-left: 2px solid #dee2e6; margin: 0; }
+.timeline li { position: relative; padding: 0 0 .9rem .75rem; }
+.timeline li::before { content: ""; position: absolute; left: -1.42rem; top: .3rem; width: .7rem; height: .7rem; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+.kanban { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: .75rem; overflow-x: auto; padding-bottom: .5rem; }
+.kanban .col-k { background: #eef1f5; border-radius: .5rem; padding: .5rem; min-height: 200px; }
+.kanban .col-k h6 { font-size: .8rem; text-transform: uppercase; color: #495057; display: flex; justify-content: space-between; }
+.kanban .k-card { background: #fff; border-radius: .4rem; padding: .55rem .65rem; margin-bottom: .5rem; border-left: 4px solid #adb5bd; box-shadow: 0 1px 2px rgba(0,0,0,.06); font-size: .85rem; }
+.kanban .k-card.p4 { border-left-color: #dc3545; } .kanban .k-card.p3 { border-left-color: #fd7e14; } .kanban .k-card.p2 { border-left-color: #0dcaf0; }
+.overdue { color: #dc3545; font-weight: 600; }
+.bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; } .bar > span { display: block; height: 100%; background: var(--accent); }
+.qr-label { width: 62mm; border: 1px dashed #999; padding: 3mm; display: inline-flex; gap: 3mm; align-items: center; margin: 2mm; page-break-inside: avoid; font-size: 9pt; }
+.qr-label img { width: 22mm; height: 22mm; }
+.comment { background: #f8f9fb; border-radius: .5rem; padding: .5rem .75rem; margin-bottom: .5rem; }
+.comment.sys { background: transparent; color: #6c757d; font-size: .8rem; padding: .1rem .75rem; }
+@media (max-width: 991.98px) {
+  .sidebar { position: fixed; left: calc(-1 * var(--sb-w)); z-index: 30; transition: left .2s; }
+  .sidebar.open { left: 0; }
+}
+@media print { body { background: #fff; } .content { padding: 0; } .card { border: 0; box-shadow: none; } }

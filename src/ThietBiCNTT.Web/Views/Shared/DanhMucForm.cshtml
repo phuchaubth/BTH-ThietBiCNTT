@@ -1,0 +1,51 @@
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using ThietBiCNTT.Domain.Common
+@model BaseEntity
+@{
+    var type = Model.GetType();
+    var props = type.GetProperties().Where(p => p.CanWrite && p.GetCustomAttribute<ScaffoldColumnAttribute>()?.Scaffold != false
+        && (p.PropertyType.IsValueType || p.PropertyType == typeof(string))
+        && !(p.Name.EndsWith("Id") && p.PropertyType != typeof(string))).ToList();
+}
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:720px"><div class="card-body">
+<form asp-action="Save" asp-route-id="@Model.Id" method="post">
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    @foreach (var p in props)
+    {
+        var name = p.GetCustomAttribute<DisplayAttribute>()?.Name ?? p.Name;
+        var val = p.GetValue(Model);
+        var req = p.GetCustomAttribute<RequiredAttribute>() is not null;
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        if (t == typeof(bool))
+        {
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="@p.Name" value="true" id="@p.Name" @(val is true ? "checked" : "") />
+                <input type="hidden" name="@p.Name" value="false" />
+                <label class="form-check-label" for="@p.Name">@name</label>
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label class="form-label" for="@p.Name">@name @if (req) { <span class="text-danger">*</span> }</label>
+                @if (t.IsEnum)
+                {
+                    <select class="form-select" name="@p.Name" id="@p.Name">
+                        @foreach (Enum e in Enum.GetValues(t)) { <option value="@e" selected="@(Equals(e, val))">@e.Ten()</option> }
+                    </select>
+                }
+                else
+                {
+                    var num = t == typeof(int) || t == typeof(decimal) || t == typeof(long);
+                    <input class="form-control" name="@p.Name" id="@p.Name" type="@(num ? "number" : "text")" step="any" value="@(val is decimal d ? d.ToString(System.Globalization.CultureInfo.InvariantCulture) : val)" @(req ? "required" : "") />
+                }
+                <span class="text-danger small" asp-validation-for="@p.Name"></span>
+            </div>
+        }
+    }
+    <button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button>
+    <a asp-action="Index" class="btn btn-link">Huỷ</a>
+</form>
+</div></div>

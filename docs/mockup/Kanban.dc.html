@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bảng công việc Kanban</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f4f6f9}
+a{color:#1d5fbf}a:hover{color:#123f82}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 940px; font-family: 'Be Vietnam Pro', system-ui, sans-serif; color: #1b2430; font-size: 14px; background: #f4f6f9">
+  <nav aria-label="Menu chính" style="flex: 1 1 232px; max-width: 100%; background: #0f2d4a; color: #c9d6e3; padding: 18px 0; display: flex; flex-direction: column; gap: 2px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px 18px; color: #ffffff; font-weight: 700; font-size: 17px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7cc0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M12 7v10M7 12h10"></path></svg>
+      <span>TTB CNTT</span>
+    </div>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Tổng quan</div>
+    <a href="Main.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Dashboard</a>
+    <a href="Main.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Báo cáo &amp; KPI</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Tài sản</div>
+    <a href="TaiSan.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Tài sản &amp; cấu hình</a>
+    <a href="TaiSan.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Kiểm kê</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Bảo trì</div>
+    <a href="Kanban.dc.html" style="display: flex; padding: 9px 20px; color: #ffffff; background: rgba(255,255,255,.1); border-left: 3px solid #7cc0ff; text-decoration: none">Yêu cầu &amp; công việc</a>
+    <a href="Kanban.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Bảo trì định kỳ</a>
+    <a href="Kanban.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Kiểm tra thiết bị</a>
+    <a href="Kanban.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Kho &amp; mua sắm</a>
+    <div style="padding: 12px 20px 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8fa6bd">Nghiệp vụ</div>
+    <a href="ThanhLy.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Điều chuyển</a>
+    <a href="ThanhLy.dc.html" style="display: flex; padding: 9px 20px; color: #c9d6e3; border-left: 3px solid transparent; text-decoration: none">Thanh lý</a>
+  </nav>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <main style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 700">Yêu cầu &amp; công việc bảo trì</h1>
+        <div role="tablist" aria-label="Kiểu xem" style="display: flex; background: #e6eaef; border-radius: 8px; padding: 3px">
+          <button role="tab" aria-selected="false" style="height: 34px; padding: 0 12px; border: 0; background: transparent; border-radius: 6px; font: inherit">Danh sách</button>
+          <button role="tab" aria-selected="true" style="height: 34px; padding: 0 12px; border: 0; background: #ffffff; border-radius: 6px; font: inherit; font-weight: 600">Kanban</button>
+          <button role="tab" aria-selected="false" style="height: 34px; padding: 0 12px; border: 0; background: transparent; border-radius: 6px; font: inherit">Lịch</button>
+          <button role="tab" aria-selected="false" style="height: 34px; padding: 0 12px; border: 0; background: transparent; border-radius: 6px; font: inherit">Timeline</button>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap">
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #1d5fbf; background: #eaf2fc; color: #123f82; border-radius: 8px; font: inherit; font-weight: 600">Việc của tôi</button>
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">Tôi giao</button>
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">Quá hạn · 5</button>
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">Khoa ▾</button>
+          <button style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 8px; font: inherit">Loại: Tất cả ▾</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(240px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 6px">
+        <section aria-label="Mới" style="background: #e9edf2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #3d4652"><span>Mới</span><span style="margin-left: auto">4</span></div>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #c62828; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0151</b><span style="margin-left: auto; color: #b3261e; font-weight: 600; font-size: 12px">còn 40 ph</span></div>
+            <div style="margin: 4px 0">Máy in phiếu xét nghiệm không in được</div>
+            <div style="color: #5b6675; font-size: 12px">PRN-0210 · Khoa Cấp cứu</div>
+            <div style="margin-top: 6px"><span style="background: #fde7e7; color: #8c1d18; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 11px">Khẩn cấp</span></div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #d97706; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0150</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">16:00</span></div>
+            <div style="margin: 4px 0">Không kết nối được wifi phòng họp</div>
+            <div style="color: #5b6675; font-size: 12px">AP-0019 · Phòng KHTH</div>
+            <div style="margin-top: 6px"><span style="background: #fff0db; color: #7a4a00; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 11px">Cao</span></div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #4b8fd6; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0149</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">ngày mai</span></div>
+            <div style="margin: 4px 0">Bàn phím liệt phím Enter</div>
+            <div style="color: #5b6675; font-size: 12px">PC-0301 · Khoa Khám bệnh</div>
+          </a>
+        </section>
+        <section aria-label="Đã tiếp nhận" style="background: #e9edf2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #3d4652"><span>Đã tiếp nhận</span><span style="margin-left: auto">3</span></div>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #d97706; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0146</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">13:30</span></div>
+            <div style="margin: 4px 0">Máy in kẹt giấy liên tục</div>
+            <div style="color: #5b6675; font-size: 12px">PRN-0087 · HSTC-CĐ</div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #3d4652"><span style="width: 22px; height: 22px; border-radius: 50%; background: #dbe7f7; color: #123f82; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px">TB</span>Trần Minh Bảo</div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #8a94a3; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>BT-2611-0031</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">28/11</span></div>
+            <div style="margin: 4px 0">Vệ sinh PC định kỳ · 14 máy</div>
+            <div style="color: #5b6675; font-size: 12px">Khoa Nội tổng hợp · PM 6 tháng</div>
+            <div style="height: 6px; background: #e9edf2; border-radius: 3px; margin-top: 8px"><div style="width: 35%; height: 6px; background: #1d5fbf; border-radius: 3px"></div></div>
+            <div style="font-size: 11px; color: #5b6675; margin-top: 2px">5/14 máy</div>
+          </a>
+        </section>
+        <section aria-label="Đang xử lý" style="background: #e9edf2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #3d4652"><span>Đang xử lý</span><span style="margin-left: auto">3</span></div>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #c62828; text-decoration: none; color: #1b2430; font-size: 13px; outline: 2px solid #c62828">
+            <div style="display: flex"><b>SC-2611-0148</b><span style="margin-left: auto; color: #b3261e; font-weight: 600; font-size: 12px">quá 25 ph</span></div>
+            <div style="margin: 4px 0">Không vào được HIS</div>
+            <div style="color: #5b6675; font-size: 12px">PC-0412 · Khoa Cấp cứu</div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #3d4652"><span style="width: 22px; height: 22px; border-radius: 50%; background: #dbe7f7; color: #123f82; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px">NA</span>Nguyễn Văn An<span style="margin-left: auto">3 trao đổi</span></div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #d97706; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0143</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">15:00</span></div>
+            <div style="margin: 4px 0">UPS kêu bíp liên tục</div>
+            <div style="color: #5b6675; font-size: 12px">UPS-0021 · Phẫu thuật GMHS</div>
+          </a>
+        </section>
+        <section aria-label="Chờ linh kiện / hãng" style="background: #e9edf2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #3d4652"><span>Chờ linh kiện / hãng</span><span style="margin-left: auto">2</span></div>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #4b8fd6; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0139</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">25/11</span></div>
+            <div style="margin: 4px 0">Màn hình laptop bị sọc</div>
+            <div style="color: #5b6675; font-size: 12px">LT-0033 · gửi BH Dell</div>
+            <div style="margin-top: 6px"><span style="background: #eceff3; color: #3d4652; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 11px">Gửi hãng</span></div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #4b8fd6; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0131</b><span style="margin-left: auto; color: #5b6675; font-size: 12px">26/11</span></div>
+            <div style="margin: 4px 0">Thay nguồn máy tính</div>
+            <div style="color: #5b6675; font-size: 12px">PC-0198 · chờ PR-2611-007</div>
+          </a>
+        </section>
+        <section aria-label="Hoàn thành chờ nghiệm thu" style="background: #e9edf2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #3d4652"><span>Chờ nghiệm thu</span><span style="margin-left: auto">2</span></div>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #1e7a46; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0144</b><span style="margin-left: auto; color: #1e7a46; font-size: 12px; font-weight: 600">đúng SLA</span></div>
+            <div style="margin: 4px 0">Cài lại máy in mạng</div>
+            <div style="color: #5b6675; font-size: 12px">PRN-0112 · Khoa Nhi</div>
+          </a>
+          <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 8px; padding: 10px 12px; border-top: 4px solid #1e7a46; text-decoration: none; color: #1b2430; font-size: 13px">
+            <div style="display: flex"><b>SC-2611-0140</b><span style="margin-left: auto; color: #1e7a46; font-size: 12px; font-weight: 600">đúng SLA</span></div>
+            <div style="margin: 4px 0">Không đăng nhập được Windows</div>
+            <div style="color: #5b6675; font-size: 12px">PC-0233 · Khoa Sản</div>
+          </a>
+        </section>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #3d4652">
+        <span><span style="display: inline-block; width: 12px; height: 12px; background: #c62828; border-radius: 2px; vertical-align: -2px"></span> Khẩn cấp (SLA 2 giờ, khoa trọng yếu 1 giờ)</span>
+        <span><span style="display: inline-block; width: 12px; height: 12px; background: #d97706; border-radius: 2px; vertical-align: -2px"></span> Cao (8 giờ / 4 giờ)</span>
+        <span><span style="display: inline-block; width: 12px; height: 12px; background: #4b8fd6; border-radius: 2px; vertical-align: -2px"></span> Trung bình (24 giờ / 12 giờ)</span>
+        <span><span style="display: inline-block; width: 12px; height: 12px; background: #8a94a3; border-radius: 2px; vertical-align: -2px"></span> Thấp / bảo trì định kỳ</span>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":940}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

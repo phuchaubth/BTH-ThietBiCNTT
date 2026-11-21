@@ -1,0 +1,201 @@
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using QRCoder;
+using ThietBiCNTT.Domain.Entities;
+using ThietBiCNTT.Domain.Enums;
+using ThietBiCNTT.Infrastructure.Data;
+using ThietBiCNTT.Infrastructure.Identity;
+using ThietBiCNTT.Infrastructure.Services;
+using ThietBiCNTT.Web.Infrastructure;
+
+namespace ThietBiCNTT.Web.Controllers;
+
+public class TaiSanFormVm
+{
+    public TaiSan TaiSan { get; set; } = new();
+    public CauHinh CauHinh { get; set; } = new();
+    public string? LyDoThayDoi { get; set; }
+}
+
+public class TaiSanController(AppDbContext db, LichSuService lichSu) : Controller
+{
+    private IQueryable<TaiSan> PhamViTaiSan()
+    {
+        var q = db.TaiSans.AsQueryable();
+        if (!User.XemToanVien()) { var k = User.KhoaPhongId(); q = q.Where(t => t.KhoaPhongId == k); }
+        return q;
+    }
+
+    private IQueryable<TaiSan> Loc(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh)
+    {
+        var query = PhamViTaiSan().Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).Include(t => t.CauHinh).AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            q = q.Trim();
+            query = query.Where(t => t.MaTaiSan.Contains(q) || t.Ten.Contains(q) || (t.SoSerial ?? "").Contains(q)
+                || (t.NguoiSuDung ?? "").Contains(q) || (t.CauHinh!.DiaChiIP ?? "").Contains(q) || (t.CauHinh!.Hostname ?? "").Contains(q));
+        }
+        if (khoa is not null) query = query.Where(t => t.KhoaPhongId == khoa);
+        if (loai is not null) query = query.Where(t => t.LoaiThietBiId == loai);
+        if (trangThai is not null) query = query.Where(t => t.TrangThai == trangThai);
+        else query = query.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy);
+        if (hetBaoHanh == true)
+        {
+            var d = DateOnly.FromDateTime(DateTime.Today);
+            query = query.Where(t => t.HanBaoHanh >= d && t.HanBaoHanh <= d.AddDays(60));
+        }
+        return query;
+    }
+
+    public async Task<IActionResult> Index(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh, int page = 1)
+    {
+        const int size = 25;
+        var query = Loc(q, khoa, loai, trangThai, hetBaoHanh);
+        var total = await query.CountAsync();
+        var items = await query.OrderBy(t => t.MaTaiSan).Skip((page - 1) * size).Take(size).ToListAsync();
+        await NapDanhMuc();
+        ViewData["q"] = q; ViewData["khoa"] = khoa; ViewData["loai"] = loai; ViewData["trangThai"] = trangThai; ViewData["hetBaoHanh"] = hetBaoHanh;
+        return View(new PagedList<TaiSan>(items, page, size, total));
+    }
+
+    /// <summary>Xuất Excel (CSV UTF-8) theo bộ lọc hiện tại.</summary>
+    public async Task<IActionResult> Export(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh)
+    {
+        var ds = await Loc(q, khoa, loai, trangThai, hetBaoHanh).OrderBy(t => t.MaTaiSan).ToListAsync();
+        static string E(object? v) => "\"" + (v?.ToString() ?? "").Replace("\"", "\"\"") + "\"";
+        var sb = new StringBuilder();
+        sb.AppendLine("Mã TS,Tên,Loại,Hãng,Model,Serial,Khoa/phòng,Người sử dụng,Trạng thái,Nguyên giá,Ngày mua,Hạn BH,CPU,RAM,Ổ cứng,HĐH,IP,MAC,Hostname");
+        foreach (var t in ds)
+            sb.AppendLine(string.Join(",", new object?[] { t.MaTaiSan, t.Ten, t.LoaiThietBi?.Ten, t.Hang, t.Model, t.SoSerial, t.KhoaPhong?.Ten,
+                t.NguoiSuDung, t.TrangThai.Ten(), t.NguyenGia, t.NgayMua?.ToString("dd/MM/yyyy"), t.HanBaoHanh?.ToString("dd/MM/yyyy"),
+                t.CauHinh?.CPU, t.CauHinh?.RAM, t.CauHinh?.OCung, t.CauHinh?.HeDieuHanh, t.CauHinh?.DiaChiIP, t.CauHinh?.DiaChiMAC, t.CauHinh?.Hostname }.Select(E)));
+        return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
+            "text/csv", $"TaiSan_{DateTime.Now:yyyyMMdd_HHmm}.csv");
+    }
+
+    public async Task<IActionResult> Details(int id)
+    {
+        var ts = await PhamViTaiSan().AsNoTracking()
+            .Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).Include(t => t.NhaCungCap).Include(t => t.ViTri)
+            .Include(t => t.CauHinh).Include(t => t.TaiSanCha).Include(t => t.TaiSanCon)
+            .Include(t => t.LichSu.OrderByDescending(l => l.ThoiGian).Take(50))
+            .Include(t => t.PhieuSuaChuas.OrderByDescending(p => p.NgayYeuCau)).ThenInclude(p => p.VatTus)
+            .FirstOrDefaultAsync(t => t.Id == id);
+        if (ts is null) return NotFound();
+        return View(ts);
+    }
+
+    /// <summary>Đích của mã QR trên tem: /qr/{ma}</summary>
+    [AllowAnonymous]
+    public async Task<IActionResult> Qr(string ma)
+    {
+        var id = await db.TaiSans.Where(t => t.MaTaiSan == ma).Select(t => (int?)t.Id).FirstOrDefaultAsync();
+        if (id is null) return NotFound();
+        if (User.Identity?.IsAuthenticated != true) return Redirect($"/Account/Login?returnUrl=/TaiSan/Details/{id}");
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [ResponseCache(Duration = 86400)]
+    public async Task<IActionResult> QrImage(int id)
+    {
+        var ma = await db.TaiSans.Where(t => t.Id == id).Select(t => t.MaTaiSan).FirstOrDefaultAsync();
+        if (ma is null) return NotFound();
+        var url = $"{Request.Scheme}://{Request.Host}/qr/{Uri.EscapeDataString(ma)}";
+        using var gen = new QRCodeGenerator();
+        using var data = gen.CreateQrCode(url, QRCodeGenerator.ECCLevel.M);
+        return File(new PngByteQRCode(data).GetGraphic(8), "image/png");
+    }
+
+    /// <summary>In tem QR cho danh sách id (hoặc theo bộ lọc).</summary>
+    public async Task<IActionResult> InTem(int[] ids, int? khoa)
+    {
+        var q = PhamViTaiSan().Include(t => t.KhoaPhong).AsNoTracking();
+        q = ids.Length > 0 ? q.Where(t => ids.Contains(t.Id)) : q.Where(t => khoa == null || t.KhoaPhongId == khoa);
+        return View(await q.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy).OrderBy(t => t.MaTaiSan).Take(300).ToListAsync());
+    }
+
+    [Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> Create(int? copyFrom)
+    {
+        var vm = new TaiSanFormVm();
+        vm.TaiSan.NgayMua = DateOnly.FromDateTime(DateTime.Today);
+        if (copyFrom is { } cid && await db.TaiSans.Include(t => t.CauHinh).AsNoTracking().FirstOrDefaultAsync(t => t.Id == cid) is { } src)
+        {
+            vm.TaiSan = src; vm.TaiSan.Id = 0; vm.TaiSan.MaTaiSan = ""; vm.TaiSan.SoSerial = null;
+            vm.CauHinh = src.CauHinh ?? new(); vm.CauHinh.DiaChiIP = vm.CauHinh.DiaChiMAC = vm.CauHinh.Hostname = null;
+        }
+        await NapDanhMuc();
+        return View("Form", vm);
+    }
+
+    [Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var ts = await db.TaiSans.Include(t => t.CauHinh).AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+        if (ts is null) return NotFound();
+        await NapDanhMuc(id);
+        return View("Form", new TaiSanFormVm { TaiSan = ts, CauHinh = ts.CauHinh ?? new() });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> Save(TaiSanFormVm vm)
+    {
+        ModelState.Remove("TaiSan.LoaiThietBi"); ModelState.Remove("CauHinh.TaiSan");
+        var input = vm.TaiSan;
+        if (await db.TaiSans.AnyAsync(t => t.MaTaiSan == input.MaTaiSan && t.Id != input.Id))
+            ModelState.AddModelError("TaiSan.MaTaiSan", "Mã tài sản đã tồn tại.");
+        if (input.TaiSanChaId == input.Id && input.Id != 0)
+            ModelState.AddModelError("TaiSan.TaiSanChaId", "Thiết bị cha không hợp lệ.");
+        if (!ModelState.IsValid) { await NapDanhMuc(input.Id); return View("Form", vm); }
+
+        var user = User.Identity?.Name;
+        if (input.Id == 0)
+        {
+            input.CauHinh = CoCauHinh(vm.CauHinh) ? vm.CauHinh : null;
+            if (input.CauHinh is not null) input.CauHinh.NgayCapNhat = DateTime.Now;
+            db.TaiSans.Add(input);
+            await db.SaveChangesAsync();
+            lichSu.Ghi(input.Id, LoaiSuKien.TaoMoi, "Tạo mới hồ sơ tài sản", user);
+            await db.SaveChangesAsync();
+            TempData["ok"] = $"Đã thêm tài sản {input.MaTaiSan}.";
+            return RedirectToAction(nameof(Details), new { id = input.Id });
+        }
+
+        var ts = await db.TaiSans.Include(t => t.CauHinh).FirstOrDefaultAsync(t => t.Id == input.Id);
+        if (ts is null) return NotFound();
+        var khoaCu = ts.KhoaPhongId;
+        db.Entry(ts).CurrentValues.SetValues(input);
+        // Điều chuyển khoa phải qua phiếu điều chuyển → không cho sửa trực tiếp (trừ tài sản đang trong kho).
+        if (khoaCu is not null && khoaCu != input.KhoaPhongId)
+        {
+            ts.KhoaPhongId = khoaCu;
+            TempData["err"] = "Không đổi khoa/phòng trực tiếp — hãy lập phiếu điều chuyển.";
+        }
+        ts.NgayTao = db.Entry(ts).OriginalValues.GetValue<DateTime>(nameof(TaiSan.NgayTao));
+        ts.NguoiTao = db.Entry(ts).OriginalValues.GetValue<string?>(nameof(TaiSan.NguoiTao));
+        if (CoCauHinh(vm.CauHinh) || ts.CauHinh is not null) lichSu.CapNhatCauHinh(ts, vm.CauHinh, user);
+        var thayDoi = db.Entry(ts).Properties.Where(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)).Select(p => p.Metadata.Name)
+                        .Where(n => n is not (nameof(TaiSan.NgayCapNhat) or nameof(TaiSan.NguoiCapNhat))).ToList();
+        if (thayDoi.Count > 0)
+            lichSu.Ghi(ts.Id, LoaiSuKien.CapNhat, "Cập nhật: " + string.Join(", ", thayDoi) + (string.IsNullOrWhiteSpace(vm.LyDoThayDoi) ? "" : $" — {vm.LyDoThayDoi}"), user);
+        await db.SaveChangesAsync();
+        TempData["ok"] ??= "Đã lưu thay đổi.";
+        return RedirectToAction(nameof(Details), new { id = ts.Id });
+    }
+
+    private static bool CoCauHinh(CauHinh c) =>
+        CauHinh.CacTruong.Any(f => !string.IsNullOrWhiteSpace((string?)typeof(CauHinh).GetProperty(f)!.GetValue(c)));
+
+    private async Task NapDanhMuc(int? boQuaId = null)
+    {
+        ViewBag.Khoa = new SelectList(await db.KhoaPhongs.Where(k => k.DangHoatDong).OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.Loai = new SelectList(await db.LoaiThietBis.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.Ncc = new SelectList(await db.NhaCungCaps.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.ViTri = new SelectList(await db.ViTris.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.Cha = new SelectList(await db.TaiSans.Where(t => t.Id != boQuaId && t.TrangThai != TrangThaiTaiSan.DaThanhLy)
+            .OrderBy(t => t.MaTaiSan).Select(t => new { t.Id, Ten = t.MaTaiSan + " - " + t.Ten }).ToListAsync(), "Id", "Ten");
+    }
+}

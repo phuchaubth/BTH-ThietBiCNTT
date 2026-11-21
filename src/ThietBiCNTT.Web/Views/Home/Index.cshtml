@@ -1,0 +1,102 @@
+@using ThietBiCNTT.Infrastructure.Services
+@model DashboardDto
+@{
+    ViewData["Title"] = "Dashboard";
+    var now = DateTime.Now;
+    var maxKhoa = Math.Max(1, Model.TheoKhoa.Select(k => k.SoLuong).DefaultIfEmpty(1).Max());
+    var maxThang = Math.Max(1, Model.SuaChuaTheoThang.Select(t => t.SoPhieu).DefaultIfEmpty(1).Max());
+}
+<div class="page-head">
+    <h1>Tổng quan trang thiết bị CNTT</h1>
+    <span class="text-muted small ms-2">Cập nhật @now.ToString("HH:mm dd/MM/yyyy")</span>
+    <div class="actions">
+        <a asp-controller="PhieuSuaChua" asp-action="Kanban" class="btn btn-sm btn-outline-primary"><i class="bi bi-kanban"></i> Bảng công việc</a>
+        @if (User.LaCNTT()) { <a asp-controller="TaiSan" asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm tài sản</a> }
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card kpi"><div class="label">Tổng tài sản đang quản lý</div><div class="value">@Model.TongTaiSan.ToString("N0")</div><div class="sub">Nguyên giá @((Model.TongNguyenGia / 1_000_000m).ToString("N0")) triệu đ</div></div></div>
+    <div class="col-6 col-lg-3"><a class="text-decoration-none text-reset" asp-controller="PhieuSuaChua" asp-action="Index"><div class="card kpi"><div class="label">Yêu cầu / công việc đang mở</div><div class="value">@Model.PhieuMo</div><div class="sub @(Model.PhieuQuaHan > 0 ? "overdue" : "")"><i class="bi bi-alarm"></i> @Model.PhieuQuaHan quá hạn SLA</div></div></a></div>
+    <div class="col-6 col-lg-3"><div class="card kpi"><div class="label">MTTR (90 ngày)</div><div class="value">@(Model.MttrGio is { } m ? m.ToString("N1") + " giờ" : "—")</div><div class="sub">Thời gian sửa trung bình</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card kpi"><div class="label">Tỷ lệ đúng SLA (90 ngày)</div><div class="value @(Model.TyLeDungSla < 80 ? "text-danger" : "text-success")">@Model.TyLeDungSla.ToString("N0")%</div><div class="bar mt-1"><span style="width:@(Model.TyLeDungSla.ToString("N0"))%"></span></div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="DangSuDung"><div class="card kpi"><div class="label">Đang sử dụng</div><div class="value text-success">@Model.DangSuDung</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="DangSuaChua"><div class="card kpi"><div class="label">Đang sửa chữa</div><div class="value text-warning">@Model.DangSuaChua</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="Hong"><div class="card kpi"><div class="label">Hỏng</div><div class="value text-danger">@Model.Hong</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-hetBaoHanh="true"><div class="card kpi"><div class="label">Hết BH trong 60 ngày</div><div class="value">@Model.SapHetBaoHanh</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><div class="card kpi"><div class="label">Quá tuổi thọ khuyến nghị</div><div class="value">@Model.TaiSanQuaTuoiTho</div><div class="sub">Cân nhắc thay thế</div></div></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="VatTu" asp-action="Index"><div class="card kpi"><div class="label">Vật tư dưới định mức</div><div class="value @(Model.VatTuDuoiDinhMuc > 0 ? "text-danger" : "")">@Model.VatTuDuoiDinhMuc</div></div></a></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex">Công việc ưu tiên <a class="ms-auto small" asp-controller="PhieuSuaChua" asp-action="Index">Xem tất cả</a></div>
+            <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+                <thead><tr><th>Số phiếu</th><th>Thiết bị</th><th>Khoa</th><th>Ưu tiên</th><th>Trạng thái</th><th>Hạn</th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.PhieuMoiNhat)
+                {
+                    <tr>
+                        <td><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a></td>
+                        <td class="small">@p.TaiSan?.MaTaiSan<div class="text-muted text-truncate" style="max-width:200px">@p.MoTaSuCo</div></td>
+                        <td class="small">@p.KhoaPhong?.Ten</td>
+                        <td>@Html.Raw(Badge.Html(p.UuTien))</td>
+                        <td>@Html.Raw(Badge.Html(p.TrangThai))</td>
+                        <td class="small text-nowrap @(p.QuaHan(now) ? "overdue" : "")">@p.HanXuLy.ToString("HH:mm dd/MM")</td>
+                    </tr>
+                }
+                @if (Model.PhieuMoiNhat.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có công việc nào đang mở 🎉</td></tr> }
+                </tbody>
+            </table></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">Tài sản theo khoa/phòng (top 10)</div>
+            <div class="card-body">
+                @foreach (var k in Model.TheoKhoa)
+                {
+                    <div class="d-flex small mb-1"><span class="text-truncate">@k.Khoa</span><span class="ms-auto fw-semibold">@k.SoLuong</span></div>
+                    <div class="bar mb-2"><span style="width:@(100 * k.SoLuong / maxKhoa)%"></span></div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Số phiếu sửa chữa / bảo trì 12 tháng</div>
+            <div class="card-body">
+                <div class="d-flex align-items-end gap-1" style="height:160px">
+                    @foreach (var t in Model.SuaChuaTheoThang)
+                    {
+                        <div class="flex-fill text-center" title="@t.Thang: @t.SoPhieu phiếu, chi phí @t.ChiPhi.ToString("N0")đ">
+                            <div class="small text-muted">@t.SoPhieu</div>
+                            <div style="height:@(120 * t.SoPhieu / maxThang)px;background:#4d8fd6;border-radius:3px 3px 0 0;min-height:2px"></div>
+                            <div class="small text-muted" style="font-size:.7rem">@t.Thang</div>
+                        </div>
+                    }
+                </div>
+                <div class="small text-muted mt-2">Tổng chi phí vật tư + thuê ngoài 12 tháng: <b>@Model.SuaChuaTheoThang.Sum(t => t.ChiPhi).ToString("N0") đ</b></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Cơ cấu theo nhóm thiết bị</div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    @foreach (var n in Model.TheoNhom.OrderByDescending(x => x.SoLuong))
+                    {
+                        var ten = Enum.TryParse<NhomThietBi>(n.Nhom, out var e) ? e.Ten() : n.Nhom;
+                        <tr><td>@ten</td><td class="text-end fw-semibold">@n.SoLuong</td></tr>
+                    }
+                </table>
+                <div class="small mt-2"><i class="bi bi-calendar2-check"></i> <a asp-controller="KeHoachBaoTri" asp-action="Index">@Model.BaoTriDenHan kế hoạch bảo trì đến hạn trong 7 ngày</a></div>
+            </div>
+        </div>
+    </div>
+</div>

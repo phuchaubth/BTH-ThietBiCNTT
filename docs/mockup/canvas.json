@@ -1,0 +1,19 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-21T09:00:00Z"},"title":"Mockup Quản lý TTB CNTT","launch":{"view":"canvas"},"pages":[],
+"boards":{
+"Main.dc.html":{"x":0,"y":0,"w":1440,"h":1120,"title":"01 · Dashboard tổng quan","expand":"fill"},
+"TaiSan.dc.html":{"x":1520,"y":0,"w":1440,"h":1000,"title":"02 · Danh sách tài sản","expand":"fill"},
+"HoSoTaiSan.dc.html":{"x":3040,"y":0,"w":1440,"h":1180,"title":"03 · Hồ sơ thiết bị","expand":"fill"},
+"Kanban.dc.html":{"x":0,"y":1560,"w":1440,"h":940,"title":"04 · Bảng công việc (Kanban)","expand":"fill"},
+"PhieuSuaChua.dc.html":{"x":1520,"y":1560,"w":1440,"h":1160,"title":"05 · Chi tiết phiếu sửa chữa","expand":"fill"},
+"ThanhLy.dc.html":{"x":3040,"y":1560,"w":1440,"h":1060,"title":"06 · Đề xuất thanh lý","expand":"fill"},
+"MobileBaoHong.dc.html":{"x":0,"y":3160,"w":390,"h":844,"title":"07 · Mobile: quét QR báo hỏng"},
+"MobileViecCuaToi.dc.html":{"x":470,"y":3160,"w":390,"h":844,"title":"08 · Mobile: việc của tôi (KTV)"}
+},
+"order":["Main.dc.html","TaiSan.dc.html","HoSoTaiSan.dc.html","Kanban.dc.html","PhieuSuaChua.dc.html","ThanhLy.dc.html","MobileBaoHong.dc.html","MobileViecCuaToi.dc.html"],
+"notes":{
+"t1":{"x":0,"y":-300,"text":"Tài sản & tổng quan","kind":"title1","maxW":4480},
+"t2":{"x":0,"y":1260,"text":"Yêu cầu, công việc & nghiệp vụ","kind":"title1","maxW":4480},
+"t3":{"x":0,"y":2860,"text":"Ứng dụng di động (PWA)","kind":"title1","maxW":1840},
+"n1":{"x":960,"y":3160,"text":"Luồng di động: người dùng khoa quét QR trên tem → hồ sơ thiết bị → Báo hỏng (hệ thống cảnh báo nếu đã có yêu cầu đang mở cho cùng máy). KTV nhận thông báo, xem 'Việc của tôi', xử lý và ghi kết quả ngay tại hiện trường.","w":420,"fill":"blue"}
+},
+"designSystems":[]}

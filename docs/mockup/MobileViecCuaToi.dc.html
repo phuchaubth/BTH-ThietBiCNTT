@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Mobile việc của tôi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f4f6f9}
+a{color:#1d5fbf}a:hover{color:#123f82}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; font-family: 'Be Vietnam Pro', system-ui, sans-serif; color: #1b2430; font-size: 15px; background: #f4f6f9">
+  <header style="background: #0f2d4a; color: #ffffff; padding: 18px 16px 16px">
+    <div style="display: flex; align-items: center">
+      <div><div style="font-size: 12px; color: #c9d6e3">Chào buổi sáng,</div><div style="font-weight: 700; font-size: 18px">Nguyễn Văn An</div></div>
+      <button aria-label="Quét QR" style="margin-left: auto; width: 48px; height: 48px; border: 0; border-radius: 12px; background: #1d5fbf; color: #ffffff; display: inline-flex; align-items: center; justify-content: center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"></path></svg></button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px">
+      <div style="background: rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px"><div style="font-size: 20px; font-weight: 700">5</div><div style="font-size: 11px; color: #c9d6e3">Đang giao</div></div>
+      <div style="background: rgba(198,40,40,.35); border-radius: 10px; padding: 8px 10px"><div style="font-size: 20px; font-weight: 700">1</div><div style="font-size: 11px; color: #ffe3e3">Quá hạn</div></div>
+      <div style="background: rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px"><div style="font-size: 20px; font-weight: 700">3</div><div style="font-size: 11px; color: #c9d6e3">PM tuần này</div></div>
+    </div>
+  </header>
+
+  <div role="tablist" aria-label="Lọc công việc" style="display: flex; gap: 6px; padding: 12px 16px 4px; overflow-x: auto">
+    <button role="tab" aria-selected="true" style="height: 38px; padding: 0 14px; border: 0; background: #1b2430; color: #ffffff; border-radius: 19px; font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap">Tôi phụ trách</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 19px; font: inherit; font-size: 13px; white-space: nowrap">Chưa giao</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 19px; font: inherit; font-size: 13px; white-space: nowrap">Bảo trì</button>
+    <button role="tab" aria-selected="false" style="height: 38px; padding: 0 14px; border: 1px solid #dfe4ea; background: #ffffff; border-radius: 19px; font: inherit; font-size: 13px; white-space: nowrap">Kiểm tra</button>
+  </div>
+
+  <main style="flex: 1; overflow: hidden; padding: 8px 16px; display: flex; flex-direction: column; gap: 10px">
+    <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 12px; padding: 12px 14px; border-left: 5px solid #c62828; text-decoration: none; color: #1b2430">
+      <div style="display: flex; align-items: center; font-size: 13px"><b>SC-2611-0148</b><span style="margin-left: auto; color: #b3261e; font-weight: 700">Quá 25 ph</span></div>
+      <div style="font-weight: 600; margin: 4px 0 2px">Không vào được HIS</div>
+      <div style="font-size: 13px; color: #5b6675">PC-0412 · Cấp cứu · Quầy tiếp nhận</div>
+      <div style="display: flex; gap: 8px; margin-top: 10px">
+        <span style="flex: 1; height: 40px; display: inline-flex; align-items: center; justify-content: center; background: #1e7a46; color: #ffffff; border-radius: 8px; font-size: 13px; font-weight: 600">Hoàn thành</span>
+        <span style="flex: 1; height: 40px; display: inline-flex; align-items: center; justify-content: center; background: #eef1f4; color: #1b2430; border-radius: 8px; font-size: 13px">Gọi 0912…456</span>
+      </div>
+    </a>
+    <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 12px; padding: 12px 14px; border-left: 5px solid #d97706; text-decoration: none; color: #1b2430">
+      <div style="display: flex; align-items: center; font-size: 13px"><b>SC-2611-0143</b><span style="margin-left: auto; color: #5b6675">hạn 15:00</span></div>
+      <div style="font-weight: 600; margin: 4px 0 2px">UPS kêu bíp liên tục</div>
+      <div style="font-size: 13px; color: #5b6675">UPS-0021 · Phòng mổ 3 · tầng 4</div>
+    </a>
+    <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 12px; padding: 12px 14px; border-left: 5px solid #8a94a3; text-decoration: none; color: #1b2430">
+      <div style="display: flex; align-items: center; font-size: 13px"><b>BT-2611-0031</b><span style="margin-left: auto; color: #5b6675">28/11</span></div>
+      <div style="font-weight: 600; margin: 4px 0 2px">Vệ sinh PC định kỳ · Nội tổng hợp</div>
+      <div style="font-size: 13px; color: #5b6675">Checklist 5 mục · 5/14 máy đã xong</div>
+      <div style="height: 6px; background: #e9edf2; border-radius: 3px; margin-top: 8px"><div style="width: 35%; height: 6px; background: #1d5fbf; border-radius: 3px"></div></div>
+    </a>
+    <a href="PhieuSuaChua.dc.html" style="display: block; background: #ffffff; border-radius: 12px; padding: 12px 14px; border-left: 5px solid #4b8fd6; text-decoration: none; color: #1b2430">
+      <div style="display: flex; align-items: center; font-size: 13px"><b>KT-2611-0009</b><span style="margin-left: auto; color: #5b6675">hôm nay</span></div>
+      <div style="font-weight: 600; margin: 4px 0 2px">Kiểm tra phòng máy chủ</div>
+      <div style="font-size: 13px; color: #5b6675">Nhiệt độ, độ ẩm, đèn cảnh báo, UPS</div>
+    </a>
+  </main>
+
+  <nav aria-label="Điều hướng" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #ffffff; border-top: 1px solid #e3e7ed; padding: 6px 0 14px">
+    <a href="MobileViecCuaToi.dc.html" style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #1d5fbf; font-size: 11px; font-weight: 600; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path></svg>Việc của tôi</a>
+    <a href="MobileBaoHong.dc.html" style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #3d4652; font-size: 11px; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"></path></svg>Quét QR</a>
+    <a href="TaiSan.dc.html" style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #3d4652; font-size: 11px; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>Tài sản</a>
+    <a href="Main.dc.html" style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #3d4652; font-size: 11px; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Tổng quan</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

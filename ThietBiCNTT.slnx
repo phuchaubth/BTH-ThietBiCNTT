@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ThietBiCNTT.Domain/ThietBiCNTT.Domain.csproj" />
+    <Project Path="src/ThietBiCNTT.Infrastructure/ThietBiCNTT.Infrastructure.csproj" />
+    <Project Path="src/ThietBiCNTT.Web/ThietBiCNTT.Web.csproj" />
+  </Folder>
+</Solution>
