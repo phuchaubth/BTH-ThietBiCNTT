@@ -3,7 +3,7 @@
   Cài đặt lần đầu Quản lý TTB CNTT trên IIS (Windows Server 2019/2022/2025).
 .DESCRIPTION
   Chạy PowerShell "Run as Administrator" trên máy chủ web, trong thư mục giải nén gói cài đặt:
-      powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -HostName thietbi.benhvien.local
+      powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -CertThumbprint <thumbprint chứng chỉ thietbi.bth.org.vn>
   Script:
     1. Bật IIS + các tính năng cần thiết (kể cả Application Initialization).
     2. Tạo thư mục D:\ThietBiCNTT\{app,keys,logs,backup}, chép ứng dụng, phân quyền cho app pool.
@@ -12,7 +12,7 @@
   KHÔNG cài .NET Hosting Bundle (tải riêng — xem tài liệu mục 3.2) và KHÔNG tạo CSDL (xem sql\01-tao-csdl.sql).
 #>
 param(
-    [Parameter(Mandatory)] [string]$HostName,          # VD thietbi.benhvien.local
+    [string]$HostName      = "thietbi.bth.org.vn",
     [string]$Root          = "D:\ThietBiCNTT",
     [string]$SiteName      = "ThietBiCNTT",
     [string]$AppPoolName   = "ThietBiCNTT",

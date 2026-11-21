@@ -3,12 +3,46 @@
 
 | | |
 |---|---|
-| Phiên bản tài liệu | 1.0 – 21/11/2026 |
+| Phiên bản tài liệu | 1.1 – 21/11/2026 (điền sẵn thông số BTH) |
 | Đối tượng | Cán bộ Phòng CNTT / quản trị máy chủ, DBA |
 | Công nghệ | ASP.NET Core (.NET 10) · SQL Server · IIS 10 trên Windows Server |
 | Gói kèm theo | Thư mục `deploy/` trong mã nguồn: `publish.ps1`, `caidat-iis.ps1`, `capnhat.ps1`, `appsettings.Production.mau.json`, `sql/01..04` |
 
 ---
+
+## 0. Thông số triển khai BTH (đã chốt)
+
+| Thông số | Giá trị |
+|---|---|
+| Tên miền | **`thietbi.bth.org.vn`** |
+| Mô hình | **1 máy**: IIS + SQL Server trên cùng máy chủ |
+| Kết nối CSDL | Windows Authentication bằng danh tính app pool **`IIS AppPool\ThietBiCNTT`** (không lưu mật khẩu CSDL trong file) |
+| CSDL | `ThietBiCNTT` trên `localhost` · collation `Vietnamese_CI_AS` |
+| Thư mục | `D:\ThietBiCNTT\{app, keys, logs, backup, sql}` |
+| Quyền CSDL ban đầu | `db_owner` (ứng dụng tự tạo bảng) → hạ quyền sau khi ổn định (mục 5.1) |
+
+Các giá trị trên **đã điền sẵn** trong `caidat-iis.ps1`, `appsettings.Production.mau.json` và `sql\01-tao-csdl.sql`. Link trong mã QR tự lấy `https://thietbi.bth.org.vn` (khoá `App:DiaChiTruyCap`).
+
+**Tóm tắt các lệnh cài đặt** (PowerShell *Run as Administrator* trên máy chủ, trong thư mục giải nén gói cài đặt):
+
+```powershell
+# 1. Đã cài: IIS, .NET 10 Hosting Bundle (mục 3.2), SQL Server + sqlcmd; múi giờ:
+tzutil /s "SE Asia Standard Time"
+
+# 2. Tạo CSDL + quyền cho app pool (giá trị BTH đã điền sẵn trong script)
+sqlcmd -S localhost -E -i sql\01-tao-csdl.sql
+
+# 3. Cài website — có chứng chỉ HTTPS cho thietbi.bth.org.vn (xem 5.4):
+powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -CertThumbprint <THUMBPRINT>
+#    (thử nghiệm chưa có chứng chỉ: bỏ -CertThumbprint)
+
+# 4. Điền mật khẩu admin ban đầu: mở D:\ThietBiCNTT\app\appsettings.Production.json, sửa "Seed:AdminPassword", rồi:
+Restart-WebAppPool ThietBiCNTT
+
+# 5. Sao lưu hằng ngày (mục 6.2) + DNS nội bộ thietbi.bth.org.vn → IP máy chủ (mục 5.4)
+```
+
+Sau đó đăng nhập `https://thietbi.bth.org.vn` bằng `admin`, đổi mật khẩu, xoá `Seed:AdminPassword`, rồi đi theo **checklist mục 7**.
 
 ## Mục lục
 1. [Mô hình triển khai](#1-mô-hình-triển-khai)
@@ -79,7 +113,7 @@ flowchart LR
 
 | Thông tin | Ví dụ | Dùng ở |
 |---|---|---|
-| Tên miền nội bộ | `thietbi.benhvien.local` | DNS, binding IIS, tham số `DonVi.DiaChiTruyCap` (link trong mã QR) |
+| Tên miền nội bộ | `thietbi.bth.org.vn` | DNS, binding IIS, tham số `DonVi.DiaChiTruyCap` (link trong mã QR) |
 | IP tĩnh máy web | `10.10.1.20` | Bản ghi DNS A |
 | Chứng chỉ HTTPS | do CA nội bộ / AD CS cấp cho tên miền trên | Binding 443 |
 | Máy chủ SQL + tên instance | `localhost` hoặc `SQLSRV01\SQL2022` | Chuỗi kết nối |
@@ -173,7 +207,7 @@ sqlcmd -S localhost -E -i sql\01-tao-csdl.sql
 | Trường hợp | `DanhTinhApp` | Chuỗi kết nối (`appsettings.Production.json`) |
 |---|---|---|
 | **A** – SQL cùng máy web | `IIS AppPool\ThietBiCNTT` | `Server=localhost;Database=ThietBiCNTT;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true` |
-| **A'** – SQL khác máy, cùng domain | `BENHVIEN\WEBSRV01$` (tài khoản máy web) hoặc tài khoản dịch vụ `BENHVIEN\svc_thietbi` (khi đó chạy `caidat-iis.ps1 -PoolUser ... -PoolPassword ...`) | `Server=SQLSRV01;Database=ThietBiCNTT;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true` |
+| **A'** – SQL khác máy, cùng domain | `BTH\WEBSRV01$` (tài khoản máy web) hoặc tài khoản dịch vụ `BTH\svc_thietbi` (khi đó chạy `caidat-iis.ps1 -PoolUser ... -PoolPassword ...`) | `Server=SQLSRV01;Database=ThietBiCNTT;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true` |
 | **B** – Tài khoản SQL | `thietbi_app` (bỏ chú thích khối *Cách B* trong script) | `Server=SQLSRV01;Database=ThietBiCNTT;User Id=thietbi_app;Password=...;TrustServerCertificate=True;MultipleActiveResultSets=true` |
 
 **Quyền CSDL** — chọn một trong hai chế độ:
@@ -193,13 +227,13 @@ PowerShell **Run as Administrator**, trong thư mục giải nén:
 
 ```powershell
 # Chỉ HTTP (thử nghiệm):
-powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -HostName thietbi.benhvien.local
+powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1      # -HostName mặc định thietbi.bth.org.vn
 
 # Có HTTPS (khuyến nghị) — lấy thumbprint: Get-ChildItem Cert:\LocalMachine\My
-powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -HostName thietbi.benhvien.local -CertThumbprint 3A5F...C21
+powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -CertThumbprint 3A5F...C21
 
 # SQL khác máy, chạy app pool bằng tài khoản dịch vụ domain:
-powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -HostName thietbi.benhvien.local -PoolUser "BENHVIEN\svc_thietbi" -PoolPassword "..."
+powershell -ExecutionPolicy Bypass -File .\caidat-iis.ps1 -HostName thietbi.bth.org.vn -PoolUser "BTH\svc_thietbi" -PoolPassword "..."
 ```
 
 Script thực hiện:
@@ -243,17 +277,26 @@ Lần đầu, script tạo file này từ mẫu tại `D:\ThietBiCNTT\app\appset
 Sau khi sửa: `Restart-WebAppPool ThietBiCNTT`.
 
 ### 5.4. DNS, tường lửa, HTTPS
-- **DNS**: tạo bản ghi A `thietbi.benhvien.local → 10.10.1.20` trên DNS nội bộ.
 - **Tường lửa Windows** máy web: chỉ mở 80/443 cho dải mạng nội bộ:
   ```powershell
   New-NetFirewallRule -DisplayName "ThietBiCNTT HTTPS" -Direction Inbound -Protocol TCP -LocalPort 443 -RemoteAddress 10.0.0.0/8 -Action Allow
   New-NetFirewallRule -DisplayName "ThietBiCNTT HTTP"  -Direction Inbound -Protocol TCP -LocalPort 80  -RemoteAddress 10.0.0.0/8 -Action Allow
   ```
-- **HTTPS**: khi đã có binding 443, ứng dụng tự chuyển hướng HTTP → HTTPS và bật HSTS. Chứng chỉ do CA nội bộ cấp sẽ được máy trong domain tin cậy sẵn; điện thoại cần cài chứng chỉ CA gốc (hoặc dùng chứng chỉ công khai cho tên miền thật).
+- **HTTPS**: khi đã có binding 443, ứng dụng tự chuyển hướng HTTP → HTTPS và bật HSTS.
+  `thietbi.bth.org.vn` là **tên miền thật** (thuộc `bth.org.vn`), nên nên dùng **chứng chỉ công khai** — mọi máy tính, điện thoại đều tin cậy sẵn, không phải cài thêm chứng chỉ:
+  | Cách | Khi nào dùng | Ghi chú |
+  |---|---|---|
+  | **Chứng chỉ wildcard `*.bth.org.vn`** bệnh viện đã mua (nếu có) | Có sẵn | Import file `.pfx` vào *Local Computer → Personal*, lấy thumbprint |
+  | Chứng chỉ thương mại cho `thietbi.bth.org.vn` | Không có wildcard | Mua 1 năm/lần, nhớ gia hạn |
+  | Let's Encrypt miễn phí qua **win-acme**, xác thực **DNS-01** | Máy chủ không mở ra Internet | Cần quyền tạo bản ghi TXT `_acme-challenge.thietbi` trên DNS công khai của `bth.org.vn`; win-acme tự gia hạn 60 ngày/lần và cập nhật binding IIS |
+  | Chứng chỉ CA nội bộ (AD CS) | Chỉ dùng trong domain | Điện thoại / máy ngoài domain phải cài chứng chỉ CA gốc |
+
+  Lấy thumbprint sau khi import: `Get-ChildItem Cert:\LocalMachine\My | Where-Object Subject -like "*bth.org.vn*" | Format-List Subject, Thumbprint, NotAfter`.
+- **DNS**: tên miền chỉ cần phân giải **trong mạng nội bộ** (split-DNS): tạo bản ghi A `thietbi.bth.org.vn → <IP máy chủ>` trên DNS nội bộ của bệnh viện. **Không** cần (và không nên) tạo bản ghi trên DNS công khai trỏ vào máy chủ, trừ khi có chủ trương cho truy cập từ Internet.
 - Không công bố ứng dụng ra Internet. Nếu cần truy cập từ xa: dùng VPN của bệnh viện.
 
 ### 5.5. Khởi động lần đầu
-1. Mở `https://thietbi.benhvien.local` – lần đầu mất 10–30 giây (tạo bảng, dữ liệu danh mục, tham số).
+1. Mở `https://thietbi.bth.org.vn` – lần đầu mất 10–30 giây (tạo bảng, dữ liệu danh mục, tham số).
 2. Đăng nhập `admin` / mật khẩu `Seed:AdminPassword`.
 3. Bấm tên tài khoản ở góc phải → **Đổi mật khẩu**.
 4. Xoá giá trị `Seed:AdminPassword` trong `appsettings.Production.json`.
@@ -266,7 +309,7 @@ Sau khi sửa: `Restart-WebAppPool ThietBiCNTT`.
 
 | # | Màn hình | Việc cần làm |
 |---|---|---|
-| 1 | **Quản trị → Tham số hệ thống → Thông tin đơn vị** | Nhập *Cơ quan chủ quản*, *Tên bệnh viện* (in trên biên bản, tem QR) và **Địa chỉ truy cập hệ thống** = `https://thietbi.benhvien.local` (link trong mã QR) |
+| 1 | **Quản trị → Tham số hệ thống → Thông tin đơn vị** | Nhập *Cơ quan chủ quản*, *Tên bệnh viện* (in trên biên bản, tem QR). Kiểm tra **Địa chỉ truy cập hệ thống** = `https://thietbi.bth.org.vn` (tự điền từ cấu hình) |
 | 2 | Tham số → **SLA sửa chữa** | Rà soát số giờ theo mức ưu tiên, giờ hành chính, ngày làm việc; xem bảng ví dụ tính hạn |
 | 3 | Tham số → **Ngày nghỉ** | Khai báo ngày lễ, Tết của năm |
 | 4 | Tham số → Nghiệm thu / Điều chuyển / Bảo mật | Số ngày tự nghiệm thu, ngưỡng giá trị cần Lãnh đạo duyệt, thời gian phiên |
@@ -409,7 +452,7 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
    - *Advanced Settings*: **Start Mode = AlwaysRunning** · **Idle Time-out (minutes) = 0** · **Load User Profile = True** · Recycling → **Regular Time Interval = 0**, **Specific Times = 02:00**
 3. **Sites → Add Website**
    - Site name `ThietBiCNTT` · Application pool `ThietBiCNTT` · Physical path `D:\ThietBiCNTT\app`
-   - Binding: `https`, port 443, Host name `thietbi.benhvien.local`, **Require Server Name Indication**, chọn chứng chỉ (thêm binding `http` 80 nếu cần chuyển hướng)
+   - Binding: `https`, port 443, Host name `thietbi.bth.org.vn`, **Require Server Name Indication**, chọn chứng chỉ (thêm binding `http` 80 nếu cần chuyển hướng)
    - Site → *Advanced Settings* → **Preload Enabled = True**
 4. Phân quyền (cmd Administrator):
    ```cmd
@@ -439,6 +482,7 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
 | `Database:AutoMigrate` | `true` | Tự áp migration khi khởi động |
 | `DataProtection:KeysPath` | (trống) | **Bắt buộc trên IIS** |
 | `Seed:AdminPassword` | (trống) | Chỉ dùng khi tạo `admin` lần đầu |
+| `App:DiaChiTruyCap` | (trống) | BTH: `https://thietbi.bth.org.vn`. Ghi vào tham số `DonVi.DiaChiTruyCap` khi tham số còn trống (link mã QR) |
 | `SeedSampleData` | `false` | Không bật trên máy chủ thật |
 | `Logging:LogLevel:*` | Information/Warning | Mức log |
 

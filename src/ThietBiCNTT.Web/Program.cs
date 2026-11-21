@@ -85,6 +85,13 @@ using (var scope = app.Services.CreateScope())
         sp.GetRequiredService<RoleManager<IdentityRole>>(),
         duLieuMau: app.Configuration.GetValue("SeedSampleData", false),
         matKhauAdmin: app.Configuration["Seed:AdminPassword"]);
+    // Địa chỉ truy cập (link trong mã QR): lấy từ cấu hình nếu tham số chưa được đặt trên giao diện.
+    if (app.Configuration["App:DiaChiTruyCap"] is { Length: > 0 } diaChi
+        && await db.ThamSoHeThongs.FindAsync(TS.DiaChiTruyCap) is { GiaTri: "" } ts)
+    {
+        ts.GiaTri = diaChi.TrimEnd('/');
+        await db.SaveChangesAsync();
+    }
 }
 
 if (!app.Environment.IsDevelopment())
