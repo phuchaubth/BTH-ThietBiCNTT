@@ -26,6 +26,7 @@
         @if (quanLy || User.IsInRole(VaiTro.TruongKhoa)) { <a class="nav-item @Act("KiemKe")" asp-controller="KiemKe" asp-action="Index"><i class="bi bi-upc-scan"></i> Kiểm kê</a> }
         <div class="nav-section">Bảo trì</div>
         <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
+        <a class="nav-item @Act("KiemTra")" asp-controller="KiemTra" asp-action="Index"><i class="bi bi-clipboard-check"></i> Kiểm tra thiết bị</a>
         @if (quanLy) { <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a> }
         @if (cntt) { <a class="nav-item @Act("VatTu")" asp-controller="VatTu" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a> }
         <div class="nav-section">Nghiệp vụ</div>

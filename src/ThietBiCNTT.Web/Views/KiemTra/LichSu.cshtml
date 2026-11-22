@@ -1,0 +1,24 @@
+@model List<LanKiemTra>
+@{
+    ViewData["Title"] = "Lịch sử kiểm tra";
+    var cot = Model.SelectMany(l => l.KetQuas).Where(k => k.GiaTriSo is not null).Select(k => k.NoiDungMuc).Distinct().Take(4).ToList();
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Kiểm tra thiết bị</a> › Lịch sử</div>
+<div class="page-head"><h1>Lịch sử kiểm tra</h1>
+    <form method="get" class="d-flex gap-2 ms-2"><select name="mauId" asp-items="ViewBag.DsMau" class="form-select form-select-sm" aria-label="Phiếu mẫu"><option value="">— Tất cả phiếu —</option></select>
+        @if (ViewData["taiSanId"] is int tsid) { <input type="hidden" name="taiSanId" value="@tsid" /> }<button class="btn btn-sm btn-outline-secondary">Lọc</button></form></div>
+<div class="card"><div class="table-responsive">
+<table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Thời gian</th><th>Phiếu</th><th>Thiết bị / vị trí</th>@foreach (var c in cot) { <th>@c</th> }<th>Kết quả</th><th>Người kiểm</th></tr></thead>
+    <tbody>
+    @foreach (var l in Model)
+    {
+        <tr><td class="text-nowrap"><a asp-action="Lan" asp-route-id="@l.Id">@l.ThoiGian.ToString("HH:mm dd/MM/yy")</a></td><td class="small">@l.MauKiemTra?.Ten</td>
+            <td class="small">@(l.TaiSan?.MaTaiSan ?? l.MauKiemTra?.ViTri)</td>
+            @foreach (var c in cot) { var k = l.KetQuas.FirstOrDefault(x => x.NoiDungMuc == c); <td class="@(k?.BatThuong == true ? "text-danger fw-semibold" : "")">@k?.GiaTriSo?.ToString("0.##")</td> }
+            <td><span class="badge bg-@(l.CoBatThuong ? "danger" : "success")">@(l.CoBatThuong ? "Bất thường" : "Đạt")</span></td><td class="small">@l.NguoiKiem</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="@(5 + cot.Count)" class="text-center text-muted py-4">Chưa có dữ liệu.</td></tr> }
+    </tbody>
+</table>
+</div></div>

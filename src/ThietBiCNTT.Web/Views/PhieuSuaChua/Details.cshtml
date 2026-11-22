@@ -131,6 +131,8 @@
             </div></div>
         }
 
+        @await Html.PartialAsync("_DinhKem", (DoiTuong: "PhieuSuaChua", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: !Model.DaDong))
+
         <div class="card mb-3"><div class="card-header d-flex">Vật tư sử dụng <span class="ms-auto fw-normal small">Tổng chi phí: <b>@Model.TongChiPhi.ToString("N0") đ</b></span></div>
             @if (cntt && !Model.DaDong && tt != TrangThaiPhieuSuaChua.HoanThanh)
             {

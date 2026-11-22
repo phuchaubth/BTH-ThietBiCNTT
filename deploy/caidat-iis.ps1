@@ -33,7 +33,7 @@ $hostingBundle = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\IIS Extensions\IIS A
 if (-not $hostingBundle) { Write-Warning "Chưa thấy ASP.NET Core Module V2 — hãy cài '.NET 10 Hosting Bundle' rồi chạy lại 'iisreset'." }
 
 Write-Host "==> 2. Thư mục & chép ứng dụng" -ForegroundColor Cyan
-foreach ($d in "app","keys","logs","backup") { New-Item -ItemType Directory -Force -Path (Join-Path $Root $d) | Out-Null }
+foreach ($d in "app","keys","logs","backup","dinhkem") { New-Item -ItemType Directory -Force -Path (Join-Path $Root $d) | Out-Null }
 Copy-Item -Path (Join-Path $PSScriptRoot "sql") -Destination $Root -Recurse -Force   # script sao lưu / khôi phục
 $appDir = Join-Path $Root "app"
 Copy-Item -Path (Join-Path $PSScriptRoot "app\*") -Destination $appDir -Recurse -Force
@@ -66,6 +66,7 @@ Write-Host "==> Phân quyền thư mục cho $identity" -ForegroundColor Cyan
 icacls $appDir /grant "${identity}:(OI)(CI)RX" /T /Q | Out-Null
 icacls (Join-Path $Root "keys") /grant "${identity}:(OI)(CI)M" /T /Q | Out-Null
 icacls (Join-Path $Root "logs") /grant "${identity}:(OI)(CI)M" /T /Q | Out-Null
+icacls (Join-Path $Root "dinhkem") /grant "${identity}:(OI)(CI)M" /T /Q | Out-Null
 icacls $cfg /inheritance:r /grant "Administrators:F" "SYSTEM:F" "${identity}:R" /Q | Out-Null   # file chứa chuỗi kết nối
 
 Write-Host "==> 4. Website $SiteName" -ForegroundColor Cyan

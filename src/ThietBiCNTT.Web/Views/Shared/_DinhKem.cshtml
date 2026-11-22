@@ -1,0 +1,36 @@
+@model (string DoiTuong, string DoiTuongId, List<TepDinhKem> Teps, bool DuocTaiLen)
+@{ var quayLai = Context.Request.Path + Context.Request.QueryString; }
+<div class="card mb-3" id="dinh-kem"><div class="card-header d-flex">Ảnh / tệp đính kèm <span class="ms-auto small fw-normal text-muted">@Model.Teps.Count tệp</span></div>
+    <div class="card-body">
+        @if (Model.Teps.Count > 0)
+        {
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                @foreach (var t in Model.Teps)
+                {
+                    <div class="border rounded p-1 text-center small" style="width:116px">
+                        <a href="/Tep/Xem/@t.Id" target="_blank" rel="noopener">
+                            @if (t.LaAnh) { <img src="/Tep/Xem/@t.Id" alt="@t.TenFile" loading="lazy" style="width:106px;height:80px;object-fit:cover;border-radius:4px" /> }
+                            else { <div style="height:80px" class="d-flex align-items-center justify-content-center"><i class="bi bi-file-earmark-pdf fs-1 text-danger"></i></div> }
+                        </a>
+                        <div class="text-truncate" title="@t.TenFile">@t.TenFile</div>
+                        <div class="text-muted" style="font-size:.7rem">@t.NguoiTai · @t.ThoiGian.ToString("dd/MM")</div>
+                        @if (User.LaCNTT() || t.NguoiTai == User.Identity?.Name)
+                        {
+                            <form asp-controller="Tep" asp-action="Xoa" asp-route-id="@t.Id" method="post" onsubmit="return confirm('Xoá tệp này?')">
+                                <input type="hidden" name="quayLai" value="@quayLai" /><button class="btn btn-link btn-sm p-0 text-danger" style="font-size:.75rem">Xoá</button></form>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        @if (Model.DuocTaiLen)
+        {
+            <form asp-controller="Tep" asp-action="TaiLen" method="post" enctype="multipart/form-data" class="d-flex flex-wrap gap-2">
+                <input type="hidden" name="doiTuong" value="@Model.DoiTuong" /><input type="hidden" name="doiTuongId" value="@Model.DoiTuongId" /><input type="hidden" name="quayLai" value="@quayLai#dinh-kem" />
+                <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="form-control form-control-sm" style="flex:1 1 240px" aria-label="Chọn ảnh hoặc PDF" required />
+                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-paperclip"></i> Đính kèm</button>
+            </form>
+            <div class="form-text">Ảnh JPG/PNG/WEBP hoặc PDF, tối đa 10 MB mỗi tệp. Trên điện thoại có thể chụp trực tiếp.</div>
+        }
+    </div>
+</div>

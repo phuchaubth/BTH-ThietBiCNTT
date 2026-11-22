@@ -230,3 +230,35 @@ public class HangDoiTests
         Assert.Equal((TrangThaiGui.ChoGui, 0), (t.TrangThai, t.SoLanThu));
     }
 }
+
+public class KiemTraTests
+{
+    private static MauKiemTra Mau() => new()
+    {
+        Id = 1, Ten = "Phòng máy chủ",
+        Mucs = [new MucKiemTra { Id = 1, ThuTu = 1, NoiDung = "Nhiệt độ", Kieu = KieuMucKiemTra.So, DonVi = "°C", NguongMin = 18, NguongMax = 27 },
+                new MucKiemTra { Id = 2, ThuTu = 2, NoiDung = "Điều hoà", Kieu = KieuMucKiemTra.DatKhongDat },
+                new MucKiemTra { Id = 3, ThuTu = 3, NoiDung = "Ghi chú", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }]
+    };
+
+    [Fact]
+    public void TrongNguong_Dat_NgoaiNguong_BatThuong()
+    {
+        var ok = Mau().ChamDiem(new Dictionary<int, string?> { [1] = "22,5", [2] = "true" }, null, "u", DateTime.Now, null);
+        Assert.False(ok.CoBatThuong);
+        var nong = Mau().ChamDiem(new Dictionary<int, string?> { [1] = "29", [2] = "true" }, null, "u", DateTime.Now, null);
+        Assert.True(nong.CoBatThuong);
+        Assert.Equal("Nhiệt độ: 29 °C", nong.TomTatBatThuong());
+        var hong = Mau().ChamDiem(new Dictionary<int, string?> { [1] = "20", [2] = "false" }, null, "u", DateTime.Now, null);
+        Assert.Equal("Điều hoà: Không đạt", hong.TomTatBatThuong());
+    }
+
+    [Fact]
+    public void ThieuMucBatBuoc_HoacSoSai_BaoLoi()
+    {
+        Assert.Throws<DomainException>(() => Mau().ChamDiem(new Dictionary<int, string?> { [1] = "20" }, null, "u", DateTime.Now, null));
+        Assert.Throws<DomainException>(() => Mau().ChamDiem(new Dictionary<int, string?> { [1] = "abc", [2] = "true" }, null, "u", DateTime.Now, null));
+        var m = Mau(); m.LoaiThietBiId = 5;
+        Assert.Throws<DomainException>(() => m.ChamDiem(new Dictionary<int, string?> { [1] = "20", [2] = "true" }, null, "u", DateTime.Now, null));
+    }
+}

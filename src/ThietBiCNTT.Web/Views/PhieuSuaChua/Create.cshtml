@@ -6,7 +6,7 @@
 }
 <div class="page-head"><h1>Báo hỏng thiết bị</h1></div>
 <div class="card" style="max-width:760px"><div class="card-body">
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="All" class="text-danger small"></div>
     @if (trung is not null)
     {
@@ -37,6 +37,8 @@
         <div class="col-md-4"><label asp-for="NguoiYeuCau" class="form-label">Người báo</label><input asp-for="NguoiYeuCau" class="form-control" /></div>
         <div class="col-md-4"><label asp-for="DienThoaiLienHe" class="form-label">SĐT liên hệ</label><input asp-for="DienThoaiLienHe" class="form-control" /></div>
     </div>
+    <div class="mb-3"><label class="form-label" for="anh">Ảnh lỗi (tuỳ chọn, tối đa 5)</label>
+        <input id="anh" type="file" name="anh" accept="image/*" capture="environment" multiple class="form-control" /></div>
     <button class="btn btn-danger"><i class="bi bi-send"></i> @(trung is null ? "Gửi yêu cầu" : "Vẫn gửi yêu cầu mới")</button>
     <a href="javascript:history.back()" class="btn btn-link">Huỷ</a>
 </form>

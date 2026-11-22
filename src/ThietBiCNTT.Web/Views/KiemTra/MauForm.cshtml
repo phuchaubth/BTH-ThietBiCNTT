@@ -1,0 +1,68 @@
+@model MauKiemTra
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm phiếu kiểm tra mẫu" : "Sửa phiếu kiểm tra mẫu"; var inv = System.Globalization.CultureInfo.InvariantCulture; }
+<div class="small text-muted mb-1"><a asp-action="Mau">Phiếu mẫu</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="MauForm" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    <div class="card mb-3"><div class="card-body row g-3">
+        <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" required /></div>
+        <div class="col-md-4"><label asp-for="ChuKyGio" class="form-label"></label>
+            <div class="input-group"><input asp-for="ChuKyGio" type="number" min="1" class="form-control" />
+                <button type="button" class="btn btn-outline-secondary" onclick="ChuKyGio.value=8">Ca</button><button type="button" class="btn btn-outline-secondary" onclick="ChuKyGio.value=24">Ngày</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="ChuKyGio.value=168">Tuần</button><button type="button" class="btn btn-outline-secondary" onclick="ChuKyGio.value=720">Tháng</button></div></div>
+        <div class="col-md-4"><label asp-for="LoaiThietBiId" class="form-label"></label><select asp-for="LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select"><option value="">—</option></select></div>
+        <div class="col-md-4"><label asp-for="TaiSanId" class="form-label"></label><select asp-for="TaiSanId" asp-items="ViewBag.DsTaiSan" class="form-select"><option value="">—</option></select></div>
+        <div class="col-md-4"><label asp-for="ViTri" class="form-label"></label><input asp-for="ViTri" class="form-control" placeholder="VD: Phòng máy chủ" /></div>
+        <div class="col-12 small text-muted">Đối tượng: chọn <b>tài sản cụ thể</b>, hoặc <b>loại thiết bị</b> (mọi máy đang dùng của loại đó, giới hạn theo khoa nếu chọn khoa), hoặc để trống cả hai và ghi <b>vị trí</b>.</div>
+        <div class="col-md-4"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">Phòng CNTT thực hiện</option></select>
+            <div class="form-text">Người của khoa này được ghi kiểm tra.</div></div>
+        <div class="col-md-8"><label asp-for="MoTa" class="form-label"></label><input asp-for="MoTa" class="form-control" /></div>
+        <div class="col-12 d-flex gap-4">
+            <div class="form-check"><input asp-for="TuTaoPhieu" class="form-check-input" /><label asp-for="TuTaoPhieu" class="form-check-label"></label></div>
+            <div class="form-check"><input asp-for="DangApDung" class="form-check-input" /><label asp-for="DangApDung" class="form-check-label"></label></div>
+        </div>
+    </div></div>
+    <div class="card mb-3"><div class="card-header d-flex">Các mục kiểm tra <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="themMuc"><i class="bi bi-plus"></i> Thêm mục</button></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+            <thead><tr><th style="width:36%">Nội dung</th><th>Kiểu</th><th>Đơn vị</th><th>Ngưỡng min</th><th>Ngưỡng max</th><th>Bắt buộc</th><th></th></tr></thead>
+            <tbody id="mucs">
+            @for (var i = 0; i < Model.Mucs.Count; i++)
+            {
+                var m = Model.Mucs[i];
+                <tr>
+                    <td><input type="hidden" name="Mucs[@i].Id" value="@m.Id" /><input name="Mucs[@i].NoiDung" value="@m.NoiDung" class="form-control form-control-sm" aria-label="Nội dung mục" /></td>
+                    <td><select name="Mucs[@i].Kieu" class="form-select form-select-sm" aria-label="Kiểu">@foreach (var k in Enum.GetValues<KieuMucKiemTra>()) { <option value="@k" selected="@(k == m.Kieu)">@k.Ten()</option> }</select></td>
+                    <td><input name="Mucs[@i].DonVi" value="@m.DonVi" class="form-control form-control-sm" style="width:80px" aria-label="Đơn vị" /></td>
+                    <td><input name="Mucs[@i].NguongMin" value="@m.NguongMin?.ToString("0.###", inv)" type="number" step="any" class="form-control form-control-sm" style="width:100px" aria-label="Ngưỡng min" /></td>
+                    <td><input name="Mucs[@i].NguongMax" value="@m.NguongMax?.ToString("0.###", inv)" type="number" step="any" class="form-control form-control-sm" style="width:100px" aria-label="Ngưỡng max" /></td>
+                    <td class="text-center"><input type="checkbox" name="Mucs[@i].BatBuoc" value="true" class="form-check-input" @(m.BatBuoc ? "checked" : "") aria-label="Bắt buộc" /><input type="hidden" name="Mucs[@i].BatBuoc" value="false" /></td>
+                    <td><button type="button" class="btn btn-sm btn-link text-danger xoa" aria-label="Xoá mục"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+    </div>
+    <button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Mau" class="btn btn-link">Huỷ</a>
+</form>
+<template id="mauDong">
+    <tr>
+        <td><input type="hidden" name="Mucs[#].Id" value="0" /><input name="Mucs[#].NoiDung" class="form-control form-control-sm" aria-label="Nội dung mục" /></td>
+        <td><select name="Mucs[#].Kieu" class="form-select form-select-sm" aria-label="Kiểu">@foreach (var k in Enum.GetValues<KieuMucKiemTra>()) { <option value="@k">@k.Ten()</option> }</select></td>
+        <td><input name="Mucs[#].DonVi" class="form-control form-control-sm" style="width:80px" aria-label="Đơn vị" /></td>
+        <td><input name="Mucs[#].NguongMin" type="number" step="any" class="form-control form-control-sm" style="width:100px" aria-label="Ngưỡng min" /></td>
+        <td><input name="Mucs[#].NguongMax" type="number" step="any" class="form-control form-control-sm" style="width:100px" aria-label="Ngưỡng max" /></td>
+        <td class="text-center"><input type="checkbox" name="Mucs[#].BatBuoc" value="true" class="form-check-input" checked aria-label="Bắt buộc" /><input type="hidden" name="Mucs[#].BatBuoc" value="false" /></td>
+        <td><button type="button" class="btn btn-sm btn-link text-danger xoa" aria-label="Xoá mục"><i class="bi bi-x-lg"></i></button></td>
+    </tr>
+</template>
+@section Scripts {
+<script>
+(function () {
+    const tb = document.getElementById('mucs');
+    function danhLai() { [...tb.rows].forEach((r, i) => r.querySelectorAll('[name^="Mucs["]').forEach(e => e.name = e.name.replace(/^Mucs\[[^\]]*\]/, 'Mucs[' + i + ']'))); }
+    document.getElementById('themMuc').onclick = () => { tb.insertAdjacentHTML('beforeend', document.getElementById('mauDong').innerHTML); danhLai(); tb.lastElementChild.querySelector('input:not([type=hidden])').focus(); };
+    tb.addEventListener('click', e => { if (e.target.closest('.xoa')) { e.target.closest('tr').remove(); danhLai(); } });
+})();
+</script>
+}

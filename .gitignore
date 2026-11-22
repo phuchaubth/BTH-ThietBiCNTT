@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 *.db-wal
 
 out/
+
+# Tệp đính kèm khi chạy demo
+src/ThietBiCNTT.Web/App_Data/

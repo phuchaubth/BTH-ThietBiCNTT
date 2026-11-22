@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Kiểm tra thiết bị";
+    var viec = (List<ViecKiemTra>)ViewBag.Viec;
+    var ganDay = (List<LanKiemTra>)ViewBag.GanDay;
+    var tatCa = (bool)ViewData["tatCa"]!;
+    var now = DateTime.Now;
+}
+<div class="page-head">
+    <h1>Kiểm tra thiết bị</h1>
+    <div class="actions">
+        <a asp-action="Index" asp-route-tatCa="@(!tatCa)" class="btn btn-sm @(tatCa ? "btn-primary" : "btn-outline-primary")">@(tatCa ? "Chỉ việc đến hạn" : "Xem tất cả lịch")</a>
+        <a asp-action="LichSu" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i> Lịch sử</a>
+        @if (User.LaCNTT()) { <a asp-action="Mau" class="btn btn-sm btn-outline-secondary"><i class="bi bi-ui-checks"></i> Phiếu mẫu</a> }
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card"><div class="card-header d-flex">@(tatCa ? "Lịch kiểm tra" : "Cần kiểm tra") <span class="ms-auto small fw-normal">@viec.Count việc · @viec.Count(v => v.QuaHan) quá hạn</span></div>
+            <div class="list-group list-group-flush">
+                @foreach (var v in viec)
+                {
+                    var duocGhi = User.LaCNTT() || (v.Mau.KhoaPhongId is not null && v.Mau.KhoaPhongId == User.KhoaPhongId());
+                    <div class="list-group-item d-flex align-items-center gap-2 @(v.QuaHan ? "list-group-item-danger" : "")">
+                        <div class="flex-fill">
+                            <div class="fw-semibold">@v.Mau.Ten</div>
+                            <div class="small">@(v.TaiSan is { } t ? $"{t.MaTaiSan} · {t.Ten} · {t.KhoaPhong?.Ten}" : v.Mau.ViTri)</div>
+                            <div class="small text-muted">@MauKiemTra.TenChuKy(v.Mau.ChuKyGio) · lần cuối @(v.LanCuoi?.ToString("HH:mm dd/MM") ?? "chưa có") · hạn <span class="@(v.QuaHan ? "overdue" : "")">@v.HanTiep.ToString("HH:mm dd/MM")</span></div>
+                        </div>
+                        @if (duocGhi) { <a asp-action="Ghi" asp-route-mauId="@v.Mau.Id" asp-route-taiSanId="@v.TaiSan?.Id" class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-clipboard-check"></i> Kiểm tra</a> }
+                    </div>
+                }
+                @if (viec.Count == 0) { <div class="list-group-item text-muted text-center py-4">Không có việc kiểm tra đến hạn.</div> }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card"><div class="card-header">Kiểm tra gần đây</div>
+            <div class="list-group list-group-flush">
+                @foreach (var l in ganDay)
+                {
+                    <a class="list-group-item list-group-item-action small" asp-action="Lan" asp-route-id="@l.Id">
+                        <div class="d-flex"><b>@l.MauKiemTra?.Ten</b>
+                            <span class="ms-auto badge bg-@(l.CoBatThuong ? "danger" : "success")">@(l.CoBatThuong ? "Bất thường" : "Đạt")</span></div>
+                        <div class="text-muted">@(l.TaiSan?.MaTaiSan ?? l.MauKiemTra?.ViTri) · @l.NguoiKiem · @l.ThoiGian.ToString("HH:mm dd/MM")
+                            @if (l.PhieuSuaChua is not null) { <span>· phiếu @l.PhieuSuaChua.SoPhieu</span> }</div>
+                    </a>
+                }
+                @if (ganDay.Count == 0) { <div class="list-group-item text-muted small">Chưa có lần kiểm tra nào.</div> }
+            </div>
+        </div>
+    </div>
+</div>

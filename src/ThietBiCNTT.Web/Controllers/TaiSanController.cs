@@ -19,7 +19,7 @@ public class TaiSanFormVm
     public string? LyDoThayDoi { get; set; }
 }
 
-public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo) : Controller
+public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo, TepService tep) : Controller
 {
     private IQueryable<TaiSan> PhamViTaiSan()
     {
@@ -135,6 +135,13 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
             .Include(t => t.PhieuSuaChuas.OrderByDescending(p => p.NgayYeuCau)).ThenInclude(p => p.VatTus)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ts is null) return NotFound();
+        ViewBag.Tep = await tep.DanhSachAsync("TaiSan", id.ToString());
+        // Phiếu kiểm tra áp dụng cho thiết bị này (người dùng được ghi)
+        var k = User.KhoaPhongId();
+        ViewBag.MauKiemTra = await db.MauKiemTras.AsNoTracking().Where(m => m.DangApDung
+                && (m.TaiSanId == id || (m.TaiSanId == null && m.LoaiThietBiId == ts.LoaiThietBiId && (m.KhoaPhongId == null || m.KhoaPhongId == ts.KhoaPhongId)))
+                && (User.LaCNTT() || (m.KhoaPhongId != null && m.KhoaPhongId == k)))
+            .OrderBy(m => m.Ten).ToListAsync();
         return View(ts);
     }
 

@@ -24,7 +24,7 @@ public class BaoHongVm
     public bool XacNhanTrung { get; set; }
 }
 
-public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb) : Controller
+public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb, TepService tep) : Controller
 {
     private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
 
@@ -71,8 +71,8 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         return View(vm);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(BaoHongVm vm)
+    [HttpPost, ValidateAntiForgeryToken, RequestSizeLimit(60_000_000)]
+    public async Task<IActionResult> Create(BaoHongVm vm, List<IFormFile>? anh)
     {
         var ts = await db.TaiSans.Include(t => t.KhoaPhong).FirstOrDefaultAsync(t => t.Id == vm.TaiSanId);
         if (ts is null) ModelState.AddModelError(nameof(vm.TaiSanId), "Chọn thiết bị cần sửa.");
@@ -101,7 +101,14 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         await db.LuuMoiAsync(soPhieu, "SC", so => p.SoPhieu = so);
         lichSu.Ghi(ts.Id, LoaiSuKien.SuaChua, $"Báo hỏng {p.SoPhieu}: {p.MoTaSuCo}", User.Identity?.Name);
         await tb.PhieuMoiAsync(p, ts.KhoaPhong?.Ten, $"{ts.MaTaiSan} {ts.Ten}");
+        string? loiAnh = null;
+        foreach (var f in (anh ?? []).Take(5))
+        {
+            try { await using var s = f.OpenReadStream(); await tep.LuuAsync("PhieuSuaChua", p.Id.ToString(), f.FileName, s, f.Length, User.Identity?.Name); }
+            catch (DomainException ex) { loiAnh = ex.Message; }
+        }
         await db.SaveChangesAsync();
+        if (loiAnh is not null) TempData["err"] = "Phiếu đã gửi nhưng có ảnh không lưu được: " + loiAnh;
         TempData["ok"] = $"Đã gửi yêu cầu {p.SoPhieu}. Hạn xử lý: {p.HanXuLy:HH:mm dd/MM}.";
         return RedirectToAction(nameof(Details), new { id = p.Id });
     }
@@ -121,6 +128,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         ViewBag.Ncc = new SelectList(await db.NhaCungCaps.OrderBy(n => n.Ten).ToListAsync(), "Id", "Ten", p.NhaCungCapId);
         ViewBag.VatTu = new SelectList(await db.VatTus.Where(v => v.TonKho > 0).OrderBy(v => v.Ten)
             .Select(v => new { v.Id, Ten = v.Ma + " - " + v.Ten + " (tồn " + ((double)v.TonKho).ToString() + " " + v.DonViTinh + ")" }).ToListAsync(), "Id", "Ten");
+        ViewBag.Tep = await tep.DanhSachAsync("PhieuSuaChua", id.ToString());
         ViewBag.LichSuThietBi = await db.PhieuSuaChuas.AsNoTracking().Where(x => x.TaiSanId == p.TaiSanId && x.Id != p.Id)
             .OrderByDescending(x => x.NgayYeuCau).Take(5).ToListAsync();
         return View(p);

@@ -32,6 +32,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<ThamSoHeThong> ThamSoHeThongs => Set<ThamSoHeThong>();
     public DbSet<DotKiemKe> DotKiemKes => Set<DotKiemKe>();
     public DbSet<ThongBao> ThongBaos => Set<ThongBao>();
+    public DbSet<MauKiemTra> MauKiemTras => Set<MauKiemTra>();
+    public DbSet<MucKiemTra> MucKiemTras => Set<MucKiemTra>();
+    public DbSet<LanKiemTra> LanKiemTras => Set<LanKiemTra>();
+    public DbSet<KetQuaKiemTra> KetQuaKiemTras => Set<KetQuaKiemTra>();
+    public DbSet<TepDinhKem> TepDinhKems => Set<TepDinhKem>();
     public DbSet<TinNhanCho> TinNhanChos => Set<TinNhanCho>();
     public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
@@ -106,6 +111,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         });
         b.Entity<NhatKyHeThong>().HasIndex(x => x.ThoiGian);
         b.Entity<ThongBao>().HasIndex(x => new { x.NguoiNhan, x.DaDoc, x.ThoiGian });
+        b.Entity<MauKiemTra>().HasMany(x => x.Mucs).WithOne(x => x.MauKiemTra).HasForeignKey(x => x.MauKiemTraId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<MucKiemTra>(e => { e.Property(x => x.NguongMin).HasPrecision(18, 3); e.Property(x => x.NguongMax).HasPrecision(18, 3); });
+        b.Entity<LanKiemTra>(e =>
+        {
+            e.HasMany(x => x.KetQuas).WithOne(x => x.LanKiemTra).HasForeignKey(x => x.LanKiemTraId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.MauKiemTraId, x.TaiSanId, x.ThoiGian });
+        });
+        b.Entity<KetQuaKiemTra>().Property(x => x.GiaTriSo).HasPrecision(18, 3);
+        b.Entity<TepDinhKem>().HasIndex(x => new { x.DoiTuong, x.DoiTuongId });
         b.Entity<TinNhanCho>().HasIndex(x => new { x.TrangThai, x.GuiTu });
         b.Entity<AppUser>().Property(x => x.TelegramChatId).HasMaxLength(50);
         b.Entity<DotKiemKe>(e =>

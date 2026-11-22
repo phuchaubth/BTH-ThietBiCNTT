@@ -74,6 +74,8 @@ if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath
         .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
         .SetApplicationName("ThietBiCNTT");
 
+CanhBaoService.TongHopBoSung.Add(KiemTraTongHop.DongAsync);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

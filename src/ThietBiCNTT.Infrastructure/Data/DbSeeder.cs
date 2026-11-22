@@ -112,8 +112,9 @@ public static class DbSeeder
         var stt = new Dictionary<string, int>();
         for (var i = 0; i < 60; i++)
         {
-            var m = mau[rnd.Next(mau.Length)];
-            var k = dsKhoa[rnd.Next(dsKhoa.Count)];
+            // 3 máy đầu: máy tính Khoa Cấp cứu (để có dữ liệu cho phiếu kiểm tra đầu ca)
+            var m = i < 3 ? mau[0] : mau[rnd.Next(mau.Length)];
+            var k = i < 3 ? khoa["CC"] : dsKhoa[rnd.Next(dsKhoa.Count)];
             stt[m.Loai] = stt.GetValueOrDefault(m.Loai) + 1;
             var ngayMua = homNay.AddDays(-rnd.Next(60, 365 * 8));
             var ts = new TaiSan
@@ -181,6 +182,26 @@ public static class DbSeeder
                 Checklist = "Vệ sinh trục kéo giấy\nKiểm tra trống, lô sấy\nIn trang thử", KyThuatVien = "ktv2" },
             new KeHoachBaoTri { Ten = "Kiểm tra ắc quy UPS hằng năm", LoaiThietBiId = loai["UPS"].Id, ChuKyNgay = 365, NgayTiepTheo = homNay.AddDays(30),
                 Checklist = "Đo điện áp ắc quy\nTest chuyển nguồn\nGhi nhận thời gian lưu điện", KyThuatVien = "ktv1" });
+        await db.SaveChangesAsync();
+        await TaoMauKiemTraMau(db, loai, khoa);
+    }
+
+    private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
+    {
+        if (await db.MauKiemTras.AnyAsync()) return;
+        static MucKiemTra Dk(int i, string nd) => new() { ThuTu = i, NoiDung = nd, Kieu = KieuMucKiemTra.DatKhongDat };
+        static MucKiemTra So(int i, string nd, string dv, decimal? min, decimal? max) => new() { ThuTu = i, NoiDung = nd, Kieu = KieuMucKiemTra.So, DonVi = dv, NguongMin = min, NguongMax = max };
+        db.MauKiemTras.AddRange(
+            new MauKiemTra { Ten = "Kiểm tra phòng máy chủ hằng ngày", ViTri = "Phòng máy chủ – tầng 3 nhà A", KhoaPhongId = khoa["CNTT"].Id, ChuKyGio = 24,
+                MoTa = "Thực hiện đầu giờ sáng. Nhiệt độ/độ ẩm đọc trên nhiệt kế treo tường.",
+                Mucs = [So(1, "Nhiệt độ phòng", "°C", 18, 27), So(2, "Độ ẩm", "%", 40, 60), Dk(3, "Điều hoà hoạt động bình thường"),
+                        Dk(4, "UPS không báo lỗi / không chạy bằng ắc quy"), Dk(5, "Không có đèn báo lỗi trên máy chủ, thiết bị lưu trữ"),
+                        Dk(6, "Bản sao lưu CSDL đêm qua thành công"), new MucKiemTra { ThuTu = 7, NoiDung = "Ghi chú khác", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
+            new MauKiemTra { Ten = "Kiểm tra UPS hằng tuần", LoaiThietBiId = loai["UPS"].Id, ChuKyGio = 168,
+                Mucs = [So(1, "Thời gian lưu điện ước tính", "phút", 10, null), So(2, "Tải hiện tại", "%", null, 80), Dk(3, "Không có đèn/còi cảnh báo")] },
+            new MauKiemTra { Ten = "Kiểm tra máy tính đầu ca – Khoa Cấp cứu", LoaiThietBiId = loai["PC"].Id, KhoaPhongId = khoa["CC"].Id, ChuKyGio = 8,
+                MoTa = "Điều dưỡng trực kiểm tra đầu mỗi ca.",
+                Mucs = [Dk(1, "Khởi động & đăng nhập HIS được"), Dk(2, "Máy in phiếu / mã vạch hoạt động"), Dk(3, "Kết nối mạng ổn định")] });
         await db.SaveChangesAsync();
     }
 }

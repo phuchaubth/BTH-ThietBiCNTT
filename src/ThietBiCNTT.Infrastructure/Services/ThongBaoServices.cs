@@ -172,7 +172,7 @@ public class HangDoiGuiService(AppDbContext db, IEnumerable<IKenhGui> kenhs, ILo
 }
 
 /// <summary>Cảnh báo định kỳ: nhắc sắp đến hạn SLA, leo thang 3 cấp khi quá hạn, bản tin tổng hợp hằng ngày.</summary>
-public class CanhBaoService(AppDbContext db, ThongBaoService tb, ThamSoService thamSo, UserManager<AppUser> users)
+public class CanhBaoService(AppDbContext db, ThongBaoService tb, ThamSoService thamSo, UserManager<AppUser> users, IServiceProvider sp)
 {
     private static readonly TrangThaiPhieuSuaChua[] DangMo =
         [TrangThaiPhieuSuaChua.Moi, TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.ChoLinhKien, TrangThaiPhieuSuaChua.GuiHang];
@@ -245,11 +245,11 @@ public class CanhBaoService(AppDbContext db, ThongBaoService tb, ThamSoService t
         if (bh > 0) dong.Add($"• {bh} thiết bị sắp hết bảo hành");
         if (vt.Count > 0) dong.Add($"• Vật tư dưới định mức: {string.Join(", ", vt)}");
         if (pm > 0) dong.Add($"• {pm} kế hoạch bảo trì đến hạn");
-        foreach (var x in TongHopBoSung) dong.AddRange(await x(db, now, ct));
+        foreach (var x in TongHopBoSung) dong.AddRange(await x(sp, now, ct));
         await tb.GuiAsync(await tb.CanBoCNTTAsync(), LoaiThongBao.TongHopNgay, $"Tổng hợp ngày {now:dd/MM/yyyy}",
             dong.Count == 0 ? "Không có việc tồn đọng. 👍" : string.Join("\n", dong), "/", dong.Count == 0 ? MucDoThongBao.ThongTin : MucDoThongBao.CanhBao);
     }
 
     /// <summary>Phân hệ khác (hợp đồng, bản quyền, kiểm tra…) bổ sung dòng vào bản tin hằng ngày.</summary>
-    public static readonly List<Func<AppDbContext, DateTime, CancellationToken, Task<IEnumerable<string>>>> TongHopBoSung = [];
+    public static readonly List<Func<IServiceProvider, DateTime, CancellationToken, Task<IEnumerable<string>>>> TongHopBoSung = [];
 }

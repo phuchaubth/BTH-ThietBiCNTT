@@ -1,0 +1,73 @@
+@model MauKiemTra
+@{ ViewData["Title"] = "Ghi kiểm tra"; var inv = System.Globalization.CultureInfo.InvariantCulture; }
+@section Styles {
+<style>
+    .muc { border: 1px solid #e3e7ed; border-radius: .5rem; padding: .75rem; margin-bottom: .6rem; background: #fff; }
+    .muc.bat-thuong { border-color: #c62828; background: #fdeeee; }
+    .btn-check + .btn { min-width: 120px; min-height: 44px; }
+    .btn-check:checked + .btn-outline-success { background: #1e7a46; border-color: #1e7a46; color: #fff; }
+    .btn-check:checked + .btn-outline-danger { background: #b3261e; border-color: #b3261e; color: #fff; }
+</style>
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Kiểm tra thiết bị</a> › Ghi kiểm tra</div>
+<div class="page-head"><h1 class="h5">@Model.Ten</h1></div>
+@if (Model.MoTa is not null) { <div class="alert alert-info small py-2">@Model.MoTa</div> }
+<form asp-action="Ghi" method="post" enctype="multipart/form-data" style="max-width:720px">
+    <input type="hidden" name="mauId" value="@Model.Id" />
+    @if (Model.KhongGanTaiSan) { <div class="mb-3"><span class="text-muted small">Vị trí:</span> <b>@Model.ViTri</b></div> }
+    else if (((SelectList)ViewBag.DsTaiSan).Count() == 0)
+    {
+        <div class="alert alert-warning">Không có thiết bị nào đang sử dụng thuộc phạm vi phiếu kiểm tra này@(Model.KhoaPhong is null ? "" : $" tại {Model.KhoaPhong.Ten}"). Liên hệ Phòng CNTT để kiểm tra danh mục tài sản / phiếu mẫu.</div>
+    }
+    else
+    {
+        <div class="mb-3"><label class="form-label fw-semibold" for="ts">Thiết bị</label>
+            <select id="ts" name="taiSanId" asp-items="ViewBag.DsTaiSan" class="form-select form-select-lg" required><option value="">— Chọn thiết bị —</option></select></div>
+    }
+    @foreach (var m in Model.Mucs)
+    {
+        <div class="muc" data-min="@m.NguongMin?.ToString(inv)" data-max="@m.NguongMax?.ToString(inv)">
+            <div class="fw-semibold mb-2">@m.ThuTu. @m.NoiDung @if (m.BatBuoc) { <span class="text-danger">*</span> }
+                @if (m.Kieu == KieuMucKiemTra.So && m.MoTaNguong.Length > 0) { <span class="small text-muted fw-normal">(chuẩn: @m.MoTaNguong)</span> }</div>
+            @switch (m.Kieu)
+            {
+                case KieuMucKiemTra.DatKhongDat:
+                    <div class="d-flex gap-2" role="group" aria-label="@m.NoiDung">
+                        <input type="radio" class="btn-check" name="giaTri[@m.Id]" id="d@(m.Id)" value="true" autocomplete="off" required="@m.BatBuoc" />
+                        <label class="btn btn-outline-success" for="d@(m.Id)"><i class="bi bi-check-lg"></i> Đạt</label>
+                        <input type="radio" class="btn-check" name="giaTri[@m.Id]" id="k@(m.Id)" value="false" autocomplete="off" />
+                        <label class="btn btn-outline-danger" for="k@(m.Id)"><i class="bi bi-x-lg"></i> Không đạt</label>
+                    </div>
+                    break;
+                case KieuMucKiemTra.So:
+                    <div class="input-group" style="max-width:260px"><input name="giaTri[@m.Id]" type="number" step="any" inputmode="decimal" class="form-control form-control-lg so" required="@m.BatBuoc" aria-label="@m.NoiDung" />
+                        @if (m.DonVi is not null) { <span class="input-group-text">@m.DonVi</span> }</div>
+                    break;
+                default:
+                    <textarea name="giaTri[@m.Id]" class="form-control" rows="2" required="@m.BatBuoc" aria-label="@m.NoiDung"></textarea>
+                    break;
+            }
+        </div>
+    }
+    <div class="mb-3"><label class="form-label" for="gc">Ghi chú</label><textarea id="gc" name="ghiChu" class="form-control" rows="2"></textarea></div>
+    <div class="mb-3"><label class="form-label" for="anh">Ảnh hiện trường (tuỳ chọn)</label>
+        <input id="anh" type="file" name="anh" accept="image/*" capture="environment" multiple class="form-control" /></div>
+    <button class="btn btn-lg btn-primary w-100"><i class="bi bi-clipboard-check"></i> Lưu kết quả kiểm tra</button>
+    <div class="small text-muted mt-2">Mục <b>Không đạt</b> hoặc số đo ngoài ngưỡng là <b>bất thường</b>@(Model.TuTaoPhieu && !Model.KhongGanTaiSan ? " — hệ thống tự tạo phiếu sửa chữa (hoặc gắn vào phiếu đang mở) và báo Phòng CNTT" : " — hệ thống báo Phòng CNTT").</div>
+</form>
+@section Scripts {
+<script>
+document.querySelectorAll('.muc').forEach(box => {
+    const so = box.querySelector('.so');
+    const radios = box.querySelectorAll('input[type=radio]');
+    const min = box.dataset.min === '' ? null : +box.dataset.min, max = box.dataset.max === '' ? null : +box.dataset.max;
+    const capNhat = () => {
+        let bt = false;
+        if (so && so.value !== '') { const v = +so.value; bt = (min !== null && v < min) || (max !== null && v > max); }
+        radios.forEach(r => { if (r.checked && r.value === 'false') bt = true; });
+        box.classList.toggle('bat-thuong', bt);
+    };
+    so?.addEventListener('input', capNhat); radios.forEach(r => r.addEventListener('change', capNhat));
+});
+</script>
+}

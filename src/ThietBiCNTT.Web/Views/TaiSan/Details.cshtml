@@ -19,6 +19,11 @@
             <a asp-action="Create" asp-route-copyFrom="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-copy"></i> Nhân bản</a>
         }
         <a asp-action="InTem" asp-route-ids="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In tem</a>
+        @if (((List<MauKiemTra>)ViewBag.MauKiemTra) is { Count: > 0 } maus && !Model.DaThanhLy)
+        {
+            <div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-clipboard-check"></i> Ghi kiểm tra</button>
+                <ul class="dropdown-menu">@foreach (var m in maus) { <li><a class="dropdown-item" asp-controller="KiemTra" asp-action="Ghi" asp-route-mauId="@m.Id" asp-route-taiSanId="@Model.Id">@m.Ten</a></li> }</ul></div>
+        }
     </div>
 </div>
 <div class="row g-3">
@@ -90,6 +95,7 @@
             </dl>
             @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * nguongPct / 100m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt @nguongPct% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
         </div></div>
+        @await Html.PartialAsync("_DinhKem", (DoiTuong: "TaiSan", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: User.LaCNTT()))
         <div class="card"><div class="card-header">Dòng thời gian</div><div class="card-body">
             <ul class="timeline">
                 @foreach (var l in Model.LichSu)

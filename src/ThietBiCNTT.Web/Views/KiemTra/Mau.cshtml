@@ -1,0 +1,24 @@
+@model List<MauKiemTra>
+@{ ViewData["Title"] = "Phiếu kiểm tra mẫu"; }
+<div class="small text-muted mb-1"><a asp-action="Index">Kiểm tra thiết bị</a> › Phiếu mẫu</div>
+<div class="page-head"><h1>Phiếu kiểm tra mẫu</h1><div class="actions"><a asp-action="MauForm" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm phiếu mẫu</a></div></div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Phiếu kiểm tra</th><th>Áp dụng cho</th><th>Khoa thực hiện</th><th>Chu kỳ</th><th>Số mục</th><th>Trạng thái</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var m in Model)
+    {
+        <tr class="@(m.DangApDung ? "" : "text-muted")">
+            <td class="fw-semibold">@m.Ten<div class="small text-muted fw-normal">@m.MoTa</div></td>
+            <td class="small">@(m.TaiSan is not null ? m.TaiSan.MaTaiSan : m.LoaiThietBi is not null ? "Mọi " + m.LoaiThietBi.Ten.ToLower() : "Vị trí: " + m.ViTri)</td>
+            <td class="small">@(m.KhoaPhong?.Ten ?? "Phòng CNTT")</td>
+            <td class="small">@MauKiemTra.TenChuKy(m.ChuKyGio)</td><td>@m.Mucs.Count</td>
+            <td>@if (m.DangApDung) { <span class="badge bg-success">Áp dụng</span> } else { <span class="badge bg-secondary">Ngừng</span> }</td>
+            <td class="text-end text-nowrap"><a asp-action="LichSu" asp-route-mauId="@m.Id" class="btn btn-sm btn-outline-secondary" title="Lịch sử"><i class="bi bi-clock-history"></i></a>
+                <a asp-action="MauForm" asp-route-id="@m.Id" class="btn btn-sm btn-outline-secondary" title="Sửa"><i class="bi bi-pencil"></i></a></td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có phiếu mẫu.</td></tr> }
+    </tbody>
+</table>
+</div></div>

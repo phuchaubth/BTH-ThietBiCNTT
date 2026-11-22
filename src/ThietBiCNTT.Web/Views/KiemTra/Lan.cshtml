@@ -1,0 +1,26 @@
+@model LanKiemTra
+@{ ViewData["Title"] = "Kết quả kiểm tra"; var teps = (List<TepDinhKem>)ViewBag.Tep; }
+<div class="small text-muted mb-1"><a asp-action="Index">Kiểm tra thiết bị</a> › Lần kiểm tra #@Model.Id</div>
+<div class="page-head">
+    <h1>@Model.MauKiemTra?.Ten</h1> <span class="badge bg-@(Model.CoBatThuong ? "danger" : "success")">@(Model.CoBatThuong ? "Có bất thường" : "Tất cả đạt")</span>
+    <div class="actions"><a asp-action="LichSu" asp-route-mauId="@Model.MauKiemTraId" asp-route-taiSanId="@Model.TaiSanId" class="btn btn-sm btn-outline-secondary">Lịch sử</a></div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3"><div class="card-body small">
+            @(Model.TaiSan is { } t ? Html.Raw($"Thiết bị: <a href=\"/TaiSan/Details/{t.Id}\"><b>{System.Net.WebUtility.HtmlEncode(t.MaTaiSan)}</b></a> · {System.Net.WebUtility.HtmlEncode(t.Ten)}") : Html.Raw("Vị trí: <b>" + System.Net.WebUtility.HtmlEncode(Model.MauKiemTra?.ViTri ?? "") + "</b>"))
+            · Người kiểm: <b>@Model.NguoiKiem</b> · @Model.ThoiGian.ToString("HH:mm dd/MM/yyyy")
+            @if (Model.PhieuSuaChua is not null) { <div class="mt-1">Phiếu sửa chữa: <a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@Model.PhieuSuaChuaId" class="fw-semibold">@Model.PhieuSuaChua.SoPhieu</a> (@Model.PhieuSuaChua.TrangThai.Ten())</div> }
+            @if (Model.GhiChu is not null) { <div class="mt-1">Ghi chú: @Model.GhiChu</div> }
+        </div></div>
+        <div class="card mb-3"><table class="table mb-0">
+            <thead><tr><th>Mục kiểm tra</th><th>Kết quả</th></tr></thead>
+            <tbody>@foreach (var k in Model.KetQuas) {
+                <tr class="@(k.BatThuong ? "table-danger" : "")"><td>@k.NoiDungMuc</td>
+                    <td>@if (k.GiaTriSo is { } s) { <b>@s.ToString("0.##") @k.DonVi</b> } else if (k.Dat is { } d && k.GiaTriText is null) { <span class="badge bg-@(d ? "success" : "danger")">@(d ? "Đạt" : "Không đạt")</span> } else { @k.GiaTriText }
+                        @if (k.BatThuong) { <span class="badge bg-danger ms-1">Bất thường</span> }</td></tr>
+            }</tbody>
+        </table></div>
+    </div>
+    <div class="col-lg-4">@await Html.PartialAsync("_DinhKem", (DoiTuong: "LanKiemTra", DoiTuongId: Model.Id.ToString(), Teps: teps, DuocTaiLen: true))</div>
+</div>

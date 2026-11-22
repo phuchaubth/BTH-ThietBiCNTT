@@ -339,7 +339,7 @@ schtasks /Create /TN "ThietBiCNTT\DonSaoLuuCu" /SC DAILY /ST 03:00 /RU SYSTEM ^
 > - SQL Express không hỗ trợ `COMPRESSION` → xoá từ khoá này trong script nếu báo lỗi.
 > - **Chép bản sao lưu sang máy/NAS khác** (quy tắc 3-2-1). Bản sao lưu nằm trên cùng máy chủ không bảo vệ được khi hỏng ổ đĩa.
 > - **Diễn tập khôi phục** mỗi quý trên máy thử nghiệm bằng `sql\04-khoi-phuc.sql`.
-> - Sao lưu cả thư mục `D:\ThietBiCNTT\keys` và file `appsettings.Production.json` (sau mỗi lần thay đổi).
+> - Sao lưu cả thư mục `D:\ThietBiCNTT\keys`, `D:\ThietBiCNTT\dinhkem` (ảnh/tệp đính kèm) và file `appsettings.Production.json`.
 
 Phiên bản SQL Standard: có thể dùng SQL Agent Job / Maintenance Plan thay cho Task Scheduler; nên bổ sung sao lưu **transaction log** mỗi 30 phút (CSDL đã đặt `RECOVERY FULL`).
 
@@ -486,6 +486,7 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
 | `Database:AutoMigrate` | `true` | Tự áp migration khi khởi động |
 | `DataProtection:KeysPath` | (trống) | **Bắt buộc trên IIS** |
 | `Seed:AdminPassword` | (trống) | Chỉ dùng khi tạo `admin` lần đầu |
+| `DinhKem:Path` | `App_Data\dinhkem` cạnh ứng dụng | Thư mục lưu ảnh/tệp đính kèm. Trên IIS đặt `D:\ThietBiCNTT\dinhkem` (script đã tạo & cấp quyền ghi) |
 | `ThongBao:SmtpPassword` | (trống) | Mật khẩu tài khoản SMTP gửi email thông báo |
 | `ThongBao:TelegramBotToken` | (trống) | Token bot Telegram (tạo bằng @BotFather). Máy chủ cần ra được `api.telegram.org:443` |
 | `App:DiaChiTruyCap` | (trống) | BTH: `https://thietbi.bth.org.vn`. Ghi vào tham số `DonVi.DiaChiTruyCap` khi tham số còn trống (link mã QR) |
@@ -502,6 +503,7 @@ Biến môi trường tương đương (dùng `__` thay `:`), ví dụ `Connecti
 D:\ThietBiCNTT\
 ├─ app\        ứng dụng (+ appsettings.Production.json, web.config)
 ├─ keys\       khoá Data Protection — SAO LƯU cùng CSDL
+├─ dinhkem\    ảnh / tệp đính kèm (DinhKem:Path) — SAO LƯU cùng CSDL
 ├─ logs\       saoluu.log, stdout (khi bật)
 ├─ backup\     *.bak, app_<giờ>.zip
 └─ sql\        script sao lưu / khôi phục

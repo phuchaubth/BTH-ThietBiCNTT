@@ -45,6 +45,8 @@ public static class DependencyInjection
         services.AddScoped<NghiemThuTuDongService>();
         services.AddScoped<ExcelTaiSanService>();
         services.AddScoped<ThongBaoService>();
+        services.AddScoped<TepService>();
+        services.AddScoped<KiemTraService>();
         services.AddScoped<CanhBaoService>();
         services.AddScoped<HangDoiGuiService>();
         services.AddScoped<IKenhGui, EmailSender>();
