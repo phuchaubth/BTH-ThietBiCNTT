@@ -32,6 +32,13 @@ public class PhieuSuaChua : BaseEntity
     public DateTime? BatDauTamDung { get; set; }
     /// <summary>Tổng thời gian đã tạm dừng (giây) — trừ khỏi thời gian xử lý khi tính MTTR.</summary>
     public long TongTamDungGiay { get; set; }
+    // Theo dõi gửi hãng / bảo hành
+    [StringLength(50), Display(Name = "Số phiếu hãng / RMA")] public string? SoPhieuHang { get; set; }
+    [Display(Name = "Ngày gửi hãng")] public DateTime? NgayGuiHang { get; set; }
+    [Display(Name = "Ngày hãng hẹn trả"), DataType(DataType.Date)] public DateOnly? NgayHenTra { get; set; }
+    [Display(Name = "Ngày nhận về")] public DateTime? NgayNhanVe { get; set; }
+    public bool TreHenTra(DateOnly homNay) => TrangThai == TrangThaiPhieuSuaChua.GuiHang && NgayHenTra is { } h && h < homNay;
+
     /// <summary>Đã gửi nhắc "sắp đến hạn" cho KTV.</summary>
     public bool DaNhacTruocHan { get; set; }
     /// <summary>Cấp leo thang đã thông báo khi quá hạn (0 = chưa; 1 = KTV & CNTT; 2 = trưởng phòng; 3 = lãnh đạo).</summary>
@@ -96,6 +103,7 @@ public class PhieuSuaChua : BaseEntity
     public void BatDauXuLy(DateTime now, DoiHanSla? doiHan = null)
     {
         YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.ChoLinhKien, TrangThaiPhieuSuaChua.GuiHang);
+        if (TrangThai == TrangThaiPhieuSuaChua.GuiHang) NgayNhanVe = now;
         KetThucTamDung(now, doiHan);
         NgayBatDau ??= now;
         TrangThai = TrangThaiPhieuSuaChua.DangXuLy;
@@ -110,6 +118,7 @@ public class PhieuSuaChua : BaseEntity
         if (TrangThai == lyDo) return;
         NgayBatDau ??= now;
         if (dungSla) BatDauTamDung ??= now;
+        if (lyDo == TrangThaiPhieuSuaChua.GuiHang) { NgayGuiHang = now; NgayNhanVe = null; }
         TrangThai = lyDo;
     }
 
@@ -118,6 +127,7 @@ public class PhieuSuaChua : BaseEntity
         YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.GuiHang, TrangThaiPhieuSuaChua.ChoLinhKien);
         if (string.IsNullOrWhiteSpace(bienPhap)) throw new DomainException("Phải nhập biện pháp khắc phục.");
         if (gioCong < 0 || chiPhiThueNgoai < 0) throw new DomainException("Giờ công / chi phí không được âm.");
+        if (TrangThai == TrangThaiPhieuSuaChua.GuiHang) NgayNhanVe = now;
         KetThucTamDung(now, doiHan);
         NguyenNhan = nguyenNhan;
         BienPhapKhacPhuc = bienPhap;

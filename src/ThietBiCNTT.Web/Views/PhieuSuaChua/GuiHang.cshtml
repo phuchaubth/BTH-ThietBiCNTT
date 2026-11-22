@@ -1,0 +1,20 @@
+@model List<PhieuSuaChua>
+@{ ViewData["Title"] = "Thiết bị gửi hãng"; var daNhan = (bool)ViewData["daNhan"]!; var d = DateOnly.FromDateTime(DateTime.Today); }
+<div class="page-head"><h1>@(daNhan ? "Thiết bị đã nhận về từ hãng" : "Thiết bị đang gửi hãng / bảo hành")</h1>
+    <div class="actions"><a asp-action="GuiHang" asp-route-daNhan="@(!daNhan)" class="btn btn-sm btn-outline-secondary">@(daNhan ? "Đang gửi hãng" : "Đã nhận về")</a></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Phiếu</th><th>Thiết bị</th><th>Khoa</th><th>Hãng / đơn vị</th><th>RMA</th><th>Ngày gửi</th><th>Hẹn trả</th><th>@(daNhan ? "Nhận về" : "Số ngày")</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        var tre = p.TreHenTra(d);
+        <tr class="@(tre ? "table-danger" : "")">
+            <td><a asp-action="Details" asp-route-id="@p.Id" class="fw-semibold">@p.SoPhieu</a></td><td class="small">@p.TaiSan?.MaTaiSan · @p.TaiSan?.Ten</td><td class="small">@p.KhoaPhong?.Ten</td>
+            <td class="small">@p.NhaCungCap?.Ten</td><td class="small font-monospace">@p.SoPhieuHang</td><td class="small">@p.NgayGuiHang?.ToString("dd/MM/yyyy")</td>
+            <td class="small @(tre ? "overdue" : "")">@p.NgayHenTra?.ToString("dd/MM/yyyy")</td>
+            <td class="small">@(daNhan ? p.NgayNhanVe?.ToString("dd/MM/yyyy") : p.NgayGuiHang is { } g ? $"{(int)(DateTime.Now - g).TotalDays} ngày" : "")</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Không có thiết bị.</td></tr> }
+    </tbody>
+</table></div></div>

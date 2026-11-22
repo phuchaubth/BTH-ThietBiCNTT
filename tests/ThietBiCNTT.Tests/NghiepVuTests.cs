@@ -262,3 +262,39 @@ public class KiemTraTests
         Assert.Throws<DomainException>(() => m.ChamDiem(new Dictionary<int, string?> { [1] = "20", [2] = "true" }, null, "u", DateTime.Now, null));
     }
 }
+
+public class BanQuyenHopDongTests
+{
+    [Fact]
+    public void CapPhat_KhongVuotSoLuong_KhongTrung()
+    {
+        var b = new BanQuyenPhanMem { Ten = "Office", SoLuong = 2 };
+        TaiSan T(int id) => new() { Id = id, MaTaiSan = "PC-" + id };
+        b.CapPhat(T(1), "u", DateTime.Now); b.CapPhat(T(2), "u", DateTime.Now);
+        Assert.Throws<DomainException>(() => b.CapPhat(T(3), "u", DateTime.Now));
+        Assert.Throws<DomainException>(() => new BanQuyenPhanMem { SoLuong = 5, CapPhats = [new CapPhatBanQuyen { TaiSanId = 1 }] }.CapPhat(T(1), "u", DateTime.Now));
+        var mienPhi = new BanQuyenPhanMem { Loai = LoaiGiayPhep.MienPhi, SoLuong = 0 };
+        mienPhi.CapPhat(T(9), "u", DateTime.Now);
+        Assert.Equal(1, mienPhi.DaDung);
+    }
+
+    [Fact]
+    public void HopDong_HieuLuc()
+    {
+        var d = new DateOnly(2026, 11, 22);
+        var h = new HopDong { HieuLucTu = new(2026, 1, 1), HieuLucDen = new(2026, 12, 15) };
+        Assert.True(h.ConHieuLuc(d)); Assert.True(h.SapHetHan(d, 30)); Assert.False(h.SapHetHan(d, 10)); Assert.False(h.DaHetHan(d));
+    }
+
+    [Fact]
+    public void GuiHang_GhiNgayGui_NhanVe_VaTreHen()
+    {
+        var p = new PhieuSuaChua { SoPhieu = "SC", NgayYeuCau = DateTime.Now, HanXuLy = DateTime.Now.AddHours(8) };
+        p.TiepNhan("ktv", HinhThucXuLy.BaoHanh, DateTime.Now);
+        p.TamDung(TrangThaiPhieuSuaChua.GuiHang, DateTime.Now);
+        p.NgayHenTra = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+        Assert.NotNull(p.NgayGuiHang); Assert.True(p.TreHenTra(DateOnly.FromDateTime(DateTime.Today)));
+        p.BatDauXuLy(DateTime.Now);
+        Assert.NotNull(p.NgayNhanVe); Assert.False(p.TreHenTra(DateOnly.FromDateTime(DateTime.Today)));
+    }
+}

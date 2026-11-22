@@ -37,6 +37,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<LanKiemTra> LanKiemTras => Set<LanKiemTra>();
     public DbSet<KetQuaKiemTra> KetQuaKiemTras => Set<KetQuaKiemTra>();
     public DbSet<TepDinhKem> TepDinhKems => Set<TepDinhKem>();
+    public DbSet<HopDong> HopDongs => Set<HopDong>();
+    public DbSet<HopDongTaiSan> HopDongTaiSans => Set<HopDongTaiSan>();
+    public DbSet<BanQuyenPhanMem> BanQuyenPhanMems => Set<BanQuyenPhanMem>();
+    public DbSet<CapPhatBanQuyen> CapPhatBanQuyens => Set<CapPhatBanQuyen>();
     public DbSet<TinNhanCho> TinNhanChos => Set<TinNhanCho>();
     public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
@@ -120,6 +124,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         });
         b.Entity<KetQuaKiemTra>().Property(x => x.GiaTriSo).HasPrecision(18, 3);
         b.Entity<TepDinhKem>().HasIndex(x => new { x.DoiTuong, x.DoiTuongId });
+        b.Entity<HopDong>(e => { e.HasIndex(x => x.SoHopDong); e.HasIndex(x => x.HieuLucDen); });
+        b.Entity<HopDongTaiSan>(e =>
+        {
+            e.HasKey(x => new { x.HopDongId, x.TaiSanId });
+            e.HasOne(x => x.HopDong).WithMany(x => x.TaiSans).HasForeignKey(x => x.HopDongId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.TaiSan).WithMany().HasForeignKey(x => x.TaiSanId);
+        });
+        b.Entity<BanQuyenPhanMem>().HasMany(x => x.CapPhats).WithOne(x => x.BanQuyenPhanMem).HasForeignKey(x => x.BanQuyenPhanMemId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<CapPhatBanQuyen>().HasIndex(x => new { x.BanQuyenPhanMemId, x.TaiSanId }).IsUnique();
         b.Entity<TinNhanCho>().HasIndex(x => new { x.TrangThai, x.GuiTu });
         b.Entity<AppUser>().Property(x => x.TelegramChatId).HasMaxLength(50);
         b.Entity<DotKiemKe>(e =>

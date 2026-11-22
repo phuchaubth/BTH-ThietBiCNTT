@@ -1,0 +1,37 @@
+@model HopDong
+@{ ViewData["Title"] = Model.SoHopDong; var d = DateOnly.FromDateTime(DateTime.Today); var bqs = (List<BanQuyenPhanMem>)ViewBag.BanQuyen; }
+<div class="small text-muted mb-1"><a asp-action="Index">Hợp đồng</a> › @Model.SoHopDong</div>
+<div class="page-head"><h1>@Model.SoHopDong · @Model.Ten</h1>
+    @if (Model.DaHetHan(d)) { <span class="badge bg-secondary">Hết hạn</span> } else if (Model.SapHetHan(d, (int)ViewBag.SoNgay)) { <span class="badge bg-warning text-dark">Sắp hết hạn</span> } else { <span class="badge bg-success">Còn hiệu lực</span> }
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a></div> }</div>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+            <div class="col-sm-4"><dt>Loại</dt><dd>@Model.Loai.Ten()</dd></div><div class="col-sm-8"><dt>Nhà cung cấp</dt><dd>@Model.NhaCungCap?.Ten @Model.NhaCungCap?.DienThoai</dd></div>
+            <div class="col-sm-4"><dt>Ngày ký</dt><dd>@Model.NgayKy?.ToString("dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Hiệu lực</dt><dd>@Model.HieuLucTu?.ToString("dd/MM/yyyy") – @(Model.HieuLucDen?.ToString("dd/MM/yyyy") ?? "…")</dd></div>
+            <div class="col-sm-4"><dt>Giá trị</dt><dd>@Model.GiaTri.ToString("N0") đ</dd></div>
+            <div class="col-12"><dt>Phạm vi / điều khoản</dt><dd style="white-space:pre-line">@Model.PhamVi</dd></div>
+            <div class="col-sm-6"><dt>Phụ trách</dt><dd>@Model.NguoiPhuTrach</dd></div><div class="col-sm-6"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div>
+        </dl></div></div>
+        <div class="card"><div class="card-header">Tài sản thuộc hợp đồng (@Model.TaiSans.Count)</div>
+            <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+                <thead><tr><th>Mã TS</th><th>Tên</th><th>Khoa</th><th>Hạn BH</th><th></th></tr></thead>
+                <tbody>@foreach (var x in Model.TaiSans.OrderBy(x => x.TaiSan?.MaTaiSan)) {
+                    <tr><td><a asp-controller="TaiSan" asp-action="Details" asp-route-id="@x.TaiSanId">@x.TaiSan?.MaTaiSan</a></td><td class="small">@x.TaiSan?.Ten</td><td class="small">@x.TaiSan?.KhoaPhong?.Ten</td><td class="small">@x.TaiSan?.HanBaoHanh?.ToString("dd/MM/yyyy")</td>
+                        <td class="text-end">@if (User.LaCNTT()) { <form asp-action="GoTaiSan" asp-route-id="@Model.Id" method="post"><input type="hidden" name="taiSanId" value="@x.TaiSanId" /><button class="btn btn-sm btn-link text-danger p-0">Gỡ</button></form> }</td></tr> }
+                </tbody></table></div>
+            @if (User.LaCNTT())
+            {
+                <form asp-action="GanTaiSan" asp-route-id="@Model.Id" method="post" class="card-footer bg-white">
+                    <label class="form-label small" for="ds">Gắn tài sản — dán danh sách mã (cách nhau bởi dấu phẩy hoặc xuống dòng)</label>
+                    <textarea id="ds" name="danhSachMa" class="form-control form-control-sm mb-2" rows="2" placeholder="PC-0001, PC-0002…" required></textarea>
+                    <div class="d-flex align-items-center gap-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="capNhatBaoHanh" value="true" id="cbh" @(Model.Loai is LoaiHopDong.BaoTri or LoaiHopDong.MuaSam ? "checked" : "") /><label class="form-check-label small" for="cbh">Cập nhật hạn bảo hành tài sản = ngày hết hiệu lực hợp đồng</label></div>
+                        <button class="btn btn-sm btn-outline-primary ms-auto">Gắn</button></div>
+                </form>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        @if (bqs.Count > 0) { <div class="card"><div class="card-header">Bản quyền theo hợp đồng</div><div class="list-group list-group-flush">@foreach (var b in bqs) { <a class="list-group-item list-group-item-action small" asp-controller="BanQuyen" asp-action="Details" asp-route-id="@b.Id">@b.Ten · @b.SoLuong giấy phép</a> }</div></div> }
+    </div>
+</div>

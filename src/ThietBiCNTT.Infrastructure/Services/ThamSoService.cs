@@ -40,6 +40,7 @@ public static class TS
     public const string CanhBaoBaoHanhNgay = "TaiSan.CanhBaoBaoHanhNgay";
     public const string NguongChiPhiSuaPhanTram = "TaiSan.NguongChiPhiSuaPhanTram";
     public const string TuoiThoMacDinhNam = "TaiSan.TuoiThoMacDinhNam";
+    public const string HopDongCanhBaoNgay = "HopDong.CanhBaoTruocNgay";
     // Kho
     public const string KhoChoXuatAm = "Kho.ChoXuatAm";
     // Thanh lý
@@ -99,6 +100,7 @@ public static class ThamSoMacDinh
 
         T(70, "Tài sản", TS.CanhBaoBaoHanhNgay, "Cảnh báo sắp hết bảo hành trước", KieuThamSo.SoNguyen, "60", "ngày", 0, 365),
         T(71, "Tài sản", TS.NguongChiPhiSuaPhanTram, "Ngưỡng chi phí sửa chữa / nguyên giá", KieuThamSo.SoNguyen, "50", "%", 1, 500, "Vượt ngưỡng → gợi ý thay mới/thanh lý."),
+        T(73, "Tài sản", TS.HopDongCanhBaoNgay, "Cảnh báo hợp đồng / bản quyền sắp hết hạn trước", KieuThamSo.SoNguyen, "60", "ngày", 0, 365),
         T(72, "Tài sản", TS.TuoiThoMacDinhNam, "Tuổi thọ mặc định khi tạo loại thiết bị", KieuThamSo.SoNguyen, "5", "năm", 1, 50),
 
         T(80, "Kho vật tư", TS.KhoChoXuatAm, "Cho phép xuất kho vượt tồn", KieuThamSo.BatTat, "false"),

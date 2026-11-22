@@ -51,10 +51,23 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Tài sản | `TaiSan.CanhBaoBaoHanhNgay` | Cảnh báo sắp hết bảo hành trước | Số nguyên | 60 ngày |
 | Tài sản | `TaiSan.NguongChiPhiSuaPhanTram` | Ngưỡng chi phí sửa chữa / nguyên giá | Số nguyên | 50 % |
 | Tài sản | `TaiSan.TuoiThoMacDinhNam` | Tuổi thọ mặc định khi tạo loại thiết bị | Số nguyên | 5 năm |
+| Tài sản | `HopDong.CanhBaoTruocNgay` | Cảnh báo hợp đồng / bản quyền sắp hết hạn trước | Số nguyên | 60 ngày |
 | Kho vật tư | `Kho.ChoXuatAm` | Cho phép xuất kho vượt tồn | Bật/Tắt | false |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |
 | Bảo mật | `BaoMat.PhienCNTTGio` | Thời gian giữ phiên (CNTT, KTV, Lãnh đạo) | Số nguyên | 8 giờ |
 | Bảo mật | `BaoMat.ChoGhiNhoVoiKhoa` | Cho 'Ghi nhớ đăng nhập' với tài khoản khoa | Bật/Tắt | false |
+| Thông báo | `ThongBao.EmailBat` | Gửi thông báo qua email | Bật/Tắt | false |
+| Thông báo | `ThongBao.SmtpHost` | Máy chủ SMTP | Văn bản | (trống) |
+| Thông báo | `ThongBao.SmtpPort` | Cổng SMTP | Số nguyên | 587 |
+| Thông báo | `ThongBao.SmtpBaoMat` | Mã hoá kết nối SMTP (TLS) | Bật/Tắt | true |
+| Thông báo | `ThongBao.SmtpUser` | Tài khoản đăng nhập SMTP | Văn bản | (trống) |
+| Thông báo | `ThongBao.EmailGui` | Địa chỉ email gửi đi | Văn bản | (trống) |
+| Thông báo | `ThongBao.TelegramBat` | Gửi thông báo qua Telegram | Bật/Tắt | false |
+| Thông báo | `ThongBao.TelegramNhomCNTT` | Chat ID nhóm Telegram Phòng CNTT | Văn bản | (trống) |
+| Thông báo | `ThongBao.GioTongHop` | Giờ gửi bản tin tổng hợp hằng ngày | Giờ | 07:30 |
+| Thông báo | `LeoThang.Cap2SauPhut` | Leo thang cấp 2 sau khi quá hạn | Số nguyên | 60 phút |
+| Thông báo | `LeoThang.Cap2NguoiNhan` | Người nhận leo thang cấp 2 | Văn bản | admin |
+| Thông báo | `LeoThang.Cap3SauPhut` | Leo thang cấp 3 (Lãnh đạo) sau khi quá hạn | Số nguyên | 240 phút |
 
 Thêm tham số mới: khai báo mã trong lớp `TS` và một dòng trong `ThamSoMacDinh.DanhSach()` (`ThietBiCNTT.Infrastructure/Services/ThamSoService.cs`); lần khởi động sau hệ thống tự thêm vào CSDL, giữ nguyên các giá trị đã chỉnh.

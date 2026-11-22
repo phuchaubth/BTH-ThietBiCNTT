@@ -95,6 +95,13 @@
             </dl>
             @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * nguongPct / 100m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt @nguongPct% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
         </div></div>
+        @if (((List<HopDong>)ViewBag.HopDong).Count + ((List<BanQuyenPhanMem>)ViewBag.BanQuyen).Count > 0)
+        {
+            <div class="card mb-3"><div class="card-header">Hợp đồng & bản quyền</div><div class="list-group list-group-flush small">
+                @foreach (var h in (List<HopDong>)ViewBag.HopDong) { <a class="list-group-item list-group-item-action" asp-controller="HopDong" asp-action="Details" asp-route-id="@h.Id"><i class="bi bi-file-earmark-text"></i> @h.SoHopDong · @h.Loai.Ten() @(h.HieuLucDen is null ? "" : "· đến " + h.HieuLucDen?.ToString("dd/MM/yyyy"))</a> }
+                @foreach (var b in (List<BanQuyenPhanMem>)ViewBag.BanQuyen) { <a class="list-group-item list-group-item-action" asp-controller="BanQuyen" asp-action="Details" asp-route-id="@b.Id"><i class="bi bi-key"></i> @b.Ten @(b.NgayHetHan is null ? "" : "· hết hạn " + b.NgayHetHan?.ToString("dd/MM/yyyy"))</a> }
+            </div></div>
+        }
         @await Html.PartialAsync("_DinhKem", (DoiTuong: "TaiSan", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: User.LaCNTT()))
         <div class="card"><div class="card-header">Dòng thời gian</div><div class="card-body">
             <ul class="timeline">

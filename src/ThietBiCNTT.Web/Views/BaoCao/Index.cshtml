@@ -1,0 +1,64 @@
+@model BaoCaoKetQua
+@{
+    ViewData["Title"] = "Báo cáo & KPI";
+    var maxThang = Math.Max(1, Model.TheoThang.Select(t => t.SoPhieu).DefaultIfEmpty(1).Max());
+    string Gio(double? g) => g is null ? "—" : g.Value.ToString("0.0");
+    string Pct(int daXong, double tyLe) => daXong == 0 ? "—" : tyLe.ToString("0") + "%";
+}
+<div class="page-head"><h1>Báo cáo & KPI</h1>
+    <form method="get" class="d-flex flex-wrap gap-2 ms-2 align-items-center">
+        <label class="small" for="tu">Từ</label><input id="tu" type="date" name="tu" value="@Model.Tu.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+        <label class="small" for="den">đến</label><input id="den" type="date" name="den" value="@Model.Den.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+        <select name="khoa" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm" style="width:220px" aria-label="Khoa"><option value="">Toàn bệnh viện</option></select>
+        <button class="btn btn-sm btn-primary">Xem</button>
+    </form>
+    <div class="actions"><a class="btn btn-sm btn-outline-success" href="/BaoCao/Xuat@(Context.Request.QueryString)"><i class="bi bi-file-earmark-excel"></i> Xuất Excel (8 sheet)</a></div>
+</div>
+<div class="small text-muted mb-3">Kỳ: @Model.Tu.ToString("dd/MM/yyyy") – @Model.Den.ToString("dd/MM/yyyy") · @Model.PhamVi · chỉ tính phiếu sửa chữa (không gồm bảo trì định kỳ) cho SLA/MTTR. MTTR trừ thời gian tạm dừng chờ linh kiện/hãng.</div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">Phiếu sửa chữa</div><div class="value">@Model.Tong.SoPhieu</div></div></div>
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">Đã xử lý</div><div class="value">@Model.Tong.DaXong</div></div></div>
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">% đúng SLA</div><div class="value @(Model.Tong.TyLeDungHan < 80 ? "text-danger" : "text-success")">@Model.Tong.TyLeDungHan.ToString("0")%</div></div></div>
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">MTTR</div><div class="value">@Gio(Model.Tong.MttrGio) <span class="fs-6">giờ</span></div></div></div>
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">Tổng dừng máy</div><div class="value">@Model.Tong.DungMayGio.ToString("N0") <span class="fs-6">giờ</span></div></div></div>
+    <div class="col-6 col-lg-2"><div class="card kpi"><div class="label">Chi phí SC</div><div class="value">@((Model.Tong.ChiPhi / 1_000_000m).ToString("N1")) <span class="fs-6">tr đ</span></div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-7"><div class="card h-100"><div class="card-header">Số phiếu & % đúng SLA theo tháng</div><div class="card-body">
+        <div class="d-flex align-items-end gap-1" style="height:170px">
+            @foreach (var t in Model.TheoThang)
+            {
+                <div class="flex-fill text-center" title="@t.Nhom: @t.SoPhieu phiếu, đúng SLA @t.TyLeDungHan.ToString("0")%, MTTR @Gio(t.MttrGio) giờ">
+                    <div class="small text-muted">@t.SoPhieu</div>
+                    <div style="height:@(130 * t.SoPhieu / maxThang)px;min-height:2px;background:@(t.DaXong > 0 && t.TyLeDungHan < 80 ? "#d97706" : "#4d8fd6");border-radius:3px 3px 0 0"></div>
+                    <div class="text-muted" style="font-size:.68rem">@t.Nhom[..2]/@t.Nhom[5..]</div>
+                </div>
+            }
+        </div>
+        <div class="small text-muted mt-2">Cột cam: tháng có tỷ lệ đúng SLA dưới 80%.</div>
+    </div></div></div>
+    <div class="col-lg-5"><div class="card h-100"><div class="card-header">Theo mức ưu tiên</div>
+        <table class="table table-sm mb-0"><thead><tr><th>Mức</th><th class="text-end">Phiếu</th><th class="text-end">% SLA</th><th class="text-end">MTTR</th></tr></thead>
+        <tbody>@foreach (var x in Model.TheoUuTien) { <tr><td>@x.Nhom</td><td class="text-end">@x.SoPhieu</td><td class="text-end">@Pct(x.DaXong, x.TyLeDungHan)</td><td class="text-end">@Gio(x.MttrGio)</td></tr> }</tbody></table>
+        @if (Model.DungMayKhoaTrongYeu.Count > 0)
+        {
+            <div class="card-header border-top">Dừng máy – khoa trọng yếu</div>
+            <table class="table table-sm mb-0"><tbody>@foreach (var x in Model.DungMayKhoaTrongYeu) { <tr><td>@x.Nhom</td><td class="text-end">@x.SoPhieu phiếu</td><td class="text-end fw-semibold">@x.DungMayGio.ToString("N1") giờ</td></tr> }</tbody></table>
+        }
+    </div></div>
+    <div class="col-lg-6"><div class="card"><div class="card-header">Theo khoa/phòng</div><div class="table-responsive" style="max-height:380px">
+        <table class="table table-sm mb-0"><thead class="sticky-top"><tr><th>Khoa</th><th class="text-end">Phiếu</th><th class="text-end">% SLA</th><th class="text-end">MTTR</th><th class="text-end">Chi phí</th></tr></thead>
+        <tbody>@foreach (var x in Model.TheoKhoa) { <tr><td class="small">@x.Nhom</td><td class="text-end">@x.SoPhieu</td><td class="text-end">@Pct(x.DaXong, x.TyLeDungHan)</td><td class="text-end">@Gio(x.MttrGio)</td><td class="text-end small">@x.ChiPhi.ToString("N0")</td></tr> }</tbody></table></div></div></div>
+    <div class="col-lg-6"><div class="card"><div class="card-header">Kỹ thuật viên</div><div class="table-responsive">
+        <table class="table table-sm mb-0"><thead><tr><th>KTV</th><th class="text-end">Phiếu</th><th class="text-end">% SLA</th><th class="text-end">MTTR</th><th class="text-end">Giờ công</th><th class="text-end">Đánh giá</th></tr></thead>
+        <tbody>@foreach (var x in Model.TheoKtv) { <tr><td>@x.KyThuatVien</td><td class="text-end">@x.SoPhieu</td><td class="text-end">@Pct(x.DaXong, x.TyLeDungHan)</td><td class="text-end">@Gio(x.MttrGio)</td><td class="text-end">@x.GioCong.ToString("0.#")</td><td class="text-end">@(x.DanhGiaTb?.ToString("0.0") ?? "—")</td></tr> }</tbody></table></div></div></div>
+    <div class="col-lg-7"><div class="card"><div class="card-header">Thiết bị hỏng nhiều nhất</div><div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle"><thead><tr><th>Thiết bị</th><th>Khoa</th><th class="text-end">Lần hỏng</th><th class="text-end">Dừng máy (giờ)</th><th class="text-end">MTBF (ngày)</th><th class="text-end">Chi phí</th></tr></thead>
+        <tbody>@foreach (var x in Model.ThietBiHongNhieu) {
+            <tr class="@(x.NguyenGia > 0 && x.ChiPhi > x.NguyenGia / 2 ? "table-warning" : "")"><td><a asp-controller="TaiSan" asp-action="Details" asp-route-id="@x.TaiSanId">@x.MaTaiSan</a><div class="small text-muted">@x.Ten</div></td>
+                <td class="small">@x.Khoa</td><td class="text-end fw-semibold">@x.SoLanHong</td><td class="text-end">@x.DungMayGio.ToString("N1")</td><td class="text-end">@x.MtbfNgay?.ToString("N0")</td><td class="text-end small">@x.ChiPhi.ToString("N0")</td></tr> }</tbody></table></div>
+        <div class="card-footer bg-white small text-muted">MTBF ≈ thời gian sử dụng trong kỳ / số lần hỏng. Dòng vàng: chi phí sửa trong kỳ &gt; 50% nguyên giá.</div></div></div>
+    <div class="col-lg-5"><div class="card"><div class="card-header">Chi phí theo loại thiết bị</div>
+        <table class="table table-sm mb-0"><thead><tr><th>Loại</th><th class="text-end">Vật tư</th><th class="text-end">Thuê ngoài</th><th class="text-end">Tổng</th></tr></thead>
+        <tbody>@foreach (var x in Model.ChiPhiTheoLoai) { <tr><td class="small">@x.Nhom</td><td class="text-end small">@x.VatTu.ToString("N0")</td><td class="text-end small">@x.ThueNgoai.ToString("N0")</td><td class="text-end fw-semibold small">@x.Tong.ToString("N0")</td></tr> }</tbody></table></div></div>
+</div>

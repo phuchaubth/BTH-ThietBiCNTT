@@ -206,10 +206,17 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
     });
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> TamDung(int id, TrangThaiPhieuSuaChua lyDo) => ThucHien(id, p =>
+    public Task<IActionResult> TamDung(int id, TrangThaiPhieuSuaChua lyDo, string? soPhieuHang, DateOnly? ngayHenTra, int? nhaCungCapId) => ThucHien(id, p =>
     {
         var dung = thamSo.BatTat(TS.SlaTamDungKhiCho);
         p.TamDung(lyDo, DateTime.Now, dung);
+        if (lyDo == TrangThaiPhieuSuaChua.GuiHang)
+        {
+            p.SoPhieuHang = string.IsNullOrWhiteSpace(soPhieuHang) ? p.SoPhieuHang : soPhieuHang.Trim();
+            p.NgayHenTra = ngayHenTra ?? p.NgayHenTra;
+            p.NhaCungCapId = nhaCungCapId ?? p.NhaCungCapId;
+            p.HinhThucXuLy ??= HinhThucXuLy.BaoHanh;
+        }
         return dung ? "Đã chuyển trạng thái, đồng hồ SLA tạm dừng." : "Đã chuyển trạng thái.";
     });
 
@@ -273,6 +280,16 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
             await db.SaveChangesAsync();
         }
         return Redirect(Url.Action(nameof(Details), new { id }) + "#trao-doi");
+    }
+
+    /// <summary>Thiết bị đang gửi hãng / bảo hành — theo dõi ngày hẹn trả.</summary>
+    [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
+    public async Task<IActionResult> GuiHang(bool daNhan = false)
+    {
+        var q = db.PhieuSuaChuas.AsNoTracking().Include(p => p.TaiSan).Include(p => p.KhoaPhong).Include(p => p.NhaCungCap)
+            .Where(p => daNhan ? p.NgayNhanVe != null : p.TrangThai == TrangThaiPhieuSuaChua.GuiHang);
+        ViewData["daNhan"] = daNhan;
+        return View(await q.OrderBy(p => p.NgayHenTra == null).ThenBy(p => p.NgayHenTra).ThenByDescending(p => p.NgayNhanVe).Take(300).ToListAsync());
     }
 
     /// <summary>In phiếu yêu cầu / biên bản sửa chữa.</summary>

@@ -75,6 +75,7 @@ if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath
         .SetApplicationName("ThietBiCNTT");
 
 CanhBaoService.TongHopBoSung.Add(KiemTraTongHop.DongAsync);
+CanhBaoService.TongHopBoSung.Add(HopDongTongHop.DongAsync);
 
 var app = builder.Build();
 

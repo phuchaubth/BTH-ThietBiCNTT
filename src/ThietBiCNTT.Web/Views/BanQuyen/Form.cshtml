@@ -1,0 +1,20 @@
+@model BanQuyenPhanMem
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm bản quyền" : "Sửa bản quyền " + Model.Ten; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:760px"><div class="card-body">
+<form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-7"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: Microsoft Office 2021 Pro" /></div>
+    <div class="col-md-5"><label asp-for="NhaSanXuat" class="form-label"></label><input asp-for="NhaSanXuat" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiGiayPhep>()" class="form-select"></select></div>
+    <div class="col-md-2"><label asp-for="SoLuong" class="form-label"></label><input asp-for="SoLuong" type="number" min="0" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayMua" class="form-label"></label><input asp-for="NgayMua" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayHetHan" class="form-label"></label><input asp-for="NgayHetHan" type="date" class="form-control" /></div>
+    <div class="col-12"><label asp-for="HopDongId" class="form-label"></label><select asp-for="HopDongId" asp-items="ViewBag.DsHopDong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-12"><label asp-for="KhoaKichHoat" class="form-label"></label><input asp-for="KhoaKichHoat" class="form-control font-monospace" autocomplete="off" />
+        <div class="form-text">Chỉ Phòng CNTT xem được. Không ghi mật khẩu tài khoản quản trị dùng chung nếu có kho mật khẩu riêng.</div></div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>

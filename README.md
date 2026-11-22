@@ -4,6 +4,18 @@
 
 **Công nghệ:** ASP.NET Core MVC (.NET 10) · Entity Framework Core · SQL Server · ASP.NET Identity · Bootstrap 5.
 
+## Tính năng
+
+**Giai đoạn 1:** tài sản & cấu hình (lịch sử thay đổi, QR), yêu cầu sửa chữa / lệnh công việc (SLA giờ hành chính & 24/7, tạm dừng, Kanban, nghiệm thu), bảo trì định kỳ, điều chuyển duyệt nhiều cấp theo giá trị, thanh lý (tháo ổ cứng), dashboard KPI, phân quyền 5 vai trò, tham số hệ thống, người dùng, nhật ký.
+
+**Giai đoạn 2:**
+- Nhập tài sản từ Excel (file mẫu, kiểm tra từng dòng, xem trước) · xuất Excel
+- Kiểm kê bằng QR (camera điện thoại / súng mã vạch): khớp, sai vị trí, thừa, thiếu, biên bản
+- Thông báo: chuông trong ứng dụng, email (SMTP), Telegram; nhắc trước hạn SLA, leo thang 3 cấp, bản tin hằng ngày
+- Kiểm tra thiết bị theo phiếu mẫu (ngưỡng số đo, Đạt/Không đạt), bất thường tự tạo phiếu sửa chữa; ảnh / tệp đính kèm
+- Hợp đồng (gắn tài sản), bản quyền phần mềm (cấp phát, chặn vượt số lượng), theo dõi gửi hãng
+- Báo cáo SLA / MTTR / MTBF / dừng máy / chi phí / năng suất KTV, xuất Excel nhiều sheet
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -20,6 +32,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

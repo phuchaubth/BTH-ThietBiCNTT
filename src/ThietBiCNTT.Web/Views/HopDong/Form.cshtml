@@ -1,0 +1,21 @@
+@model HopDong
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm hợp đồng" : "Sửa hợp đồng " + Model.SoHopDong; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:860px"><div class="card-body">
+<form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-4"><label asp-for="SoHopDong" class="form-label"></label><input asp-for="SoHopDong" class="form-control" /></div>
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiHopDong>()" class="form-select"></select></div>
+    <div class="col-md-8"><label asp-for="NhaCungCapId" class="form-label"></label><select asp-for="NhaCungCapId" asp-items="ViewBag.DsNcc" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-3"><label asp-for="NgayKy" class="form-label"></label><input asp-for="NgayKy" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="HieuLucTu" class="form-label"></label><input asp-for="HieuLucTu" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="HieuLucDen" class="form-label"></label><input asp-for="HieuLucDen" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="GiaTri" class="form-label"></label><input asp-for="GiaTri" type="number" step="1000" min="0" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="NguoiPhuTrach" class="form-label"></label><input asp-for="NguoiPhuTrach" class="form-control" /></div>
+    <div class="col-12"><label asp-for="PhamVi" class="form-label"></label><textarea asp-for="PhamVi" class="form-control" rows="3" placeholder="VD: bảo trì 2 lần/năm; thời gian phản hồi 4 giờ; thay thế linh kiện trong 48 giờ…"></textarea></div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>

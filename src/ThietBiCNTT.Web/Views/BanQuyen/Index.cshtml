@@ -1,0 +1,22 @@
+@model List<BanQuyenPhanMem>
+@{ ViewData["Title"] = "Bản quyền phần mềm"; var d = DateOnly.FromDateTime(DateTime.Today); int n = ViewBag.SoNgay; }
+<div class="page-head"><h1>Bản quyền phần mềm</h1>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm bản quyền</a></div> }</div>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Phần mềm</th><th>Loại giấy phép</th><th style="min-width:160px">Sử dụng</th><th>Hết hạn</th><th>Hợp đồng</th></tr></thead>
+    <tbody>
+    @foreach (var b in Model)
+    {
+        var vuot = b.Loai != LoaiGiayPhep.MienPhi && b.DaDung > b.SoLuong;
+        var pct = b.SoLuong == 0 ? 100 : Math.Min(100, 100 * b.DaDung / b.SoLuong);
+        <tr class="@(vuot || b.DaHetHan(d) ? "table-danger" : b.SapHetHan(d, n) ? "table-warning" : "")">
+            <td class="fw-semibold"><a asp-action="Details" asp-route-id="@b.Id">@b.Ten</a><div class="small text-muted fw-normal">@b.NhaSanXuat</div></td>
+            <td class="small">@b.Loai.Ten()</td>
+            <td><div class="bar"><span style="width:@pct%; @(pct >= 100 ? "background:#b3261e" : "")"></span></div><div class="small">@b.DaDung / @(b.Loai == LoaiGiayPhep.MienPhi ? "∞" : b.SoLuong.ToString())</div></td>
+            <td class="small">@b.NgayHetHan?.ToString("dd/MM/yyyy") @if (b.DaHetHan(d)) { <span class="badge bg-danger">Hết hạn</span> } else if (b.SapHetHan(d, n)) { <span class="badge bg-warning text-dark">Sắp hết</span> }</td>
+            <td class="small">@b.HopDong?.SoHopDong</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">Chưa có bản quyền.</td></tr> }
+    </tbody>
+</table></div></div>

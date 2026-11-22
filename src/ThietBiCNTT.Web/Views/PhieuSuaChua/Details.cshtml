@@ -34,7 +34,7 @@
         }
         @if (cntt && tt is TrangThaiPhieuSuaChua.DaTiepNhan or TrangThaiPhieuSuaChua.DangXuLy or TrangThaiPhieuSuaChua.ChoLinhKien)
         {
-            <form asp-action="TamDung" asp-route-id="@Model.Id" method="post" class="d-inline"><input type="hidden" name="lyDo" value="GuiHang" /><button class="btn btn-sm btn-outline-secondary">Gửi hãng / BH</button></form>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#guiHang">Gửi hãng / BH</button>
         }
         @if (!Model.DaDong && tt != TrangThaiPhieuSuaChua.HoanThanh && (cntt || Model.NguoiTao == User.Identity?.Name))
         {
@@ -42,6 +42,15 @@
         }
     </div>
 </div>
+<form asp-action="TamDung" asp-route-id="@Model.Id" method="post" id="guiHang" class="collapse card card-body mb-3">
+    <input type="hidden" name="lyDo" value="GuiHang" />
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4"><label class="form-label small" for="nccHang">Hãng / đơn vị bảo hành</label><select id="nccHang" name="nhaCungCapId" asp-items="ViewBag.Ncc" class="form-select form-select-sm"><option value="">—</option></select></div>
+        <div class="col-md-3"><label class="form-label small" for="rma">Số phiếu hãng / RMA</label><input id="rma" name="soPhieuHang" class="form-control form-control-sm" /></div>
+        <div class="col-md-3"><label class="form-label small" for="hen">Ngày hẹn trả</label><input id="hen" name="ngayHenTra" type="date" class="form-control form-control-sm" /></div>
+        <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Xác nhận gửi</button></div>
+    </div>
+</form>
 <form asp-action="Huy" asp-route-id="@Model.Id" method="post" id="huy" class="collapse card card-body mb-3">
     <div class="d-flex gap-2"><input name="lyDo" class="form-control form-control-sm" placeholder="Lý do huỷ (VD: báo nhầm, trùng phiếu)" required /><button class="btn btn-sm btn-danger">Xác nhận huỷ</button></div>
 </form>
@@ -178,6 +187,7 @@
                 <div class="small text-uppercase fw-semibold text-@hopMau">Hạn xử lý SLA</div>
                 <div class="fs-4 fw-bold"><partial name="_SlaText" model="Model" /></div>
                 <div class="small text-muted">Hạn @Model.HanXuLy.ToString("HH:mm dd/MM/yyyy") · @Model.UuTien.Ten()@(Model.KhoaPhong?.LaKhoaTrongYeu == true ? " · khoa trọng yếu" : "")</div>
+                @if (Model.NgayGuiHang is not null) { <div class="small mt-1">Gửi hãng @Model.NgayGuiHang?.ToString("dd/MM") @(Model.SoPhieuHang is null ? "" : "· RMA " + Model.SoPhieuHang) @(Model.NgayHenTra is null ? "" : "· hẹn trả " + Model.NgayHenTra?.ToString("dd/MM")) @(Model.NgayNhanVe is null ? "" : "· nhận về " + Model.NgayNhanVe?.ToString("dd/MM"))</div> }
                 @if (Model.DangTamDung) { <div class="small mt-1">Tạm dừng từ @Model.BatDauTamDung?.ToString("HH:mm dd/MM"). Hạn sẽ được dời khi tiếp tục xử lý.</div> }
                 @if (Model.TongTamDungGiay > 0) { <div class="small text-muted">Đã tạm dừng tổng @((Model.TongTamDungGiay / 3600.0).ToString("0.#")) giờ.</div> }
             </div></div>

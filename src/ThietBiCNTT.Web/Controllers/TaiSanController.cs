@@ -136,6 +136,8 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ts is null) return NotFound();
         ViewBag.Tep = await tep.DanhSachAsync("TaiSan", id.ToString());
+        ViewBag.HopDong = await db.HopDongTaiSans.AsNoTracking().Where(x => x.TaiSanId == id).Select(x => x.HopDong!).ToListAsync();
+        ViewBag.BanQuyen = await db.CapPhatBanQuyens.AsNoTracking().Where(x => x.TaiSanId == id).Select(x => x.BanQuyenPhanMem!).ToListAsync();
         // Phiếu kiểm tra áp dụng cho thiết bị này (người dùng được ghi)
         var k = User.KhoaPhongId();
         ViewBag.MauKiemTra = await db.MauKiemTras.AsNoTracking().Where(m => m.DangApDung

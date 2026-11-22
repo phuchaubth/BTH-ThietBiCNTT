@@ -1,0 +1,26 @@
+@model List<HopDong>
+@{ ViewData["Title"] = "Hợp đồng"; var d = DateOnly.FromDateTime(DateTime.Today); int n = ViewBag.SoNgay; var tt = ViewData["tinhTrang"] as string; }
+<div class="page-head"><h1>Hợp đồng</h1>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm hợp đồng</a></div> }</div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="loai" class="form-select form-select-sm" style="width:220px" asp-items="@EnumExtensions.ToSelectList((LoaiHopDong?)ViewData["loai"])" aria-label="Loại"><option value="">— Mọi loại —</option></select>
+    <select name="tinhTrang" class="form-select form-select-sm" style="width:220px" aria-label="Tình trạng">
+        <option value="">— Mọi tình trạng —</option><option value="hieuLuc" selected="@(tt == "hieuLuc")">Còn hiệu lực</option>
+        <option value="sapHet" selected="@(tt == "sapHet")">Sắp hết hạn (@n ngày)</option><option value="hetHan" selected="@(tt == "hetHan")">Đã hết hạn</option></select>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Số HĐ</th><th>Nội dung</th><th>Loại</th><th>Nhà cung cấp</th><th>Hiệu lực</th><th class="text-end">Giá trị</th><th>Tài sản</th></tr></thead>
+    <tbody>
+    @foreach (var h in Model)
+    {
+        <tr class="@(h.DaHetHan(d) ? "text-muted" : h.SapHetHan(d, n) ? "table-warning" : "")">
+            <td class="fw-semibold"><a asp-action="Details" asp-route-id="@h.Id">@h.SoHopDong</a></td><td>@h.Ten</td><td class="small">@h.Loai.Ten()</td><td class="small">@h.NhaCungCap?.Ten</td>
+            <td class="small text-nowrap">@h.HieuLucTu?.ToString("dd/MM/yyyy") – @(h.HieuLucDen?.ToString("dd/MM/yyyy") ?? "…")
+                @if (h.DaHetHan(d)) { <span class="badge bg-secondary">Hết hạn</span> } else if (h.SapHetHan(d, n)) { <span class="badge bg-warning text-dark">Sắp hết</span> }</td>
+            <td class="text-end small">@h.GiaTri.ToString("N0")</td><td>@h.TaiSans.Count</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có hợp đồng.</td></tr> }
+    </tbody>
+</table></div></div>
