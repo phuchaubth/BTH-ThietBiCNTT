@@ -13,7 +13,7 @@ class U:
     def req(s, path, data=None):
         try:
             r=s.op.open(urllib.request.Request(BASE+path, data=urllib.parse.urlencode(data, doseq=True).encode() if data is not None else None))
-            return r.status, r.read().decode(), norm(r.headers.get("Location"))
+            return r.status, r.read().decode(errors="ignore"), norm(r.headers.get("Location"))
         except urllib.error.HTTPError as e:
             return e.code, e.read().decode(errors="ignore"), norm(e.headers.get("Location"))
     def get(s, path):
