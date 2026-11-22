@@ -24,7 +24,7 @@ public class BaoHongVm
     public bool XacNhanTrung { get; set; }
 }
 
-public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo) : Controller
+public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb) : Controller
 {
     private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
 
@@ -100,6 +100,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         db.PhieuSuaChuas.Add(p);
         await db.LuuMoiAsync(soPhieu, "SC", so => p.SoPhieu = so);
         lichSu.Ghi(ts.Id, LoaiSuKien.SuaChua, $"Báo hỏng {p.SoPhieu}: {p.MoTaSuCo}", User.Identity?.Name);
+        await tb.PhieuMoiAsync(p, ts.KhoaPhong?.Ten, $"{ts.MaTaiSan} {ts.Ten}");
         await db.SaveChangesAsync();
         TempData["ok"] = $"Đã gửi yêu cầu {p.SoPhieu}. Hạn xử lý: {p.HanXuLy:HH:mm dd/MM}.";
         return RedirectToAction(nameof(Details), new { id = p.Id });
@@ -134,6 +135,7 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
                     .Include(x => x.KhoaPhong).Include(x => x.VatTus).FirstOrDefaultAsync(x => x.Id == id);
         if (p is null) return NotFound();
         var truoc = p.TrangThai;
+        var kyThuatVienTruoc = p.KyThuatVien;
         try
         {
             var msg = action(p);
@@ -142,7 +144,15 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
                 db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = p.Id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!,
                     LaHeThong = true, NoiDung = $"{truoc.Ten()} → {p.TrangThai.Ten()}" });
                 DongBoTrangThaiTaiSan(p);
+                // Thông báo theo chuyển trạng thái
+                switch (p.TrangThai)
+                {
+                    case TrangThaiPhieuSuaChua.DaTiepNhan: await tb.GiaoViecAsync(p, User.Identity?.Name); break;
+                    case TrangThaiPhieuSuaChua.HoanThanh: await tb.ChoNghiemThuAsync(p); break;
+                    case TrangThaiPhieuSuaChua.DangXuLy when truoc == TrangThaiPhieuSuaChua.HoanThanh: await tb.TraLaiAsync(p, User.Identity?.Name); break;
+                }
             }
+            else if (p.TrangThai == TrangThaiPhieuSuaChua.DaTiepNhan && kyThuatVienTruoc != p.KyThuatVien) await tb.GiaoViecAsync(p, User.Identity?.Name);
             await db.SaveChangesAsync();
             TempData["ok"] = msg;
         }
@@ -236,7 +246,8 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
             db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, LaHeThong = true,
                 NoiDung = $"Xuất kho {soLuong} {v.DonViTinh} {v.Ten}" });
             await db.SaveChangesAsync();
-            TempData["ok"] = v.DuoiTonToiThieu ? $"Đã xuất kho. ⚠ {v.Ten} còn {v.TonKho}, dưới định mức — cần đề xuất mua." : "Đã xuất kho vật tư.";
+            if (v.DuoiTonToiThieu) { await tb.VatTuDuoiDinhMucAsync(v); await db.SaveChangesAsync(); }
+            TempData["ok"] = v.DuoiTonToiThieu ? $"Đã xuất kho. {v.Ten} còn {v.TonKho:0.##}, dưới định mức — đã báo Phòng CNTT." : "Đã xuất kho vật tư.";
         }
         catch (DomainException ex) { TempData["err"] = ex.Message; }
         return RedirectToAction(nameof(Details), new { id });
@@ -245,10 +256,12 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> BinhLuan(int id, string noiDung)
     {
-        if (!await PhamVi().AnyAsync(p => p.Id == id)) return NotFound();
+        var phieu = await PhamVi().FirstOrDefaultAsync(p => p.Id == id);
+        if (phieu is null) return NotFound();
         if (!string.IsNullOrWhiteSpace(noiDung))
         {
             db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, NoiDung = noiDung.Trim() });
+            await tb.BinhLuanAsync(phieu, User.Identity!.Name!, noiDung.Trim());
             await db.SaveChangesAsync();
         }
         return Redirect(Url.Action(nameof(Details), new { id }) + "#trao-doi");

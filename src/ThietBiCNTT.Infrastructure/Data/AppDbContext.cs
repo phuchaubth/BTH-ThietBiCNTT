@@ -31,6 +31,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<NhatKyHeThong> NhatKyHeThongs => Set<NhatKyHeThong>();
     public DbSet<ThamSoHeThong> ThamSoHeThongs => Set<ThamSoHeThong>();
     public DbSet<DotKiemKe> DotKiemKes => Set<DotKiemKe>();
+    public DbSet<ThongBao> ThongBaos => Set<ThongBao>();
+    public DbSet<TinNhanCho> TinNhanChos => Set<TinNhanCho>();
     public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
 
@@ -103,6 +105,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
              .OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<NhatKyHeThong>().HasIndex(x => x.ThoiGian);
+        b.Entity<ThongBao>().HasIndex(x => new { x.NguoiNhan, x.DaDoc, x.ThoiGian });
+        b.Entity<TinNhanCho>().HasIndex(x => new { x.TrangThai, x.GuiTu });
+        b.Entity<AppUser>().Property(x => x.TelegramChatId).HasMaxLength(50);
         b.Entity<DotKiemKe>(e =>
         {
             e.HasIndex(x => x.Ma).IsUnique();

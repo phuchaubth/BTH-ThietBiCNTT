@@ -44,6 +44,19 @@ public static class TS
     public const string KhoChoXuatAm = "Kho.ChoXuatAm";
     // Thanh lý
     public const string ThanhLyBatBuocThaoOCung = "ThanhLy.BatBuocThaoOCung";
+    // Thông báo & cảnh báo
+    public const string EmailBat = "ThongBao.EmailBat";
+    public const string SmtpHost = "ThongBao.SmtpHost";
+    public const string SmtpPort = "ThongBao.SmtpPort";
+    public const string SmtpBaoMat = "ThongBao.SmtpBaoMat";
+    public const string SmtpUser = "ThongBao.SmtpUser";
+    public const string EmailGui = "ThongBao.EmailGui";
+    public const string TelegramBat = "ThongBao.TelegramBat";
+    public const string TelegramNhomCNTT = "ThongBao.TelegramNhomCNTT";
+    public const string GioTongHop = "ThongBao.GioTongHop";
+    public const string LeoThangCap2SauPhut = "LeoThang.Cap2SauPhut";
+    public const string LeoThangCap2NguoiNhan = "LeoThang.Cap2NguoiNhan";
+    public const string LeoThangCap3SauPhut = "LeoThang.Cap3SauPhut";
     // Bảo mật
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
@@ -91,6 +104,19 @@ public static class ThamSoMacDinh
         T(80, "Kho vật tư", TS.KhoChoXuatAm, "Cho phép xuất kho vượt tồn", KieuThamSo.BatTat, "false"),
 
         T(90, "Thanh lý", TS.ThanhLyBatBuocThaoOCung, "Bắt buộc tháo ổ cứng trước khi hoàn tất", KieuThamSo.BatTat, "true", moTa: "Áp dụng cho loại thiết bị có lưu trữ dữ liệu (QĐ-03)."),
+
+        T(110, "Thông báo", TS.EmailBat, "Gửi thông báo qua email", KieuThamSo.BatTat, "false", moTa: "Mật khẩu SMTP đặt trong appsettings.Production.json (ThongBao:SmtpPassword), không lưu trong CSDL."),
+        T(111, "Thông báo", TS.SmtpHost, "Máy chủ SMTP", KieuThamSo.VanBan, "", moTa: "VD mail.bth.org.vn hoặc smtp.gmail.com"),
+        T(112, "Thông báo", TS.SmtpPort, "Cổng SMTP", KieuThamSo.SoNguyen, "587", null, 1, 65535),
+        T(113, "Thông báo", TS.SmtpBaoMat, "Mã hoá kết nối SMTP (TLS)", KieuThamSo.BatTat, "true", moTa: "Bật: STARTTLS (cổng 587) hoặc SSL (cổng 465). Tắt chỉ khi máy chủ mail nội bộ không hỗ trợ."),
+        T(114, "Thông báo", TS.SmtpUser, "Tài khoản đăng nhập SMTP", KieuThamSo.VanBan, ""),
+        T(115, "Thông báo", TS.EmailGui, "Địa chỉ email gửi đi", KieuThamSo.VanBan, "", moTa: "VD thietbi@bth.org.vn"),
+        T(120, "Thông báo", TS.TelegramBat, "Gửi thông báo qua Telegram", KieuThamSo.BatTat, "false", moTa: "Token bot đặt trong appsettings.Production.json (ThongBao:TelegramBotToken)."),
+        T(121, "Thông báo", TS.TelegramNhomCNTT, "Chat ID nhóm Telegram Phòng CNTT", KieuThamSo.VanBan, "", moTa: "Nhóm nhận: yêu cầu mới, quá hạn SLA, kiểm tra bất thường. VD -1001234567890"),
+        T(122, "Thông báo", TS.GioTongHop, "Giờ gửi bản tin tổng hợp hằng ngày", KieuThamSo.Gio, "07:30", moTa: "Gửi cho CNTT: phiếu quá hạn, bảo hành/hợp đồng sắp hết, vật tư dưới định mức, bảo trì đến hạn."),
+        T(130, "Thông báo", TS.LeoThangCap2SauPhut, "Leo thang cấp 2 sau khi quá hạn", KieuThamSo.SoNguyen, "60", "phút", 0, 10080, moTa: "Cấp 1 (ngay khi quá hạn): KTV + toàn bộ Cán bộ CNTT. Cấp 2: người nhận dưới đây. 0 = tắt."),
+        T(131, "Thông báo", TS.LeoThangCap2NguoiNhan, "Người nhận leo thang cấp 2", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập (Trưởng phòng CNTT…), cách nhau bởi dấu phẩy."),
+        T(132, "Thông báo", TS.LeoThangCap3SauPhut, "Leo thang cấp 3 (Lãnh đạo) sau khi quá hạn", KieuThamSo.SoNguyen, "240", "phút", 0, 43200, moTa: "Chỉ áp dụng phiếu Khẩn cấp hoặc của khoa trọng yếu. Gửi cho các tài khoản vai trò Lãnh đạo. 0 = tắt."),
 
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),

@@ -1,0 +1,32 @@
+@model AppUser
+@{ ViewData["Title"] = "Tài khoản của tôi"; }
+<div class="page-head"><h1>Tài khoản của tôi</h1><div class="actions"><a asp-controller="Account" asp-action="DoiMatKhau" class="btn btn-sm btn-outline-secondary"><i class="bi bi-key"></i> Đổi mật khẩu</a></div></div>
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card"><div class="card-header">Thông tin & kênh nhận thông báo</div><div class="card-body">
+            <dl class="row info"><div class="col-6"><dt>Tên đăng nhập</dt><dd class="font-monospace">@Model.UserName</dd></div><div class="col-6"><dt>Họ tên</dt><dd>@Model.HoTen</dd></div></dl>
+            <form asp-action="Luu" method="post" class="row g-3">
+                <div class="col-md-7"><label class="form-label" for="em">Email</label><input id="em" name="email" type="email" value="@Model.Email" class="form-control" /></div>
+                <div class="col-md-5"><label class="form-label" for="dt">Điện thoại</label><input id="dt" name="dienThoai" value="@Model.PhoneNumber" class="form-control" /></div>
+                <div class="col-md-7"><label class="form-label" for="tg">Chat ID Telegram</label><input id="tg" name="telegramChatId" value="@Model.TelegramChatId" class="form-control font-monospace" inputmode="numeric" /></div>
+                <div class="col-12 d-flex gap-4">
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="ne" name="nhanEmail" value="true" @(Model.NhanEmail ? "checked" : "") /><input type="hidden" name="nhanEmail" value="false" /><label class="form-check-label" for="ne">Nhận qua email</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="nt" name="nhanTelegram" value="true" @(Model.NhanTelegram ? "checked" : "") /><input type="hidden" name="nhanTelegram" value="false" /><label class="form-check-label" for="nt">Nhận qua Telegram</label></div>
+                </div>
+                <div class="col-12"><button class="btn btn-primary">Lưu</button></div>
+            </form>
+            <form asp-action="GuiThu" method="post" class="mt-3"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-send"></i> Gửi thông báo thử cho tôi</button></form>
+            <div class="small text-muted mt-2">Thông báo luôn hiện ở chuông trong ứng dụng. Email / Telegram chỉ gửi khi Quản trị đã bật kênh tương ứng.</div>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card"><div class="card-header">Cách lấy Chat ID Telegram</div><div class="card-body small">
+            <ol class="mb-0">
+                <li>Mở Telegram, tìm bot của bệnh viện (Phòng CNTT cung cấp tên bot), bấm <b>Start</b> (/start).</li>
+                <li>Tìm bot <b>@@userinfobot</b>, bấm Start — bot trả về <b>Id</b> của bạn (dãy số).</li>
+                <li>Dán dãy số đó vào ô <i>Chat ID Telegram</i>, bấm Lưu, rồi <b>Gửi thông báo thử</b>.</li>
+            </ol>
+            <div class="mt-2 text-muted">Bot chỉ nhắn được cho người đã bấm Start với bot. Không gửi dữ liệu người bệnh qua Telegram.</div>
+        </div></div>
+    </div>
+</div>

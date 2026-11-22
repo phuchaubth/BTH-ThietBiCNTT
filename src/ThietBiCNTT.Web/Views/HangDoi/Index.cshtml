@@ -1,0 +1,35 @@
+@model List<TinNhanCho>
+@{ ViewData["Title"] = "Hàng đợi gửi"; var dem = (Dictionary<TrangThaiGui, int>)ViewBag.Dem; }
+<div class="page-head"><h1>Hàng đợi gửi email / Telegram</h1></div>
+<div class="row g-3 mb-3">
+    <div class="col-lg-7 d-flex flex-wrap gap-2 align-items-start">
+        <a asp-action="Index" class="btn btn-sm btn-outline-dark">Tất cả</a>
+        @foreach (var s in Enum.GetValues<TrangThaiGui>()) { <a asp-action="Index" asp-route-trangThai="@s" class="btn btn-sm btn-outline-@(s == TrangThaiGui.Loi ? "danger" : s == TrangThaiGui.DaGui ? "success" : "secondary")">@s.Ten() <span class="badge bg-light text-dark">@dem.GetValueOrDefault(s)</span></a> }
+    </div>
+    <div class="col-lg-5">
+        <form asp-action="GuiThu" method="post" class="card card-body py-2 d-flex flex-row gap-2 align-items-center">
+            <select name="kenh" class="form-select form-select-sm" style="width:120px" asp-items="@EnumExtensions.ToSelectList<KenhGui>()" aria-label="Kênh"></select>
+            <input name="diaChi" class="form-control form-control-sm" placeholder="email hoặc chat ID" aria-label="Địa chỉ nhận" required />
+            <button class="btn btn-sm btn-primary text-nowrap">Gửi thử</button>
+        </form>
+    </div>
+</div>
+<form asp-action="GuiLai" method="post">
+<div class="card"><div class="table-responsive">
+<table class="table table-sm mb-0 align-middle">
+    <thead><tr><th></th><th>Thời gian</th><th>Kênh</th><th>Người nhận</th><th>Tiêu đề</th><th>Trạng thái</th><th>Lần thử</th><th>Lỗi cuối</th></tr></thead>
+    <tbody>
+    @foreach (var t in Model)
+    {
+        <tr><td>@if (t.TrangThai == TrangThaiGui.Loi) { <input type="checkbox" class="form-check-input" name="ids" value="@t.Id" aria-label="Chọn" /> }</td>
+            <td class="small text-nowrap">@t.ThoiGianTao.ToString("HH:mm dd/MM")</td><td>@t.Kenh.Ten()</td><td class="small font-monospace">@t.DiaChi</td>
+            <td class="small">@t.TieuDe</td>
+            <td><span class="badge bg-@(t.TrangThai == TrangThaiGui.Loi ? "danger" : t.TrangThai == TrangThaiGui.DaGui ? "success" : "secondary")">@t.TrangThai.Ten()</span>
+                @if (t.ThoiGianGui is not null) { <div class="small text-muted">@t.ThoiGianGui?.ToString("HH:mm dd/MM")</div> }</td>
+            <td>@t.SoLanThu</td><td class="small text-danger text-break" style="max-width:320px">@t.LoiCuoi</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Hàng đợi trống.</td></tr> }
+    </tbody>
+</table>
+</div><div class="card-footer bg-white"><button class="btn btn-sm btn-outline-danger">Gửi lại các tin lỗi đã chọn</button></div></div>
+</form>

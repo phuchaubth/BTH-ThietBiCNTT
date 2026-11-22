@@ -315,6 +315,7 @@ Sau khi sửa: `Restart-WebAppPool ThietBiCNTT`.
 | 1 | **Quản trị → Tham số hệ thống → Thông tin đơn vị** | Nhập *Cơ quan chủ quản*, *Tên bệnh viện* (in trên biên bản, tem QR). Kiểm tra **Địa chỉ truy cập hệ thống** = `https://thietbi.bth.org.vn` (tự điền từ cấu hình) |
 | 2 | Tham số → **SLA sửa chữa** | Rà soát số giờ theo mức ưu tiên, giờ hành chính, ngày làm việc; xem bảng ví dụ tính hạn |
 | 3 | Tham số → **Ngày nghỉ** | Khai báo ngày lễ, Tết của năm |
+| 4b | Tham số → **Thông báo** | Bật email (máy chủ SMTP, email gửi đi) / Telegram (chat ID nhóm CNTT); người nhận leo thang cấp 2; giờ bản tin hằng ngày. Kiểm tra bằng **Quản trị → Hàng đợi gửi → Gửi thử** |
 | 4 | Tham số → Nghiệm thu / Điều chuyển / Bảo mật | Số ngày tự nghiệm thu, ngưỡng giá trị cần Lãnh đạo duyệt, thời gian phiên |
 | 5 | **Danh mục → Khoa/phòng** | Rà soát danh sách khoa có sẵn; đánh dấu **khoa trọng yếu** (Cấp cứu, HSTC, Phòng mổ…) |
 | 6 | Danh mục → Loại thiết bị, Nhà cung cấp, Kho vật tư | Bổ sung theo thực tế; đánh dấu loại thiết bị **có lưu trữ dữ liệu** (bắt buộc tháo ổ khi thanh lý) |
@@ -485,6 +486,8 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
 | `Database:AutoMigrate` | `true` | Tự áp migration khi khởi động |
 | `DataProtection:KeysPath` | (trống) | **Bắt buộc trên IIS** |
 | `Seed:AdminPassword` | (trống) | Chỉ dùng khi tạo `admin` lần đầu |
+| `ThongBao:SmtpPassword` | (trống) | Mật khẩu tài khoản SMTP gửi email thông báo |
+| `ThongBao:TelegramBotToken` | (trống) | Token bot Telegram (tạo bằng @BotFather). Máy chủ cần ra được `api.telegram.org:443` |
 | `App:DiaChiTruyCap` | (trống) | BTH: `https://thietbi.bth.org.vn`. Ghi vào tham số `DonVi.DiaChiTruyCap` khi tham số còn trống (link mã QR) |
 | `SeedSampleData` | `false` | Không bật trên máy chủ thật |
 | `Logging:LogLevel:*` | Information/Warning | Mức log |

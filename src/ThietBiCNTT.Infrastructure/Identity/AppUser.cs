@@ -9,6 +9,10 @@ public class AppUser : IdentityUser
     public int? KhoaPhongId { get; set; }
     public KhoaPhong? KhoaPhong { get; set; }
     public bool DangHoatDong { get; set; } = true;
+    /// <summary>Chat ID Telegram cá nhân (nhắn /start cho bot rồi lấy ID — xem trang Tài khoản).</summary>
+    public string? TelegramChatId { get; set; }
+    public bool NhanEmail { get; set; } = true;
+    public bool NhanTelegram { get; set; } = true;
 }
 
 /// <summary>Các vai trò trong hệ thống.</summary>

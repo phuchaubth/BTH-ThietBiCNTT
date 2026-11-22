@@ -1,0 +1,21 @@
+@model List<ThongBao>
+@{ int chuaDoc = ViewBag.ChuaDoc; }
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Thông báo (@chuaDoc chưa đọc)">
+        <i class="bi bi-bell"></i>
+        <span id="demTb" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(chuaDoc == 0 ? "d-none" : "")">@(chuaDoc > 99 ? "99+" : chuaDoc.ToString())</span>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end p-0 shadow" style="width:360px;max-width:92vw">
+        <div class="d-flex align-items-center px-3 py-2 border-bottom"><b>Thông báo</b>
+            @if (chuaDoc > 0) { <form asp-controller="ThongBao" asp-action="DocTatCa" method="post" class="ms-auto"><button class="btn btn-link btn-sm p-0">Đánh dấu đã đọc</button></form> }</div>
+        @foreach (var t in Model)
+        {
+            <a class="dropdown-item py-2 border-bottom text-wrap @(t.DaDoc ? "" : "bg-primary-subtle")" asp-controller="ThongBao" asp-action="Mo" asp-route-id="@t.Id">
+                <div class="small fw-semibold @(t.MucDo == MucDoThongBao.KhanCap ? "text-danger" : "")">@t.TieuDe</div>
+                <div class="small text-muted">@t.Loai.Ten() · @t.ThoiGian.ToString("HH:mm dd/MM")</div>
+            </a>
+        }
+        @if (Model.Count == 0) { <div class="px-3 py-3 small text-muted">Chưa có thông báo.</div> }
+        <a class="dropdown-item text-center small py-2" asp-controller="ThongBao" asp-action="Index">Xem tất cả</a>
+    </div>
+</div>

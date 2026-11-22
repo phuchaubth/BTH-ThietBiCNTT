@@ -44,6 +44,12 @@ public static class DependencyInjection
         services.AddScoped<DashboardService>();
         services.AddScoped<NghiemThuTuDongService>();
         services.AddScoped<ExcelTaiSanService>();
+        services.AddScoped<ThongBaoService>();
+        services.AddScoped<CanhBaoService>();
+        services.AddScoped<HangDoiGuiService>();
+        services.AddScoped<IKenhGui, EmailSender>();
+        services.AddScoped<IKenhGui, TelegramSender>();
+        services.AddHttpClient("telegram", c => c.Timeout = TimeSpan.FromSeconds(20));
         return services;
     }
 

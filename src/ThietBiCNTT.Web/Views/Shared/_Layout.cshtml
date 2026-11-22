@@ -43,6 +43,7 @@
             <div class="nav-section">Quản trị</div>
             <a class="nav-item @Act("NguoiDung")" asp-controller="NguoiDung" asp-action="Index"><i class="bi bi-people"></i> Người dùng</a>
             <a class="nav-item @Act("ThamSo")" asp-controller="ThamSo" asp-action="Index"><i class="bi bi-sliders"></i> Tham số hệ thống</a>
+            <a class="nav-item @Act("HangDoi")" asp-controller="HangDoi" asp-action="Index"><i class="bi bi-send"></i> Hàng đợi gửi</a>
             <a class="nav-item @Act("NhatKy")" asp-controller="NhatKy" asp-action="Index"><i class="bi bi-journal-text"></i> Nhật ký hệ thống</a>
         }
     </nav>
@@ -56,7 +57,8 @@
                 <a class="btn btn-sm btn-danger" asp-controller="PhieuSuaChua" asp-action="Create"><i class="bi bi-exclamation-triangle"></i> Báo hỏng</a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a class="small text-muted d-none d-sm-inline text-decoration-none" asp-controller="Account" asp-action="DoiMatKhau" title="Đổi mật khẩu"><i class="bi bi-person-circle"></i> @User.HoTen()</a>
+                    @await Component.InvokeAsync("ChuongThongBao")
+                    <a class="small text-muted d-none d-sm-inline text-decoration-none" asp-controller="TaiKhoan" asp-action="Index" title="Tài khoản của tôi"><i class="bi bi-person-circle"></i> @User.HoTen()</a>
                     <form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-sm btn-link">Đăng xuất</button></form>
                 }
             </div>
@@ -71,6 +73,18 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
+@if (User.Identity?.IsAuthenticated == true)
+{
+<script>
+setInterval(async () => {
+    try {
+        const r = await fetch('/ThongBao/Dem', { credentials: 'same-origin' }); if (!r.ok || r.redirected) return;
+        const n = await r.json(); const b = document.getElementById('demTb'); if (!b) return;
+        b.textContent = n > 99 ? '99+' : n; b.classList.toggle('d-none', n === 0);
+    } catch { }
+}, 60000);
+</script>
+}
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

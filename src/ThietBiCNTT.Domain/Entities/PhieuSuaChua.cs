@@ -32,6 +32,10 @@ public class PhieuSuaChua : BaseEntity
     public DateTime? BatDauTamDung { get; set; }
     /// <summary>Tổng thời gian đã tạm dừng (giây) — trừ khỏi thời gian xử lý khi tính MTTR.</summary>
     public long TongTamDungGiay { get; set; }
+    /// <summary>Đã gửi nhắc "sắp đến hạn" cho KTV.</summary>
+    public bool DaNhacTruocHan { get; set; }
+    /// <summary>Cấp leo thang đã thông báo khi quá hạn (0 = chưa; 1 = KTV & CNTT; 2 = trưởng phòng; 3 = lãnh đạo).</summary>
+    public int CapLeoThang { get; set; }
 
     [StringLength(100), Display(Name = "Kỹ thuật viên")] public string? KyThuatVien { get; set; }
     [Display(Name = "Hình thức xử lý")] public HinhThucXuLy? HinhThucXuLy { get; set; }

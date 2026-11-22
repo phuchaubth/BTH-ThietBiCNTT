@@ -12,7 +12,7 @@ using ThietBiCNTT.Web.Infrastructure;
 namespace ThietBiCNTT.Web.Controllers;
 
 /// <summary>Điều chuyển tài sản — QĐ-02: duyệt nhiều cấp theo giá trị (tham số DieuChuyen.NguongDuyetLanhDao).</summary>
-public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo) : Controller
+public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo, ThongBaoService tb, Microsoft.AspNetCore.Identity.UserManager<AppUser> users) : Controller
 {
     private IQueryable<PhieuDieuChuyen> PhamVi()
     {
@@ -66,6 +66,7 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
         catch (DomainException ex) { ModelState.AddModelError("", ex.Message); await Nap(input.TuKhoaPhongId); ViewData["chon"] = taiSanIds; return View(input); }
         db.PhieuDieuChuyens.Add(input);
         await db.LuuMoiAsync(soPhieu, "DC", so => input.SoPhieu = so);
+        if (guiDuyet) { await BaoNguoiDuyetAsync(input); await db.SaveChangesAsync(); }
         TempData["ok"] = $"Đã tạo phiếu {input.SoPhieu}" + (guiDuyet ? $" và gửi duyệt ({input.CacCap().Count()} cấp)." : " (nháp).");
         return RedirectToAction(nameof(Details), new { id = input.Id });
     }
@@ -126,19 +127,42 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
         var loi = await KiemTraXungDot(p.ChiTiets.Select(c => c.TaiSanId), p.Id);
         if (loi.Count > 0) throw new DomainException(string.Join(" ", loi));
         p.GuiDuyet(thamSo.SoLon(TS.DieuChuyenNguongLanhDao));
+        await BaoNguoiDuyetAsync(p);
         return $"Đã gửi duyệt. Chờ: {PhieuDieuChuyen.TenCap(p.CapHienTai)}.";
     });
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> Duyet(int id, bool dongY, string? yKien) => ThucHien(id, p =>
+    public Task<IActionResult> Duyet(int id, bool dongY, string? yKien) => ThucHien(id, async p =>
     {
         if (!CoQuyenDuyet(p)) throw new DomainException($"Bạn không có quyền duyệt cấp '{PhieuDieuChuyen.TenCap(p.CapHienTai)}' của phiếu này.");
         var cap = p.CapHienTai;
         p.Duyet(User.Identity!.Name!, User.HoTen(), dongY, yKien, DateTime.Now);
-        return Task.FromResult(!dongY ? "Đã từ chối phiếu."
+        if (p.TrangThai == TrangThaiDieuChuyen.ChoDuyet) await BaoNguoiDuyetAsync(p);
+        else
+        {
+            var nhan = new List<string?> { p.NguoiTao };
+            if (p.TrangThai == TrangThaiDieuChuyen.DaDuyet) nhan.AddRange(await tb.CanBoCNTTAsync());
+            await tb.GuiAsync(nhan, LoaiThongBao.KetQuaDuyet, $"Phiếu điều chuyển {p.SoPhieu} {(dongY ? "đã được duyệt đủ — chờ bàn giao" : "bị từ chối")}",
+                yKien, $"/DieuChuyen/Details/{p.Id}", dongY ? MucDoThongBao.ThongTin : MucDoThongBao.CanhBao, boQua: User.Identity?.Name);
+        }
+        return !dongY ? "Đã từ chối phiếu."
             : p.TrangThai == TrangThaiDieuChuyen.DaDuyet ? "Đã duyệt cấp cuối. Phòng CNTT có thể bàn giao."
-            : $"Đã duyệt cấp '{PhieuDieuChuyen.TenCap(cap)}'. Chờ: {PhieuDieuChuyen.TenCap(p.CapHienTai)}.");
+            : $"Đã duyệt cấp '{PhieuDieuChuyen.TenCap(cap)}'. Chờ: {PhieuDieuChuyen.TenCap(p.CapHienTai)}.";
     });
+
+    /// <summary>Báo những người có quyền duyệt cấp đang chờ.</summary>
+    private async Task BaoNguoiDuyetAsync(PhieuDieuChuyen p)
+    {
+        var nhan = p.CapHienTai switch
+        {
+            PhieuDieuChuyen.CapTruongKhoa => await tb.TruongKhoaAsync(p.TuKhoaPhongId),
+            PhieuDieuChuyen.CapCNTT => await tb.CanBoCNTTAsync(),
+            PhieuDieuChuyen.CapLanhDao => (await users.GetUsersInRoleAsync(VaiTro.LanhDao)).Select(u => u.UserName!).ToList(),
+            _ => []
+        };
+        await tb.GuiAsync(nhan, LoaiThongBao.ChoDuyet, $"Phiếu điều chuyển {p.SoPhieu} chờ bạn duyệt ({PhieuDieuChuyen.TenCap(p.CapHienTai)})",
+            $"{p.ChiTiets.Count} tài sản · {p.LyDo}", $"/DieuChuyen/Details/{p.Id}", boQua: p.NguoiTao);
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public Task<IActionResult> BanGiao(int id) => ThucHien(id, p =>

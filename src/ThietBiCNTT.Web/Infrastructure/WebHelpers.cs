@@ -152,3 +152,40 @@ public class InvariantValueProviderFactory : Microsoft.AspNetCore.Mvc.ModelBindi
         }
     }
 }
+
+/// <summary>Chạy nền: gửi hàng đợi email/Telegram mỗi 30 giây; cảnh báo SLA, leo thang, tổng hợp ngày mỗi 5 phút.</summary>
+public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<ThongBaoBackgroundService> log) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(15), ct);
+        var lanCanhBao = DateTime.MinValue;
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                using var scope = scopes.CreateScope();
+                if (DateTime.Now - lanCanhBao >= TimeSpan.FromMinutes(5))
+                {
+                    await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
+                    lanCanhBao = DateTime.Now;
+                }
+                await scope.ServiceProvider.GetRequiredService<HangDoiGuiService>().XuLyAsync(ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "Lỗi job thông báo"); }
+            await Task.Delay(TimeSpan.FromSeconds(30), ct);
+        }
+    }
+}
+
+/// <summary>Chuông thông báo trên thanh trên cùng.</summary>
+public class ChuongThongBaoViewComponent(AppDbContext db) : Microsoft.AspNetCore.Mvc.ViewComponent
+{
+    public async Task<Microsoft.AspNetCore.Mvc.IViewComponentResult> InvokeAsync()
+    {
+        var u = UserClaimsPrincipal.Identity?.Name;
+        var q = db.ThongBaos.Where(t => t.NguoiNhan == u);
+        ViewBag.ChuaDoc = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(q.Where(t => !t.DaDoc));
+        return View(await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(q.OrderByDescending(t => t.Id).Take(6)));
+    }
+}

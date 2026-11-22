@@ -75,7 +75,7 @@ public class LichSuService(AppDbContext db)
 }
 
 /// <summary>Sinh lệnh công việc bảo trì định kỳ cho các kế hoạch đến hạn.</summary>
-public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo)
+public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo, ThongBaoService tb)
 {
     public async Task<int> SinhLenhDenHanAsync(DateOnly homNay, CancellationToken ct = default)
     {
@@ -114,6 +114,9 @@ public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
                 };
                 db.PhieuSuaChuas.Add(phieu);
                 await db.LuuMoiAsync(soPhieu, "BT", so => phieu.SoPhieu = so, ct);
+                if (phieu.KyThuatVien is not null)
+                    await tb.GuiAsync([phieu.KyThuatVien], LoaiThongBao.BaoTri, $"Lệnh bảo trì {phieu.SoPhieu}: {kh.Ten}",
+                        $"Thiết bị {ts?.MaTaiSan} · hạn {phieu.HanXuLy:dd/MM}", $"/PhieuSuaChua/Details/{phieu.Id}");
                 dem++;
             }
             kh.DayLichTiep();

@@ -66,6 +66,7 @@ var vi = new System.Globalization.CultureInfo("vi-VN");
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = vi;
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = vi;
 builder.Services.AddHostedService<BaoTriBackgroundService>();
+builder.Services.AddHostedService<ThongBaoBackgroundService>();
 
 // Lưu khoá mã hoá cookie ra thư mục cố định: IIS recycle app pool không làm người dùng bị đăng xuất.
 if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)

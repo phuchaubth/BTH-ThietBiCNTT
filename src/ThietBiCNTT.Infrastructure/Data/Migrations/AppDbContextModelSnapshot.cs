@@ -977,9 +977,15 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<int>("CapLeoThang")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ChiPhiThueNgoai")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("DaNhacTruocHan")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("DanhGia")
                         .HasColumnType("int");
@@ -1268,6 +1274,106 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("ThamSoHeThongs");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.ThongBao", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("DaDoc")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("Loai")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MucDo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NguoiNhan")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NoiDung")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("ThoiGian")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ThoiGianDoc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NguoiNhan", "DaDoc", "ThoiGian");
+
+                    b.ToTable("ThongBaos");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.TinNhanCho", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DiaChi")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("GuiTu")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Kenh")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LoiCuoi")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("SoLanThu")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ThoiGianGui")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ThoiGianTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrangThai", "GuiTu");
+
+                    b.ToTable("TinNhanChos");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.VatTu", b =>
                 {
                     b.Property<int>("Id")
@@ -1401,6 +1507,12 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("NhanEmail")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("NhanTelegram")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -1420,6 +1532,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TelegramChatId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");

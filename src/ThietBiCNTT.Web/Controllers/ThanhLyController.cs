@@ -12,7 +12,7 @@ using ThietBiCNTT.Web.Infrastructure;
 namespace ThietBiCNTT.Web.Controllers;
 
 [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
-public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo) : Controller
+public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo, ThongBaoService tb) : Controller
 {
     public async Task<IActionResult> Index(TrangThaiThanhLy? trangThai)
     {
@@ -137,7 +137,9 @@ public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuSe
     {
         if (string.IsNullOrWhiteSpace(hoiDong) || string.IsNullOrWhiteSpace(ketLuan)) throw new DomainException("Nhập thành phần và kết luận hội đồng.");
         p.DanhGia(hoiDong, ketLuan, dongY, DateTime.Now);
-        return dongY ? "Hội đồng đồng ý thanh lý." : "Hội đồng không đồng ý.";
+        if (dongY) tb.GuiVaiTroAsync(VaiTro.LanhDao, LoaiThongBao.ChoDuyet, $"Đề xuất thanh lý {p.SoPhieu} chờ quyết định",
+            $"{p.ChiTiets.Count} tài sản · Hội đồng: {ketLuan}", $"/ThanhLy/Details/{p.Id}").GetAwaiter().GetResult();
+        return dongY ? "Hội đồng đồng ý thanh lý — đã báo Lãnh đạo." : "Hội đồng không đồng ý.";
     });
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomDuyet)]

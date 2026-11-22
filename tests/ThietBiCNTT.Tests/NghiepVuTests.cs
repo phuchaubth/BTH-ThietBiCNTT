@@ -212,3 +212,21 @@ public class KiemKeTests
     [InlineData("  mh-0004 ", "MH-0004")]
     public void TachMa_TuNoiDungQr(string vao, string ra) => Assert.Equal(ra, ThietBiCNTT.Web.Controllers.KiemKeController.TachMa(vao));
 }
+
+public class HangDoiTests
+{
+    [Fact]
+    public void LoiThuLaiLuyThua_RoiDanhDauLoi()
+    {
+        var now = new DateTime(2026, 11, 22, 8, 0, 0);
+        var t = new TinNhanCho { Kenh = KenhGui.Email, DiaChi = "a@b.vn", GuiTu = now };
+        t.DanhDauLoi("x", now); Assert.Equal(now.AddMinutes(1), t.GuiTu);
+        t.DanhDauLoi("x", now); Assert.Equal(now.AddMinutes(2), t.GuiTu);
+        t.DanhDauLoi("x", now); t.DanhDauLoi("x", now);
+        Assert.Equal(TrangThaiGui.ChoGui, t.TrangThai);
+        t.DanhDauLoi("x", now);
+        Assert.Equal(TrangThaiGui.Loi, t.TrangThai);
+        t.GuiLai(now);
+        Assert.Equal((TrangThaiGui.ChoGui, 0), (t.TrangThai, t.SoLanThu));
+    }
+}
