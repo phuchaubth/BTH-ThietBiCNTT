@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ThietBiCNTT.Domain\ThietBiCNTT.Domain.csproj" />
+    <ProjectReference Include="..\..\src\ThietBiCNTT.Web\ThietBiCNTT.Web.csproj" />
   </ItemGroup>
 
 </Project>

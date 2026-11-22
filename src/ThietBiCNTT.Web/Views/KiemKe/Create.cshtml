@@ -1,0 +1,14 @@
+@model DotKiemKe
+@{ ViewData["Title"] = "Mở đợt kiểm kê"; }
+<div class="page-head"><h1>Mở đợt kiểm kê</h1></div>
+<div class="card" style="max-width:720px"><div class="card-body">
+<form asp-action="Create" method="post" class="row g-3">
+    <div class="col-12"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" required /></div>
+    <div class="col-md-6"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">Toàn bệnh viện</option></select>
+        <div class="form-text">Chọn một khoa để Trưởng khoa tự kiểm kê khoa mình.</div></div>
+    <div class="col-md-6"><label asp-for="ToKiemKe" class="form-label"></label><input asp-for="ToKiemKe" class="form-control" placeholder="VD: TP.CNTT, KTV An, KTV Bảo" /></div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12 small text-muted">Khi mở đợt, hệ thống <b>chụp lại sổ sách</b> (danh sách tài sản và khoa đang ghi nhận). Tổ kiểm kê quét QR tại từng khoa; tài sản tìm thấy ở khoa khác → <b>sai vị trí</b>, không có trong sổ → <b>thừa</b>; khi khoá sổ, tài sản chưa quét → <b>thiếu</b>.</div>
+    <div class="col-12"><button class="btn btn-primary">Mở đợt & chụp sổ sách</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>

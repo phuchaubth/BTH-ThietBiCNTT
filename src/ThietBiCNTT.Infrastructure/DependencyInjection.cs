@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<BaoTriService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<NghiemThuTuDongService>();
+        services.AddScoped<ExcelTaiSanService>();
         return services;
     }
 

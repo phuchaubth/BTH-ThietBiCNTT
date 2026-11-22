@@ -1,0 +1,29 @@
+@model DotKiemKe
+@{
+    Layout = "_Print"; ViewData["Title"] = "Biên bản kiểm kê " + Model.Ma;
+    var tk = Model.ThongKe();
+    var lech = Model.ChiTiets.Where(c => c.KetQua is KetQuaKiemKe.SaiViTri or KetQuaKiemKe.Thua or KetQuaKiemKe.Thieu or KetQuaKiemKe.ChuaKiem)
+        .OrderBy(c => c.KetQua).ThenBy(c => c.MaQuet).ToList();
+    var i = 1;
+}
+<partial name="_HeaderBenhVien" />
+<h3>BIÊN BẢN KIỂM KÊ TÀI SẢN CÔNG NGHỆ THÔNG TIN</h3>
+<p class="text-center">Đợt: <b>@Model.Ma</b> – @Model.Ten</p>
+<p>Phạm vi: @(Model.KhoaPhong?.Ten ?? "Toàn bệnh viện"). Thời gian: từ @Model.NgayBatDau.ToString("dd/MM/yyyy") đến @(Model.NgayKhoaSo?.ToString("dd/MM/yyyy") ?? "....../....../......").<br />
+Tổ kiểm kê: @(Model.ToKiemKe ?? "................................................................")</p>
+<p><b>I. Tổng hợp kết quả</b></p>
+<table class="bb mb-3" style="width:60%">
+    <tr><td>Số tài sản theo sổ sách</td><td class="text-end">@Model.ChiTiets.Count(c => c.KetQua != KetQuaKiemKe.Thua)</td></tr>
+    <tr><td>Khớp sổ sách</td><td class="text-end">@tk[KetQuaKiemKe.Khop]</td></tr>
+    <tr><td>Tìm thấy nhưng sai vị trí</td><td class="text-end">@tk[KetQuaKiemKe.SaiViTri]</td></tr>
+    <tr><td>Thừa (ngoài sổ sách)</td><td class="text-end">@tk[KetQuaKiemKe.Thua]</td></tr>
+    <tr><td>Thiếu (không tìm thấy)@(Model.DaKhoa ? "" : " – chưa khoá sổ")</td><td class="text-end">@(tk[KetQuaKiemKe.Thieu] + tk[KetQuaKiemKe.ChuaKiem])</td></tr>
+</table>
+<p><b>II. Danh sách chênh lệch</b></p>
+<table class="bb w-100 mb-3">
+    <tr><th>STT</th><th>Mã TS</th><th>Tên tài sản</th><th>Khoa theo sổ</th><th>Khoa thực tế</th><th>Kết quả</th><th>Ghi chú</th></tr>
+    @foreach (var c in lech) { <tr><td>@(i++)</td><td>@c.MaQuet</td><td>@c.TaiSan?.Ten</td><td>@c.KhoaSoSach?.Ten</td><td>@c.KhoaThucTe?.Ten</td><td>@(c.KetQua == KetQuaKiemKe.ChuaKiem ? "Chưa kiểm" : c.KetQua.Ten())</td><td>@c.TinhTrangThucTe?.Ten() @c.GhiChu</td></tr> }
+    @if (lech.Count == 0) { <tr><td colspan="7" class="text-center">Không có chênh lệch.</td></tr> }
+</table>
+<p><b>III. Kiến nghị xử lý:</b> ...........................................................................................................</p>
+<div class="ky"><div><b>Tổ kiểm kê</b><br /><i>(Ký, ghi rõ họ tên)</i></div><div><b>Đại diện khoa/phòng</b><br /><i>(Ký, ghi rõ họ tên)</i></div><div><b>Trưởng phòng CNTT</b><br /><i>(Ký, ghi rõ họ tên)</i></div></div>

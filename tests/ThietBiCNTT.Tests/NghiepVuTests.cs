@@ -170,3 +170,45 @@ public class ThanhLyTests
         Assert.Equal(TrangThaiThanhLy.DaThanhLy, d.TrangThai);
     }
 }
+
+public class KiemKeTests
+{
+    private static (DotKiemKe Dot, TaiSan A, TaiSan B) Dot()
+    {
+        var a = new TaiSan { Id = 1, MaTaiSan = "PC-1", KhoaPhongId = 10 };
+        var b = new TaiSan { Id = 2, MaTaiSan = "PC-2", KhoaPhongId = 20 };
+        var d = new DotKiemKe { Ma = "KK-1", Ten = "x" };
+        d.ChupSoSach([a, b]);
+        return (d, a, b);
+    }
+
+    [Fact]
+    public void Quet_Khop_SaiViTri_Thua_VaKhoaSo()
+    {
+        var (d, a, b) = Dot();
+        Assert.Equal(KetQuaKiemKe.Khop, d.GhiNhan("pc-1", a, 10, null, "u", DateTime.Now).ChiTiet.KetQua);
+        Assert.True(d.GhiNhan("PC-1", a, 10, null, "u", DateTime.Now).DaKiemTruoc);
+        var la = new TaiSan { Id = 3, MaTaiSan = "PC-3", KhoaPhongId = 30 };
+        Assert.Equal(KetQuaKiemKe.Thua, d.GhiNhan("PC-3", la, 10, null, "u", DateTime.Now).ChiTiet.KetQua);
+        Assert.Equal(KetQuaKiemKe.Thua, d.GhiNhan("XYZ", null, 10, null, "u", DateTime.Now).ChiTiet.KetQua);
+        d.KhoaSo(DateTime.Now);
+        var tk = d.ThongKe();
+        Assert.Equal((1, 0, 2, 1), (tk[KetQuaKiemKe.Khop], tk[KetQuaKiemKe.SaiViTri], tk[KetQuaKiemKe.Thua], tk[KetQuaKiemKe.Thieu]));
+        Assert.Throws<DomainException>(() => d.GhiNhan("PC-2", b, 20, null, "u", DateTime.Now));
+    }
+
+    [Fact]
+    public void Quet_SaiViTri_VaGioiHanPhamViKhoa()
+    {
+        var (d, _, b) = Dot();
+        Assert.Equal(KetQuaKiemKe.SaiViTri, d.GhiNhan("PC-2", b, 10, null, "u", DateTime.Now).ChiTiet.KetQua);
+        var dk = new DotKiemKe { Ma = "KK-2", Ten = "x", KhoaPhongId = 10 };
+        Assert.Throws<DomainException>(() => dk.GhiNhan("PC-2", b, 20, null, "u", DateTime.Now));
+    }
+
+    [Theory]
+    [InlineData("https://thietbi.bth.org.vn/qr/PC-0012", "PC-0012")]
+    [InlineData("http://10.0.0.5/qr/pc%2D0012?x=1", "PC-0012")]
+    [InlineData("  mh-0004 ", "MH-0004")]
+    public void TachMa_TuNoiDungQr(string vao, string ra) => Assert.Equal(ra, ThietBiCNTT.Web.Controllers.KiemKeController.TachMa(vao));
+}

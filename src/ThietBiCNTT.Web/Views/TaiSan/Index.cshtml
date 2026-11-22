@@ -7,6 +7,7 @@
 <div class="page-head">
     <h1>Tài sản & cấu hình</h1>
     <div class="actions">
+        @if (User.LaCNTT()) { <a asp-action="Nhap" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload"></i> Nhập từ Excel</a> }
         <a class="btn btn-sm btn-outline-secondary" href="/TaiSan/Export@(qs)"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a>
         <button form="frmChon" formaction="/TaiSan/InTem" class="btn btn-sm btn-outline-secondary"><i class="bi bi-qr-code"></i> In tem QR (đã chọn)</button>
         @if (User.LaCNTT()) { <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm tài sản</a> }

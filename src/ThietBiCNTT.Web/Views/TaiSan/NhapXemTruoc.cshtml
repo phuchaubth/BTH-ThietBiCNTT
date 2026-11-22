@@ -1,0 +1,56 @@
+@model List<DongNhapTaiSan>
+@{
+    ViewData["Title"] = "Kiểm tra file nhập";
+    var loi = Model.Count(d => !d.HopLe);
+    var capNhat = (bool)ViewBag.CapNhatDaCo;
+    var moi = Model.Count(d => d.HopLe && d.IdDaCo is null);
+    var daCo = Model.Count(d => d.HopLe && d.IdDaCo is not null);
+    var canhBao = Model.Count(d => d.CanhBao.Count > 0);
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Tài sản</a> › <a asp-action="Nhap">Nhập từ Excel</a> › Kiểm tra</div>
+<div class="page-head"><h1>Kiểm tra file: @ViewBag.TenFile</h1></div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Tổng số dòng</div><div class="value">@Model.Count</div></div></div>
+    <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Thêm mới</div><div class="value text-success">@moi</div></div></div>
+    <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Trùng mã đã có</div><div class="value">@daCo</div><div class="sub">@(capNhat ? "sẽ cập nhật" : "sẽ bỏ qua")</div></div></div>
+    <div class="col-6 col-md-3"><div class="card kpi"><div class="label">Dòng lỗi</div><div class="value @(loi > 0 ? "text-danger" : "")">@loi</div>@if (canhBao > 0) { <div class="sub">@canhBao dòng có cảnh báo</div> }</div></div>
+</div>
+@if (loi > 0)
+{
+    <div class="alert alert-danger">Có <b>@loi dòng lỗi</b>. Sửa trong file Excel rồi <a asp-action="Nhap">tải lên lại</a>. Chưa có dữ liệu nào được ghi.</div>
+}
+else if (Model.Count == 0)
+{
+    <div class="alert alert-warning">File không có dòng dữ liệu nào (sheet <b>TaiSan</b>, từ dòng 2).</div>
+}
+else
+{
+    <form asp-action="XacNhanNhap" method="post" class="alert alert-success d-flex flex-wrap align-items-center gap-2">
+        <input type="hidden" name="maFile" value="@ViewBag.MaFile" /><input type="hidden" name="capNhatDaCo" value="@capNhat.ToString().ToLower()" />
+        <span>File hợp lệ: sẽ thêm <b>@moi</b> tài sản@(daCo > 0 ? (capNhat ? $", cập nhật {daCo}" : $", bỏ qua {daCo} mã đã có") : "").</span>
+        <button class="btn btn-success ms-auto"><i class="bi bi-check2-circle"></i> Xác nhận nhập</button>
+        <a asp-action="Nhap" class="btn btn-outline-secondary">Huỷ</a>
+    </form>
+}
+<div class="card"><div class="table-responsive" style="max-height:620px">
+<table class="table table-sm mb-0 align-middle">
+    <thead class="sticky-top"><tr><th>Dòng</th><th>Mã TS</th><th>Tên</th><th>Khoa</th><th>Cấu hình</th><th class="text-end">Nguyên giá</th><th>Kết quả kiểm tra</th></tr></thead>
+    <tbody>
+    @foreach (var d in Model.OrderBy(d => d.HopLe).ThenBy(d => d.SoDong))
+    {
+        <tr class="@(!d.HopLe ? "table-danger" : d.CanhBao.Count > 0 ? "table-warning" : "")">
+            <td>@d.SoDong</td><td class="fw-semibold">@d.TaiSan.MaTaiSan</td><td class="small">@d.TaiSan.Ten<div class="text-muted">@d.TaiSan.Hang @d.TaiSan.Model @d.TaiSan.SoSerial</div></td>
+            <td class="small">@(d.TaiSan.KhoaPhongId is { } kid ? ((Dictionary<int, string>)ViewBag.TenKhoa).GetValueOrDefault(kid) : "Kho CNTT")</td>
+            <td class="small">@d.CauHinh?.CPU @d.CauHinh?.RAM <span class="font-monospace">@d.CauHinh?.DiaChiIP</span></td>
+            <td class="text-end small">@d.TaiSan.NguyenGia.ToString("N0")</td>
+            <td class="small">
+                @if (!d.HopLe) { <span class="text-danger fw-semibold">@string.Join("; ", d.Loi)</span> }
+                else if (d.IdDaCo is not null) { <span>@(capNhat ? "Cập nhật tài sản đã có" : "Bỏ qua (mã đã có)")</span> }
+                else { <span class="text-success">Thêm mới</span> }
+                @if (d.CanhBao.Count > 0) { <div class="text-warning-emphasis">@string.Join("; ", d.CanhBao)</div> }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div></div>

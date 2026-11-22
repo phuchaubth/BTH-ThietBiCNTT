@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -62,19 +61,69 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         return View(new PagedList<TaiSan>(items, page, size, total));
     }
 
-    /// <summary>Xuất Excel (CSV UTF-8) theo bộ lọc hiện tại.</summary>
+    /// <summary>Xuất Excel (.xlsx) theo bộ lọc hiện tại.</summary>
     public async Task<IActionResult> Export(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh)
     {
-        var ds = await Loc(q, khoa, loai, trangThai, hetBaoHanh).OrderBy(t => t.MaTaiSan).ToListAsync();
-        static string E(object? v) => "\"" + (v?.ToString() ?? "").Replace("\"", "\"\"") + "\"";
-        var sb = new StringBuilder();
-        sb.AppendLine("Mã TS,Tên,Loại,Hãng,Model,Serial,Khoa/phòng,Người sử dụng,Trạng thái,Nguyên giá,Ngày mua,Hạn BH,CPU,RAM,Ổ cứng,HĐH,IP,MAC,Hostname");
-        foreach (var t in ds)
-            sb.AppendLine(string.Join(",", new object?[] { t.MaTaiSan, t.Ten, t.LoaiThietBi?.Ten, t.Hang, t.Model, t.SoSerial, t.KhoaPhong?.Ten,
-                t.NguoiSuDung, t.TrangThai.Ten(), t.NguyenGia, t.NgayMua?.ToString("dd/MM/yyyy"), t.HanBaoHanh?.ToString("dd/MM/yyyy"),
-                t.CauHinh?.CPU, t.CauHinh?.RAM, t.CauHinh?.OCung, t.CauHinh?.HeDieuHanh, t.CauHinh?.DiaChiIP, t.CauHinh?.DiaChiMAC, t.CauHinh?.Hostname }.Select(E)));
-        return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
-            "text/csv", $"TaiSan_{DateTime.Now:yyyyMMdd_HHmm}.csv");
+        var ds = await Loc(q, khoa, loai, trangThai, hetBaoHanh).Include(t => t.NhaCungCap).OrderBy(t => t.MaTaiSan).ToListAsync();
+        return File(ExcelTaiSanService.XuatTaiSan(ds, "DANH SÁCH TÀI SẢN CNTT"),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"TaiSan_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+    }
+
+    // ===== Nhập từ Excel =====
+    private static string ThuMucNhap => Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "thietbicntt-nhap")).FullName;
+
+    [Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> MauNhap([FromServices] ExcelTaiSanService excel) =>
+        File(await excel.TaoFileMauAsync(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "MauNhapTaiSan.xlsx");
+
+    [Authorize(Roles = VaiTro.NhomCNTT)]
+    public IActionResult Nhap() => View();
+
+    /// <summary>Bước 1: tải file lên → đọc & kiểm tra → xem trước (chưa ghi CSDL).</summary>
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT), RequestSizeLimit(20_000_000)]
+    public async Task<IActionResult> Nhap(IFormFile? file, bool capNhatDaCo, [FromServices] ExcelTaiSanService excel)
+    {
+        if (file is null || file.Length == 0 || !file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+        { TempData["err"] = "Chọn file Excel .xlsx theo mẫu."; return View(); }
+        // Dọn file tạm cũ hơn 1 ngày
+        foreach (var f in new DirectoryInfo(ThuMucNhap).GetFiles().Where(f => f.CreationTime < DateTime.Now.AddDays(-1))) f.Delete();
+        var ma = $"{Guid.NewGuid():N}_{User.Identity!.Name}";
+        var duongDan = Path.Combine(ThuMucNhap, ma + ".xlsx");
+        await using (var fs = System.IO.File.Create(duongDan)) await file.CopyToAsync(fs);
+        try
+        {
+            await using var doc = System.IO.File.OpenRead(duongDan);
+            var dong = await excel.DocAsync(doc);
+            ViewBag.MaFile = ma; ViewBag.TenFile = file.FileName; ViewBag.CapNhatDaCo = capNhatDaCo;
+            ViewBag.TenKhoa = await db.KhoaPhongs.ToDictionaryAsync(k => k.Id, k => k.Ten);
+            return View("NhapXemTruoc", dong);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ClosedXML.Excel.Exceptions.ClosedXMLException or InvalidDataException or System.IO.FileFormatException)
+        {
+            System.IO.File.Delete(duongDan);
+            TempData["err"] = "Không đọc được file: " + ex.Message;
+            return View();
+        }
+    }
+
+    /// <summary>Bước 2: xác nhận → ghi CSDL (trong 1 giao dịch).</summary>
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> XacNhanNhap(string maFile, bool capNhatDaCo, [FromServices] ExcelTaiSanService excel)
+    {
+        // Chỉ người đã tải lên mới xác nhận được file của mình
+        if (string.IsNullOrEmpty(maFile) || !maFile.EndsWith("_" + User.Identity!.Name) || maFile.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return BadRequest();
+        var duongDan = Path.Combine(ThuMucNhap, maFile + ".xlsx");
+        if (!System.IO.File.Exists(duongDan)) { TempData["err"] = "Phiên nhập đã hết hạn — tải file lên lại."; return RedirectToAction(nameof(Nhap)); }
+        try
+        {
+            List<DongNhapTaiSan> dong;
+            await using (var doc = System.IO.File.OpenRead(duongDan)) dong = await excel.DocAsync(doc);
+            var kq = await excel.NhapAsync(dong, capNhatDaCo, User.Identity.Name);
+            System.IO.File.Delete(duongDan);
+            TempData["ok"] = $"Đã nhập: {kq.ThemMoi} tài sản mới, cập nhật {kq.CapNhat}, bỏ qua {kq.BoQua} (mã đã có).";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (InvalidOperationException ex) { TempData["err"] = ex.Message; return RedirectToAction(nameof(Nhap)); }
     }
 
     public async Task<IActionResult> Details(int id)

@@ -1,0 +1,102 @@
+@model DotKiemKe
+@{ ViewData["Title"] = "Quét kiểm kê"; }
+@section Styles {
+<style>
+    #reader { width: 100%; max-width: 480px; margin: 0 auto; border-radius: .5rem; overflow: hidden; background: #111; min-height: 60px; }
+    #ketqua { font-size: 1.05rem; }
+    #maTay::placeholder { text-transform: none; font-size: 1rem; }
+    .kq-Khop { background: #e4f4ea; border-color: #1e7a46 !important; }
+    .kq-SaiViTri { background: #fff6e5; border-color: #b45309 !important; }
+    .kq-Thua { background: #e3f1fb; border-color: #0b4f7a !important; }
+    .kq-loi { background: #fdeeee; border-color: #c62828 !important; }
+</style>
+}
+<div class="small text-muted mb-1"><a asp-action="Details" asp-route-id="@Model.Id">@Model.Ma</a> › Quét</div>
+<div class="page-head"><h1 class="h5">Quét kiểm kê · @Model.Ma</h1></div>
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card"><div class="card-body">
+            @Html.AntiForgeryToken()
+            <label class="form-label fw-semibold" for="khoa">Đang kiểm kê tại</label>
+            <select id="khoa" class="form-select form-select-lg mb-3" asp-items="ViewBag.DsKhoa"><option value="">Kho CNTT</option></select>
+            <div class="row g-2 mb-3">
+                <div class="col-7"><label class="form-label small mb-0" for="tinhtrang">Tình trạng thực tế (nếu khác)</label>
+                    <select id="tinhtrang" class="form-select"><option value="">Bình thường</option><option value="Hong">Hỏng</option><option value="DangSuaChua">Đang sửa chữa</option><option value="TrongKho">Không sử dụng</option></select></div>
+                <div class="col-5"><label class="form-label small mb-0" for="ghichu">Ghi chú</label><input id="ghichu" class="form-control" /></div>
+            </div>
+            <div id="reader"></div>
+            <div class="d-flex gap-2 my-2">
+                <button type="button" id="btnCam" class="btn btn-primary flex-fill"><i class="bi bi-camera"></i> Bật camera</button>
+                <button type="button" id="btnTat" class="btn btn-outline-secondary d-none">Tắt</button>
+            </div>
+            <form id="frmTay" class="d-flex gap-2" autocomplete="off">
+                <input id="maTay" class="form-control form-control-lg text-uppercase" placeholder="Hoặc nhập / quét bằng súng mã vạch" aria-label="Mã tài sản" />
+                <button class="btn btn-lg btn-dark">Ghi</button>
+            </form>
+            <div class="small text-muted mt-2">Camera cần kết nối <b>HTTPS</b>. Súng đọc mã vạch USB/Bluetooth: đặt con trỏ vào ô trên và quét.</div>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div id="ketqua" class="card card-body border-2 mb-3 text-center text-muted">Chưa quét</div>
+        <div class="card"><div class="card-header d-flex">Vừa quét <span class="ms-auto small fw-normal" id="dem">0 lượt</span></div>
+            <ul class="list-group list-group-flush" id="lichsu"></ul></div>
+    </div>
+</div>
+@section Scripts {
+<script src="~/lib/html5-qrcode/html5-qrcode.min.js"></script>
+<script>
+(function () {
+    const dotId = @Model.Id;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const kq = document.getElementById('ketqua'), ls = document.getElementById('lichsu');
+    let dem = 0, dangGui = false, maCuoi = '', lucCuoi = 0, qr = null;
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+    async function gui(ma) {
+        ma = (ma || '').trim();
+        const now = Date.now();
+        if (!ma || dangGui || (ma === maCuoi && now - lucCuoi < 3000)) return;   // chống quét lặp liên tục cùng mã
+        dangGui = true; maCuoi = ma; lucCuoi = now;
+        const fd = new FormData();
+        fd.append('__RequestVerificationToken', token); fd.append('DotId', dotId); fd.append('Ma', ma);
+        fd.append('KhoaThucTeId', document.getElementById('khoa').value);
+        fd.append('TinhTrang', document.getElementById('tinhtrang').value); fd.append('GhiChu', document.getElementById('ghichu').value);
+        try {
+            const r = await fetch('@Url.Action("QuetMa")', { method: 'POST', body: fd, credentials: 'same-origin' });
+            if (r.redirected || !r.ok) throw new Error('Phiên đăng nhập hết hạn hoặc lỗi máy chủ (' + r.status + ')');
+            const d = await r.json();
+            if (!d.ok) { hien('kq-loi', '<b>Không ghi nhận</b><div>' + esc(d.loi) + '</div>'); rung([80, 60, 80]); return; }
+            const lop = d.daKiem ? 'kq-Thua' : 'kq-' + d.ketQua;
+            let html = '<div class="fs-4 fw-bold">' + esc(d.ma) + '</div><div>' + esc(d.ten) + '</div>' +
+                '<div class="fs-5 fw-semibold mt-1">' + (d.daKiem ? 'Đã kiểm trước đó (' + esc(d.luc) + ', ' + esc(d.nguoi) + ')' : esc(d.ketQuaTen)) + '</div>';
+            if (d.ketQua === 'SaiViTri') html += '<div class="small">Theo sổ: <b>' + esc(d.khoaSoSach) + '</b> · Thực tế: <b>' + esc(d.khoaThucTe || 'Kho CNTT') + '</b></div>';
+            if (d.ketQua === 'Thua' && !d.daKiem) html += '<div class="small">Không thuộc sổ sách của đợt' + (d.khoaSoSach ? ' (đang ghi nhận ở ' + esc(d.khoaSoSach) + ')' : '') + '</div>';
+            hien(lop, html);
+            rung(d.ketQua === 'Khop' && !d.daKiem ? 60 : [60, 60, 60]);
+            dem++; document.getElementById('dem').textContent = dem + ' lượt';
+            const li = document.createElement('li'); li.className = 'list-group-item small d-flex';
+            li.innerHTML = '<b class="me-2">' + esc(d.ma) + '</b><span class="text-truncate">' + esc(d.ten) + '</span><span class="ms-auto">' + (d.daKiem ? 'đã kiểm' : esc(d.ketQuaTen)) + '</span>';
+            ls.prepend(li); while (ls.children.length > 30) ls.lastChild.remove();
+            document.getElementById('ghichu').value = ''; document.getElementById('tinhtrang').value = '';
+        } catch (e) { hien('kq-loi', esc(e.message)); }
+        finally { dangGui = false; }
+    }
+    function hien(lop, html) { kq.className = 'card card-body border-2 mb-3 text-center ' + lop; kq.innerHTML = html; }
+    function rung(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+    document.getElementById('frmTay').addEventListener('submit', e => { e.preventDefault(); const i = document.getElementById('maTay'); gui(i.value); i.value = ''; i.focus(); });
+    document.getElementById('btnCam').addEventListener('click', async () => {
+        try {
+            qr = qr || new Html5Qrcode('reader');
+            await qr.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, txt => gui(txt), () => {});
+            document.getElementById('btnCam').classList.add('d-none'); document.getElementById('btnTat').classList.remove('d-none');
+        } catch (e) { hien('kq-loi', 'Không mở được camera: ' + esc(String(e)) + '<div class="small">Cần HTTPS và cho phép quyền camera. Có thể nhập mã tay.</div>'); }
+    });
+    document.getElementById('btnTat').addEventListener('click', async () => {
+        if (qr) await qr.stop();
+        document.getElementById('btnTat').classList.add('d-none'); document.getElementById('btnCam').classList.remove('d-none');
+    });
+})();
+</script>
+}

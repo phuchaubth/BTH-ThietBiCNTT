@@ -1,0 +1,30 @@
+@model List<DotKiemKe>
+@{ ViewData["Title"] = "Kiểm kê"; var tk = (Dictionary<int, Dictionary<KetQuaKiemKe, int>>)ViewBag.ThongKe; }
+<div class="page-head">
+    <h1>Kiểm kê tài sản</h1>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Mở đợt kiểm kê</a></div> }
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Mã đợt</th><th>Tên</th><th>Phạm vi</th><th>Tiến độ</th><th>Khớp</th><th>Sai vị trí</th><th>Thừa</th><th>Thiếu / chưa kiểm</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var d in Model)
+    {
+        var t = tk.GetValueOrDefault(d.Id) ?? new();
+        int G(KetQuaKiemKe k) => t.GetValueOrDefault(k);
+        var soSach = t.Where(x => x.Key != KetQuaKiemKe.Thua).Sum(x => x.Value);
+        var daKiem = G(KetQuaKiemKe.Khop) + G(KetQuaKiemKe.SaiViTri);
+        var pct = soSach == 0 ? 0 : 100 * daKiem / soSach;
+        <tr>
+            <td class="fw-semibold"><a asp-action="Details" asp-route-id="@d.Id">@d.Ma</a><div class="small text-muted fw-normal">@d.NgayBatDau.ToString("dd/MM/yyyy")</div></td>
+            <td>@d.Ten</td><td class="small">@(d.KhoaPhong?.Ten ?? "Toàn bệnh viện")</td>
+            <td style="min-width:140px"><div class="bar"><span style="width:@pct%"></span></div><div class="small text-muted">@daKiem / @soSach (@pct%)</div></td>
+            <td class="text-success fw-semibold">@G(KetQuaKiemKe.Khop)</td><td class="text-warning-emphasis">@G(KetQuaKiemKe.SaiViTri)</td>
+            <td>@G(KetQuaKiemKe.Thua)</td><td class="text-danger">@(G(KetQuaKiemKe.Thieu) + G(KetQuaKiemKe.ChuaKiem))</td>
+            <td>@if (d.DaKhoa) { <span class="badge bg-secondary">Đã khoá sổ</span> } else { <span class="badge bg-primary">Đang kiểm kê</span> }</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="9" class="text-center text-muted py-4">Chưa có đợt kiểm kê nào.</td></tr> }
+    </tbody>
+</table>
+</div></div>

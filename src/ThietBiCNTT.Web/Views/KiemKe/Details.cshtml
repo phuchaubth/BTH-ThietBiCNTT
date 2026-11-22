@@ -1,0 +1,65 @@
+@model DotKiemKe
+@{
+    ViewData["Title"] = Model.Ma;
+    var tk = (Dictionary<KetQuaKiemKe, int>)ViewBag.ThongKe;
+    int G(KetQuaKiemKe k) => tk.GetValueOrDefault(k);
+    var ds = (List<ChiTietKiemKe>)ViewBag.ChiTiet;
+    var chon = (KetQuaKiemKe?)ViewData["ketQua"];
+    string Mau(KetQuaKiemKe k) => k switch { KetQuaKiemKe.Khop => "success", KetQuaKiemKe.SaiViTri => "warning", KetQuaKiemKe.Thua => "info", KetQuaKiemKe.Thieu => "danger", _ => "secondary" };
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Kiểm kê</a> › @Model.Ma</div>
+<div class="page-head">
+    <h1>@Model.Ma · @Model.Ten</h1>
+    @if (Model.DaKhoa) { <span class="badge bg-secondary">Đã khoá sổ @Model.NgayKhoaSo?.ToString("dd/MM/yyyy")</span> } else { <span class="badge bg-primary">Đang kiểm kê</span> }
+    <div class="actions">
+        @if ((bool)ViewBag.DuocQuet) { <a asp-action="Quet" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-qr-code-scan"></i> Quét QR</a> }
+        <a asp-action="Xuat" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a>
+        <a asp-action="InBienBan" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> Biên bản</a>
+        @if (!Model.DaKhoa && User.LaCNTT())
+        {
+            <form asp-action="KhoaSo" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Khoá sổ? Tài sản chưa quét sẽ được ghi nhận là THIẾU và không quét thêm được nữa.')"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-lock"></i> Khoá sổ</button></form>
+        }
+    </div>
+</div>
+<div class="small text-muted mb-3">Phạm vi: @(Model.KhoaPhong?.Ten ?? "Toàn bệnh viện") · Bắt đầu @Model.NgayBatDau.ToString("HH:mm dd/MM/yyyy") @(Model.ToKiemKe is null ? "" : "· Tổ kiểm kê: " + Model.ToKiemKe)</div>
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm @(chon is null ? "btn-dark" : "btn-outline-dark")">Tất cả <span class="badge bg-light text-dark">@tk.Values.Sum()</span></a>
+    @foreach (var k in Enum.GetValues<KetQuaKiemKe>().Where(k => !(Model.DaKhoa && k == KetQuaKiemKe.ChuaKiem) && !(!Model.DaKhoa && k == KetQuaKiemKe.Thieu)))
+    {
+        <a asp-action="Details" asp-route-id="@Model.Id" asp-route-ketQua="@k" class="btn btn-sm @(chon == k ? $"btn-{Mau(k)}" : $"btn-outline-{Mau(k)}")">@k.Ten() <span class="badge bg-light text-dark">@G(k)</span></a>
+    }
+</div>
+<div class="row g-3">
+    <div class="col-lg-9">
+        <div class="card"><div class="table-responsive" style="max-height:640px">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="sticky-top"><tr><th>Mã TS</th><th>Tên</th><th>Khoa theo sổ</th><th>Khoa thực tế</th><th>Kết quả</th><th>Tình trạng</th><th>Người kiểm · lúc</th></tr></thead>
+            <tbody>
+            @foreach (var c in ds)
+            {
+                <tr>
+                    <td class="fw-semibold">@if (c.TaiSanId is { } tid) { <a asp-controller="TaiSan" asp-action="Details" asp-route-id="@tid">@c.MaQuet</a> } else { @c.MaQuet }</td>
+                    <td class="small">@(c.TaiSan?.Ten ?? "(mã không có trong hệ thống)")<div class="text-muted">@c.TaiSan?.LoaiThietBi?.Ten</div></td>
+                    <td class="small">@(c.KhoaSoSach?.Ten ?? (c.TaiSan is null ? "—" : "Kho CNTT"))</td>
+                    <td class="small">@c.KhoaThucTe?.Ten</td>
+                    <td><span class="badge bg-@Mau(c.KetQua)">@c.KetQua.Ten()</span></td>
+                    <td class="small">@c.TinhTrangThucTe?.Ten() @c.GhiChu</td>
+                    <td class="small text-muted">@c.NguoiKiem @c.ThoiGianKiem?.ToString("HH:mm dd/MM")</td>
+                </tr>
+            }
+            @if (ds.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Không có dòng nào.</td></tr> }
+            </tbody>
+        </table>
+        </div></div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card"><div class="card-header">Tiến độ theo khoa (sổ sách)</div><div class="card-body">
+            @foreach (var x in ((IEnumerable<dynamic>)ViewBag.TheoKhoa).OrderBy(x => (string?)x.Khoa))
+            {
+                int tong = x.Tong, da = x.DaKiem;
+                <div class="d-flex small"><span class="text-truncate">@(x.Khoa ?? "Kho CNTT / ngoài sổ")</span><span class="ms-auto">@da/@tong</span></div>
+                <div class="bar mb-2"><span style="width:@(tong == 0 ? 0 : 100 * da / tong)%"></span></div>
+            }
+        </div></div>
+    </div>
+</div>

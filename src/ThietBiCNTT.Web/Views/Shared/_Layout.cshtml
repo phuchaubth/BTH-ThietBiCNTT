@@ -23,6 +23,7 @@
         <a class="nav-item @Act("Home")" asp-controller="Home" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <div class="nav-section">Tài sản</div>
         <a class="nav-item @Act("TaiSan")" asp-controller="TaiSan" asp-action="Index"><i class="bi bi-pc-display"></i> Tài sản & cấu hình</a>
+        @if (quanLy || User.IsInRole(VaiTro.TruongKhoa)) { <a class="nav-item @Act("KiemKe")" asp-controller="KiemKe" asp-action="Index"><i class="bi bi-upc-scan"></i> Kiểm kê</a> }
         <div class="nav-section">Bảo trì</div>
         <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
         @if (quanLy) { <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a> }

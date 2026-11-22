@@ -30,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<ChiTietThanhLy> ChiTietThanhLys => Set<ChiTietThanhLy>();
     public DbSet<NhatKyHeThong> NhatKyHeThongs => Set<NhatKyHeThong>();
     public DbSet<ThamSoHeThong> ThamSoHeThongs => Set<ThamSoHeThong>();
+    public DbSet<DotKiemKe> DotKiemKes => Set<DotKiemKe>();
+    public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -101,6 +103,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
              .OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<NhatKyHeThong>().HasIndex(x => x.ThoiGian);
+        b.Entity<DotKiemKe>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique();
+            e.HasMany(x => x.ChiTiets).WithOne(x => x.DotKiemKe).HasForeignKey(x => x.DotKiemKeId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ChiTietKiemKe>(e =>
+        {
+            e.HasOne(x => x.KhoaSoSach).WithMany().HasForeignKey(x => x.KhoaSoSachId);
+            e.HasOne(x => x.KhoaThucTe).WithMany().HasForeignKey(x => x.KhoaThucTeId);
+            e.HasIndex(x => new { x.DotKiemKeId, x.TaiSanId });
+            e.HasIndex(x => new { x.DotKiemKeId, x.KetQua });
+        });
         b.Entity<ThamSoHeThong>().Property(x => x.ToiThieu).HasPrecision(18, 2);
         b.Entity<ThamSoHeThong>().Property(x => x.ToiDa).HasPrecision(18, 2);
     }
