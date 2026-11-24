@@ -22,6 +22,7 @@ public static class DbSeeder
                 new KhoaPhong { Ma = "TCKT", Ten = "Phòng Tài chính kế toán" },
                 new KhoaPhong { Ma = "VTTB", Ten = "Phòng Vật tư thiết bị y tế" },
                 new KhoaPhong { Ma = "TCCB", Ten = "Phòng Tổ chức cán bộ" },
+                new KhoaPhong { Ma = "HCQT", Ten = "Phòng Hành chính quản trị" },
                 new KhoaPhong { Ma = "KB", Ten = "Khoa Khám bệnh" },
                 new KhoaPhong { Ma = "CC", Ten = "Khoa Cấp cứu", LaKhoaTrongYeu = true },
                 new KhoaPhong { Ma = "HSTC", Ten = "Khoa Hồi sức tích cực - Chống độc", LaKhoaTrongYeu = true },
@@ -73,6 +74,8 @@ public static class DbSeeder
             await TaoUser(users, "truongkhoacc", "BS. Lê Thị Cúc", cc.Id, VaiTro.TruongKhoa);
             await TaoUser(users, "lanhdao", "Phó Giám đốc", null, VaiTro.LanhDao);
             await TaoUser(users, "nhanvien", "ĐD. Phạm Thu Hà", cc.Id, VaiTro.NhanVien);
+            var hcqt = await db.KhoaPhongs.FirstAsync(k => k.Ma == "HCQT");
+            await TaoUser(users, "truongkhoahcqt", "Trưởng phòng Hành chính quản trị", hcqt.Id, VaiTro.TruongKhoa);
             await TaoDuLieuMau(db);
         }
     }
@@ -95,7 +98,8 @@ public static class DbSeeder
         var ncc = await db.NhaCungCaps.ToListAsync();
         var rnd = new Random(42);
         var homNay = DateOnly.FromDateTime(DateTime.Today);
-        var dsKhoa = khoa.Values.ToList();
+        // HCQT (quản lý UPS/nguồn điện phòng máy chủ) không nhận máy tính mẫu — giữ nguyên phân bố dữ liệu mẫu cũ.
+        var dsKhoa = khoa.Values.Where(k => k.Ma != "HCQT").ToList();
         var mau = new (string Loai, string Ten, string Hang, string Model, decimal Gia)[]
         {
             ("PC", "Máy tính Dell OptiPlex 7010", "Dell", "OptiPlex 7010", 15_500_000),
@@ -200,8 +204,8 @@ public static class DbSeeder
                         Dk(6, "Bản sao lưu CSDL đêm qua thành công"),
                         Dk(7, "Hệ thống chữa cháy phòng máy chủ bình thường, không báo lỗi (FMS.06.01)"), Dk(8, "Các nút ngắt điện khẩn cấp còn nhãn rõ ràng (FMS.08.00 ME5)"),
                         new MucKiemTra { ThuTu = 9, NoiDung = "Ghi chú khác", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
-            new MauKiemTra { Ten = "Thử nguồn điện dự phòng phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS và máy phát", KhoaPhongId = khoa["CNTT"].Id, ChuKyGio = 2160,
-                MoTa = "FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả. Chạy tải ≥ 30 phút ở ≥ 30% công suất danh định (không tính khởi động/làm nguội). Phối hợp Phòng Hành chính quản trị.",
+            new MauKiemTra { Ten = "Thử nguồn điện dự phòng phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS và máy phát", KhoaPhongId = khoa["HCQT"].Id, ChuKyGio = 2160,
+                MoTa = "FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả. Chạy tải ≥ 30 phút ở ≥ 30% công suất danh định (không tính khởi động/làm nguội). Do Phòng Hành chính quản trị thực hiện; Phòng CNTT nhận kết quả và giám sát đúng hạn.",
                 Mucs = [So(1, "Thời gian chạy tải", "phút", 30, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian chuyển nguồn", "giây", null, 10),
                         So(4, "Thời gian lưu điện của UPS khi mất lưới", "phút", 10, null), Dk(5, "Chuyển nguồn không làm tắt máy chủ"), Dk(6, "Máy phát khởi động và nhận tải bình thường (nếu có)"),
                         So(7, "Nhiên liệu dự trữ (nếu dùng máy phát)", "giờ chạy", 8, null), new MucKiemTra { ThuTu = 8, NoiDung = "Nhận xét, người phối hợp (HCQT)", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
@@ -222,6 +226,7 @@ public static class DbSeeder
             NgaySuDung = homNay.AddYears(-3), HanBaoHanh = homNay.AddMonths(8), KhoaPhongId = khoa["CNTT"].Id, TrangThai = TrangThaiTaiSan.DangSuDung, NguonVon = NguonVon.NganSach };
         var sv1 = Ts("SV-0001", "Máy chủ ứng dụng HIS", "SV", "Dell"); var sv2 = Ts("SV-0002", "Máy chủ CSDL HIS", "SV", "Dell"); var sv3 = Ts("SV-0003", "Máy chủ LIS", "SV", "HP");
         var sv4 = Ts("SV-0004", "Máy chủ PACS", "SV", "HP"); var sw1 = Ts("SW-0001", "Switch lõi tầng 3", "SW", "Cisco"); var ups1 = Ts("UPS-0101", "UPS phòng máy chủ 20kVA", "UPS", "APC");
+        ups1.KhoaPhongId = khoa["HCQT"].Id; // UPS/nguồn điện phòng máy chủ do Phòng Hành chính quản trị quản lý
         db.TaiSans.AddRange(sv1, sv2, sv3, sv4, sw1, ups1);
         await db.SaveChangesAsync();
         db.LichSuTaiSans.AddRange(new[] { sv1, sv2, sv3, sv4, sw1, ups1 }.Select(t => new LichSuTaiSan { TaiSanId = t.Id, LoaiSuKien = LoaiSuKien.TaoMoi, NoiDung = "Nhập dữ liệu ban đầu", ThoiGian = now, NguoiThucHien = "system" }));

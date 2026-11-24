@@ -144,4 +144,14 @@ r=adm.post("/PhieuSuaChua/Create",{"TaiSanId":tid,"MoTaSuCo":"E2E: ổ đĩa má
 dd=adm.get(f"/PhieuSuaChua/Details/{pcid}")[1]
 check("Thiết bị này là thành phần của hệ thống thông tin" in dd and "Mở sự kiện downtime" in dd, "FR-HTT-11: phiếu hiển thị hệ thống bị ảnh hưởng và nút mở downtime")
 check("Thiết bị này là thành phần" not in nv.get("/")[1], "Nhân viên không thấy thông tin hạ tầng")
+# 10. Thử nguồn dự phòng hằng quý do Phòng HCQT thực hiện (FMS.08.01 ME3)
+hq=U("truongkhoahcqt")
+kt=hq.get("/KiemTra")[1]
+check("Thử nguồn điện dự phòng phòng máy chủ hằng quý" in kt, "Trưởng phòng HCQT thấy việc 'Thử nguồn dự phòng hằng quý' của khoa mình")
+check("Kiểm tra phòng máy chủ hằng ngày" not in kt, "HCQT không thấy phiếu kiểm tra của khoa khác")
+lk=ids(kt, r'href="(/KiemTra/Ghi\?mauId=\d+[^"]*)"')
+gb=hq.get(lk[0]) if lk else (0,"")
+check(len(lk)>0 and gb[0]==200 and "Thời gian chạy tải" in gb[1], "Trưởng phòng HCQT mở được biểu mẫu ghi kết quả thử nguồn (thời gian chạy tải, tỷ lệ tải…)")
+check(nv.get("/KiemTra")[0]==200 and "Thử nguồn điện dự phòng" not in nv.get("/KiemTra")[1], "Nhân viên khoa khác không thấy việc của HCQT")
+check("Phòng Hành chính quản trị" in adm.get(f"/TaiSan?q=UPS-0101")[1], "UPS phòng máy chủ do Phòng HCQT quản lý (tài sản thuộc khoa HCQT)")
 print("\nKẾT QUẢ:", "TẤT CẢ ĐẠT" if ok else "CÓ LỖI")
