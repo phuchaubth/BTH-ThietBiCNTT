@@ -1,0 +1,7 @@
+@{ var a = ViewContext.RouteData.Values["action"]?.ToString(); }
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link @(a == "Index" ? "active" : "")" asp-action="Index">Khoá API</a></li>
+    <li class="nav-item"><a class="nav-link @(a is "Webhooks" or "SuaWebhook" ? "active" : "")" asp-action="Webhooks">Webhook</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "NhatKy" ? "active" : "")" asp-action="NhatKy">Nhật ký gọi API</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "TaiLieu" ? "active" : "")" asp-action="TaiLieu">Tài liệu API</a></li>
+</ul>

@@ -49,6 +49,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
     public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
     public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
+    public DbSet<KhoaApi> KhoaApis => Set<KhoaApi>();
+    public DbSet<NhatKyApi> NhatKyApis => Set<NhatKyApi>();
+    public DbSet<Webhook> Webhooks => Set<Webhook>();
+    public DbSet<WebhookGui> WebhookGuis => Set<WebhookGui>();
     public DbSet<KhoanMucNganSach> KhoanMucNganSachs => Set<KhoanMucNganSach>();
     public DbSet<DieuChinhNganSach> DieuChinhNganSachs => Set<DieuChinhNganSach>();
     public DbSet<ChiNganSach> ChiNganSachs => Set<ChiNganSach>();
@@ -177,6 +181,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasMany(x => x.DieuChinhs).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.KhoanChis).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
         });
+        b.Entity<KhoaApi>().HasIndex(x => x.BamKhoa).IsUnique();
+        b.Entity<NhatKyApi>().HasIndex(x => x.ThoiGian);
+        b.Entity<WebhookGui>(e => { e.HasIndex(x => new { x.TrangThai, x.GuiTu }); e.HasOne(x => x.Webhook).WithMany().HasForeignKey(x => x.WebhookId).OnDelete(DeleteBehavior.Cascade); });
         b.Entity<ChiNganSach>().HasIndex(x => new { x.KhoanMucNganSachId, x.Ngay });
         b.Entity<DongDonHang>(e => { e.Property(x => x.SoLuong).HasPrecision(18, 2); e.Property(x => x.SoLuongDaNhan).HasPrecision(18, 2); });
         b.Entity<HopDongTaiSan>(e =>
@@ -210,6 +217,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         var now = DateTime.Now;
         var user = currentUser?.UserName ?? "system";
         var logs = new List<(NhatKyHeThong Log, EntityEntry Entry)>();
+        var suKien = ThuSuKienWebhook();
 
         foreach (var entry in ChangeTracker.Entries().ToList())
         {
@@ -223,15 +231,68 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         }
 
         var result = await base.SaveChangesAsync(ct);
-        if (logs.Count > 0)
+        suKien.AddRange(_suKienCho); _suKienCho.Clear();
+        if (logs.Count > 0 || suKien.Count > 0)
         {
             // Id của bản ghi mới chỉ có sau khi lưu.
             foreach (var (l, e) in logs) l.DoiTuongId ??= e.Property("Id").CurrentValue?.ToString();
             NhatKyHeThongs.AddRange(logs.Select(x => x.Log));
+            if (suKien.Count > 0)
+            {
+                var hooks = await Webhooks.AsNoTracking().Where(w => w.DangHoatDong).ToListAsync(ct);
+                foreach (var (ma, duLieu) in suKien)
+                    foreach (var w in hooks.Where(w => w.Nhan(ma)))
+                        WebhookGuis.Add(new WebhookGui { WebhookId = w.Id, SuKien = ma, ThoiGianTao = now, GuiTu = now,
+                            NoiDung = JsonSerializer.Serialize(new { suKien = ma, thoiGian = now, duLieu = duLieu() }, JsonWeb) });
+            }
             await base.SaveChangesAsync(ct);
         }
         return result;
     }
+
+    private static readonly JsonSerializerOptions JsonWeb = new(JsonSerializerDefaults.Web)
+    { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private readonly List<(string, Func<object>)> _suKienCho = [];
+
+    /// <summary>Phát sự kiện webhook tuỳ ý (gửi ở lần SaveChanges kế tiếp).</summary>
+    public void PhatSuKien(string ma, Func<object> duLieu) => _suKienCho.Add((ma, duLieu));
+
+    /// <summary>Nhận diện sự kiện webhook từ thay đổi (dữ liệu dựng sau khi lưu để có Id).</summary>
+    private List<(string, Func<object>)> ThuSuKienWebhook()
+    {
+        var ds = new List<(string, Func<object>)>();
+        foreach (var e in ChangeTracker.Entries())
+        {
+            switch (e.Entity)
+            {
+                case PhieuSuaChua p when e.State == EntityState.Added:
+                    ds.Add((SuKienWebhook.PhieuTao, () => DuLieuPhieu(p)));
+                    break;
+                case PhieuSuaChua p when e.State == EntityState.Modified && e.Property(nameof(PhieuSuaChua.TrangThai)).IsModified
+                                         && p.TrangThai is Domain.Enums.TrangThaiPhieuSuaChua.DaNghiemThu or Domain.Enums.TrangThaiPhieuSuaChua.DaHuy
+                                         && !Equals(e.Property(nameof(PhieuSuaChua.TrangThai)).OriginalValue, p.TrangThai):
+                    ds.Add((SuKienWebhook.PhieuDong, () => DuLieuPhieu(p)));
+                    break;
+                case TaiSan t when e.State == EntityState.Modified && e.Property(nameof(TaiSan.TrangThai)).IsModified
+                                   && !Equals(e.Property(nameof(TaiSan.TrangThai)).OriginalValue, t.TrangThai):
+                    var cu = e.Property(nameof(TaiSan.TrangThai)).OriginalValue?.ToString();
+                    ds.Add((SuKienWebhook.TaiSanTrangThai, () => new { t.Id, t.MaTaiSan, t.Ten, t.KhoaPhongId, trangThaiCu = cu, trangThaiMoi = t.TrangThai.ToString() }));
+                    if (t.TrangThai == Domain.Enums.TrangThaiTaiSan.DaThanhLy)
+                        ds.Add((SuKienWebhook.TaiSanGhiGiam, () => new { t.Id, t.MaTaiSan, t.Ten, t.NguyenGia, t.NgayMua, t.SoHopDong }));
+                    break;
+                case PhieuNhanHang n when e.State == EntityState.Added:
+                    ds.Add((SuKienWebhook.DonHangNhanHang, () => new { n.Id, n.DonMuaHangId, soDonHang = n.DonMuaHang?.SoPhieu, n.NgayNhan, n.GiaTri, n.SoHoaDon, n.PhieuKhoId, taiSanDaTao = n.TaiSanDaTao }));
+                    break;
+            }
+        }
+        return ds;
+    }
+
+    private static object DuLieuPhieu(PhieuSuaChua p) => new
+    {
+        p.Id, p.SoPhieu, loai = p.LoaiCongViec.ToString(), p.TaiSanId, p.KhoaPhongId, trangThai = p.TrangThai.ToString(), uuTien = p.UuTien.ToString(),
+        moTa = p.MoTaSuCo, p.NgayYeuCau, p.HanXuLy, p.KyThuatVien, p.NgayHoanThanh
+    };
 
     private static NhatKyHeThong TaoNhatKy(EntityEntry e, DateTime now, string user)
     {

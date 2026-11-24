@@ -55,8 +55,8 @@ builder.Services.ConfigureApplicationCookie(o =>
 });
 builder.Services.AddControllersWithViews(o =>
 {
-    // Mặc định mọi trang đều yêu cầu đăng nhập.
-    o.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
+    // Mặc định mọi trang giao diện đều yêu cầu đăng nhập; API /api/v1 xác thực bằng khoá API.
+    o.Conventions.Add(new DangNhapMacDinhConvention());
     // Đọc số trong form/query theo InvariantCulture (dấu chấm thập phân) dù hiển thị theo vi-VN.
     var i = o.ValueProviderFactories.IndexOf(o.ValueProviderFactories.OfType<Microsoft.AspNetCore.Mvc.ModelBinding.FormValueProviderFactory>().Single());
     o.ValueProviderFactories[i] = new InvariantValueProviderFactory();
@@ -65,6 +65,24 @@ builder.Services.AddControllersWithViews(o =>
 var vi = new System.Globalization.CultureInfo("vi-VN");
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = vi;
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = vi;
+builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, ApiKeyHandler>(ApiKeyHandler.Scheme, null);
+builder.Services.AddAuthorization(ApiKeyHandler.DangKyChinhSach);
+// Tài liệu OpenAPI cho API mở (chỉ các endpoint /api/v1).
+builder.Services.AddOpenApi("v1", o =>
+{
+    o.ShouldInclude = d => d.RelativePath?.StartsWith("api/v1") == true;
+    o.AddDocumentTransformer((doc, _, _) =>
+    {
+        doc.Info = new() { Title = "API Quản lý TTB CNTT", Version = "v1",
+            Description = "Xác thực: header X-Api-Key: tbk_… (Quản trị → Tích hợp → Khoá API). Mỗi khoá có phạm vi quyền và giới hạn IP; mọi lời gọi được ghi nhật ký." };
+        doc.Components ??= new();
+        doc.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+        doc.Components.SecuritySchemes["ApiKey"] = new Microsoft.OpenApi.OpenApiSecurityScheme
+        { Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey, In = Microsoft.OpenApi.ParameterLocation.Header, Name = "X-Api-Key" };
+        doc.Security = [new Microsoft.OpenApi.OpenApiSecurityRequirement { [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("ApiKey", doc)] = [] }];
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddHostedService<BaoTriBackgroundService>();
 builder.Services.AddHostedService<ThongBaoBackgroundService>();
 
@@ -107,9 +125,11 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseMiddleware<ApiMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
+app.MapOpenApi("/api/openapi/{documentName}.json").RequireAuthorization(p => p.RequireRole(VaiTro.QuanTri, VaiTro.CanBoCNTT));
 
 // Link in trên tem QR: /qr/{maTaiSan} → mở hồ sơ thiết bị.
 app.MapControllerRoute("qr", "qr/{ma}", new { controller = "TaiSan", action = "Qr" });

@@ -466,3 +466,50 @@ public class NganSachTests
         Assert.Equal(999, new SuDungNganSach(new KhoanMucNganSach(), 0, 0, 1, 0, 0).TyLe);
     }
 }
+
+public class TichHopTests
+{
+    [Theory]
+    [InlineData(null, "8.8.8.8", true)]
+    [InlineData("10.10.0.0/16", "10.10.5.7", true)]
+    [InlineData("10.10.0.0/16", "10.11.0.1", false)]
+    [InlineData("10.10.1.5, 192.168.1.0/24", "192.168.1.200", true)]
+    [InlineData("10.10.1.5", "10.10.1.6", false)]
+    [InlineData("10.0.0.0/8", "::ffff:10.1.2.3", true)]
+    [InlineData("10.10.1.128/25", "10.10.1.100", false)]
+    public void IpChoPhep_CidrVaDiaChiDon(string? ds, string ip, bool ok) =>
+        Assert.Equal(ok, new KhoaApi { IpChoPhep = ds }.IpHopLe(System.Net.IPAddress.Parse(ip)));
+
+    [Fact]
+    public void KiemTraDanhSachIp_BaoLoi() 
+    {
+        Assert.Throws<DomainException>(() => KhoaApi.KiemTraDanhSachIp("10.0.0.0/99"));
+        Assert.Throws<DomainException>(() => KhoaApi.KiemTraDanhSachIp("abc"));
+        Assert.Equal("10.0.0.1, 10.1.0.0/16", KhoaApi.KiemTraDanhSachIp(" 10.0.0.1 ,10.1.0.0/16 "));
+    }
+
+    [Fact]
+    public void KhoaHetHan_VaThuHoi()
+    {
+        var h = new DateOnly(2026, 11, 24);
+        Assert.True(new KhoaApi { HetHan = h }.CoHieuLuc(h));
+        Assert.False(new KhoaApi { HetHan = h.AddDays(-1) }.CoHieuLuc(h));
+        Assert.False(new KhoaApi { DangHoatDong = false }.CoHieuLuc(h));
+    }
+
+    [Fact]
+    public void Webhook_ThuLaiLuyThua_ChuKyHmac()
+    {
+        var now = new DateTime(2026, 11, 24, 9, 0, 0);
+        var g = new WebhookGui();
+        g.GhiLoi("timeout", null, now); Assert.Equal(now.AddMinutes(1), g.GuiTu);
+        g.GhiLoi("500", 500, now); Assert.Equal(now.AddMinutes(2), g.GuiTu);
+        for (var i = 0; i < 6; i++) g.GhiLoi("x", 500, now);
+        Assert.Equal(TrangThaiGuiWebhook.Loi, g.TrangThai);
+        // Vector kiểm chứng HMAC-SHA256 (RFC 4231 test case 2)
+        Assert.Equal("sha256=5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843",
+            ThietBiCNTT.Infrastructure.Services.TichHopService.Ky("Jefe", "what do ya want for nothing?"));
+        Assert.True(new Webhook { SuKien = "phieu.tao,phieu.dong" }.Nhan("phieu.dong"));
+        Assert.False(new Webhook { SuKien = "phieu.tao", DangHoatDong = false }.Nhan("phieu.tao"));
+    }
+}

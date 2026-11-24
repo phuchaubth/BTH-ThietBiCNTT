@@ -179,9 +179,12 @@ public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<Thon
                 if (DateTime.Now - lanCanhBao >= TimeSpan.FromMinutes(5))
                 {
                     await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
+                    await scope.ServiceProvider.GetRequiredService<TichHopService>().DonDepAsync(
+                        scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.ApiLuuNhatKyNgay), ct);
                     lanCanhBao = DateTime.Now;
                 }
                 await scope.ServiceProvider.GetRequiredService<HangDoiGuiService>().XuLyAsync(ct);
+                await scope.ServiceProvider.GetRequiredService<WebhookSender>().XuLyAsync(ct);
             }
             catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "Lỗi job thông báo"); }
             await Task.Delay(TimeSpan.FromSeconds(30), ct);

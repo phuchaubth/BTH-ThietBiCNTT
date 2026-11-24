@@ -445,6 +445,13 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
 - Gỡ *Default Web Site* nếu không dùng; không bật Directory Browsing (script đã tắt).
 - Thực hiện đúng quy trình **tháo ổ cứng trước khi thanh lý** (QĐ-03) — thiết bị có thể chứa dữ liệu người bệnh.
 - Định kỳ xem *Nhật ký hệ thống* để phát hiện thao tác bất thường.
+- **API mở `/api/v1`** (Quản trị → Tích hợp & API): mỗi hệ thống ngoài một khoá riêng, chỉ cấp đúng phạm vi cần, **giới hạn IP** máy gọi, đặt ngày hết hạn; thu hồi ngay khi không dùng. Khoá chỉ hiển thị một lần khi tạo (CSDL chỉ lưu băm SHA-256). Không cần API thì tắt tham số `Api.Bat`. Có thể chặn thêm ở IIS: *IP Address and Domain Restrictions* cho đường dẫn `api` (cho phép dải LAN/VPN, từ chối còn lại):
+  ```powershell
+  Install-WindowsFeature Web-IP-Security
+  Add-WebConfigurationProperty -PSPath 'IIS:\Sites\ThietBiCNTT' -Location 'ThietBiCNTT/api' -Filter 'system.webServer/security/ipSecurity' -Name '.' -Value @{ipAddress='10.0.0.0';subnetMask='255.0.0.0';allowed='true'}
+  Set-WebConfigurationProperty -PSPath 'IIS:\Sites\ThietBiCNTT' -Location 'ThietBiCNTT/api' -Filter 'system.webServer/security/ipSecurity' -Name 'allowUnlisted' -Value $false
+  ```
+- **Webhook** chỉ trỏ tới địa chỉ nội bộ tin cậy; bên nhận phải kiểm tra chữ ký `X-TBCNTT-Signature` (HMAC-SHA256 với bí mật của webhook) trước khi xử lý.
 
 ---
 

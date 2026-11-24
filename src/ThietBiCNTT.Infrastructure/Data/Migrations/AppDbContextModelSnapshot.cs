@@ -1358,6 +1358,71 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("Khos");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.KhoaApi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BamKhoa")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("DangHoatDong")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("HetHan")
+                        .HasColumnType("date");
+
+                    b.Property<string>("IpChoPhep")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("IpCuoi")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTime?>("LanCuoi")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhamVi")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Ten")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("TienTo")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BamKhoa")
+                        .IsUnique();
+
+                    b.ToTable("KhoaApis");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.KhoaPhong", b =>
                 {
                     b.Property<int>("Id")
@@ -1786,6 +1851,51 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("NhaCungCaps");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.NhatKyApi", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<int?>("KhoaApiId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaHttp")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("TenKhoa")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("ThoiGian")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ThoiGianMs")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ThoiGian");
+
+                    b.ToTable("NhatKyApis");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.NhatKyHeThong", b =>
@@ -2705,6 +2815,105 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("ViTris");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.Webhook", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BiMat")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("DangHoatDong")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SuKien")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Ten")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Webhooks");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.WebhookGui", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("GuiLuc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("GuiTu")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LoiCuoi")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("MaHttp")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SoLan")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SuKien")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ThoiGianTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WebhookId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WebhookId");
+
+                    b.HasIndex("TrangThai", "GuiTu");
+
+                    b.ToTable("WebhookGuis");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Property<string>("Id")
@@ -3491,6 +3700,17 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("Cha");
 
                     b.Navigation("KhoaPhong");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.WebhookGui", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.Webhook", "Webhook")
+                        .WithMany()
+                        .HasForeignKey("WebhookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Webhook");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Infrastructure.Identity.AppUser", b =>

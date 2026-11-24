@@ -1,0 +1,16 @@
+@{ ViewData["Title"] = "Tài liệu API"; }
+@section Styles { <link rel="stylesheet" href="~/lib/swagger-ui/swagger-ui.css" /> }
+<div class="page-head"><h1>Tích hợp hệ thống</h1></div>
+<partial name="_Tabs" />
+<div class="card mb-3"><div class="card-body small">
+    <p class="mb-1">Địa chỉ gốc: <code>@($"{Context.Request.Scheme}://{Context.Request.Host}")/api/v1</code> · định dạng JSON · xác thực bằng header <code>X-Api-Key</code>.
+        Tài liệu máy đọc: <a href="/api/openapi/v1.json">/api/openapi/v1.json</a>.</p>
+    <p class="mb-1">Mã lỗi: 401 thiếu/sai khoá · 403 khoá không có phạm vi · 404 không tìm thấy · 409 xung đột (VD đã có yêu cầu mở) · 429 vượt giới hạn/phút · 503 API đang tắt.</p>
+    <p class="mb-0">Webhook: POST JSON <code>{ suKien, thoiGian, duLieu }</code>, header <code>X-TBCNTT-Event</code>, <code>X-TBCNTT-Delivery</code>,
+        <code>X-TBCNTT-Signature: sha256=HMAC_SHA256(bí mật, thân)</code> — bên nhận tự tính lại chữ ký để xác minh; trả 2xx để xác nhận, lỗi sẽ được gửi lại tối đa 8 lần.</p>
+</div></div>
+<div id="swagger" class="card"><div class="card-body"></div></div>
+@section Scripts {
+<script src="~/lib/swagger-ui/swagger-ui-bundle.js"></script>
+<script>SwaggerUIBundle({ url: '/api/openapi/v1.json', dom_id: '#swagger .card-body', deepLinking: false, defaultModelsExpandDepth: 0, tryItOutEnabled: false });</script>
+}

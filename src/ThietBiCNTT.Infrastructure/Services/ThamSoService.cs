@@ -67,6 +67,10 @@ public static class TS
     public const string LeoThangCap2SauPhut = "LeoThang.Cap2SauPhut";
     public const string LeoThangCap2NguoiNhan = "LeoThang.Cap2NguoiNhan";
     public const string LeoThangCap3SauPhut = "LeoThang.Cap3SauPhut";
+    // API & tích hợp
+    public const string ApiBat = "Api.Bat";
+    public const string ApiGioiHanPhut = "Api.GioiHanMoiPhut";
+    public const string ApiLuuNhatKyNgay = "Api.LuuNhatKyNgay";
     // Bảo mật
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
@@ -136,6 +140,10 @@ public static class ThamSoMacDinh
         T(130, "Thông báo", TS.LeoThangCap2SauPhut, "Leo thang cấp 2 sau khi quá hạn", KieuThamSo.SoNguyen, "60", "phút", 0, 10080, moTa: "Cấp 1 (ngay khi quá hạn): KTV + toàn bộ Cán bộ CNTT. Cấp 2: người nhận dưới đây. 0 = tắt."),
         T(131, "Thông báo", TS.LeoThangCap2NguoiNhan, "Người nhận leo thang cấp 2", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập (Trưởng phòng CNTT…), cách nhau bởi dấu phẩy."),
         T(132, "Thông báo", TS.LeoThangCap3SauPhut, "Leo thang cấp 3 (Lãnh đạo) sau khi quá hạn", KieuThamSo.SoNguyen, "240", "phút", 0, 43200, moTa: "Chỉ áp dụng phiếu Khẩn cấp hoặc của khoa trọng yếu. Gửi cho các tài khoản vai trò Lãnh đạo. 0 = tắt."),
+
+        T(140, "API & tích hợp", TS.ApiBat, "Bật API mở /api/v1", KieuThamSo.BatTat, "true", moTa: "Tắt: mọi lời gọi API trả 503. Chỉ nên mở trong LAN/VPN (cấu hình tường lửa/IIS)."),
+        T(141, "API & tích hợp", TS.ApiGioiHanPhut, "Giới hạn số lời gọi mỗi khoá", KieuThamSo.SoNguyen, "120", "lần/phút", 1, 100000),
+        T(142, "API & tích hợp", TS.ApiLuuNhatKyNgay, "Lưu nhật ký gọi API", KieuThamSo.SoNguyen, "90", "ngày", 7, 3650),
 
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),

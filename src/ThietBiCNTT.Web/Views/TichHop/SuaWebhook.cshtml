@@ -1,0 +1,18 @@
+@model Webhook
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm webhook" : "Sửa webhook"; var chon = Model.SuKien.Split(',', StringSplitOptions.TrimEntries); }
+<div class="small text-muted mb-1"><a asp-action="Webhooks">Webhook</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="SuaWebhook" method="post" class="card" style="max-width:720px"><div class="card-body">
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Url" class="form-label"></label><input asp-for="Url" class="form-control" placeholder="http://his.bth.local/hooks/thietbi" />
+        <div class="form-text">Chỉ dùng địa chỉ nội bộ / tin cậy. Bên nhận xác minh chữ ký trong header X-TBCNTT-Signature.</div></div>
+    <div class="mb-3"><div class="form-label">Sự kiện</div>
+        @foreach (var (ma, ten) in SuKienWebhook.TatCa)
+        {
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="suKien" value="@ma" id="sk-@ma" checked="@chon.Contains(ma)" /><label class="form-check-label" for="sk-@ma">@ten <code class="small">@ma</code></label></div>
+        }</div>
+    <div class="form-check mb-3"><input asp-for="DangHoatDong" class="form-check-input" /><label asp-for="DangHoatDong" class="form-check-label">Đang hoạt động</label></div>
+    <button class="btn btn-primary">Lưu</button> <a asp-action="Webhooks" class="btn btn-link">Huỷ</a>
+</div></form>
