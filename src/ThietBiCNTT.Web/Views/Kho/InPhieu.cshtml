@@ -1,0 +1,15 @@
+@model PhieuKho
+@{ Layout = "_Print"; ViewData["Title"] = Model.SoPhieu; var i = 1; }
+<partial name="_HeaderBenhVien" />
+<h3>PHIẾU @Model.Loai.Ten().ToUpper()</h3>
+<p class="text-center">Số: <b>@Model.SoPhieu</b> · Ngày @((Model.NgayGhiSo ?? Model.NgayTao).ToString("dd/MM/yyyy"))</p>
+<p>Lý do: @Model.LyDo.Ten() @(Model.DienGiai is null ? "" : "– " + Model.DienGiai)<br />
+Kho: @Model.Kho?.Ten @(Model.KhoDen is null ? "" : "→ " + Model.KhoDen.Ten) @(Model.KhoaPhong is null ? "" : "· Khoa/phòng nhận: " + Model.KhoaPhong.Ten)
+@if (Model.NhaCungCap is not null) { <br />@("Nhà cung cấp: " + Model.NhaCungCap.Ten + (Model.SoChungTu is null ? "" : " · Chứng từ: " + Model.SoChungTu)) }
+@if (Model.NguoiGiaoNhan is not null) { <br />@("Người giao/nhận: " + Model.NguoiGiaoNhan) }</p>
+<table class="bb w-100 mb-3">
+    <tr><th>STT</th><th>Mã</th><th>Tên vật tư</th><th>ĐVT</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+    @foreach (var c in Model.ChiTiets) { <tr><td>@(i++)</td><td>@c.VatTu?.Ma</td><td>@c.VatTu?.Ten</td><td>@c.VatTu?.DonViTinh</td><td class="text-end">@c.SoLuong.ToString("0.##")</td><td class="text-end">@c.DonGia.ToString("N0")</td><td class="text-end">@c.ThanhTien.ToString("N0")</td></tr> }
+    <tr><td colspan="6" class="text-end"><b>Tổng cộng</b></td><td class="text-end"><b>@Model.TongTien.ToString("N0")</b></td></tr>
+</table>
+<div class="ky"><div><b>Người lập phiếu</b><br /><i>(Ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiTao</div><div><b>Người giao / nhận</b><br /><i>(Ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiGiaoNhan</div><div><b>Thủ kho</b><br /><i>(Ký, ghi rõ họ tên)</i></div></div>

@@ -24,7 +24,7 @@ public class BaoHongVm
     public bool XacNhanTrung { get; set; }
 }
 
-public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb, TepService tep) : Controller
+public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb, TepService tep, KhoService kho) : Controller
 {
     private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
 
@@ -126,8 +126,10 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         ViewBag.KTV = new SelectList((await users.GetUsersInRoleAsync(VaiTro.CanBoCNTT)).Concat(await users.GetUsersInRoleAsync(VaiTro.QuanTri))
             .Select(u => new { u.UserName, Ten = $"{u.HoTen} ({u.UserName})" }), "UserName", "Ten", p.KyThuatVien);
         ViewBag.Ncc = new SelectList(await db.NhaCungCaps.OrderBy(n => n.Ten).ToListAsync(), "Id", "Ten", p.NhaCungCapId);
-        ViewBag.VatTu = new SelectList(await db.VatTus.Where(v => v.TonKho > 0).OrderBy(v => v.Ten)
-            .Select(v => new { v.Id, Ten = v.Ma + " - " + v.Ten + " (tồn " + ((double)v.TonKho).ToString() + " " + v.DonViTinh + ")" }).ToListAsync(), "Id", "Ten");
+        // Chọn vật tư theo kho: giá trị "khoId:vatTuId"
+        ViewBag.VatTu = new SelectList((await db.TonKhoVatTus.AsNoTracking().Where(t => t.SoLuong > 0).Include(t => t.VatTu).Include(t => t.Kho).ToListAsync())
+            .OrderBy(t => t.VatTu!.Ten).ThenBy(t => t.Kho!.Ma)
+            .Select(t => new { Id = $"{t.KhoId}:{t.VatTuId}", Ten = $"{t.VatTu!.Ma} - {t.VatTu.Ten} · {t.Kho!.Ten} (tồn {t.SoLuong:0.##} {t.VatTu.DonViTinh})" }), "Id", "Ten");
         ViewBag.Tep = await tep.DanhSachAsync("PhieuSuaChua", id.ToString());
         ViewBag.LichSuThietBi = await db.PhieuSuaChuas.AsNoTracking().Where(x => x.TaiSanId == p.TaiSanId && x.Id != p.Id)
             .OrderByDescending(x => x.NgayYeuCau).Take(5).ToListAsync();
@@ -247,24 +249,33 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
             p.Huy(lyDo); return "Đã huỷ phiếu.";
         }, chiCNTT: false);
 
+    /// <summary>Xuất vật tư cho phiếu: lập phiếu xuất kho (ghi sổ, thẻ kho) và gắn chi phí vào phiếu.</summary>
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
-    public async Task<IActionResult> ThemVatTu(int id, int vatTuId, decimal soLuong)
+    public async Task<IActionResult> ThemVatTu(int id, string vatTu, decimal soLuong)
     {
-        var p = await db.PhieuSuaChuas.FirstOrDefaultAsync(x => x.Id == id);
-        var v = await db.VatTus.FindAsync(vatTuId);
-        if (p is null || v is null) return NotFound();
+        var p = await db.PhieuSuaChuas.Include(x => x.TaiSan).FirstOrDefaultAsync(x => x.Id == id);
+        var parts = (vatTu ?? "").Split(':');
+        if (p is null || parts.Length != 2 || !int.TryParse(parts[0], out var khoId) || !int.TryParse(parts[1], out var vatTuId)) return NotFound();
         try
         {
             if (p.DaDong || p.TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành.");
-            v.XuatKho(soLuong, thamSo.BatTat(TS.KhoChoXuatAm));
-            db.ChiTietVatTuSuaChuas.Add(new ChiTietVatTuSuaChua { PhieuSuaChuaId = id, VatTuId = vatTuId, SoLuong = soLuong, DonGia = v.DonGia });
+            await using var tx = await db.Database.BeginTransactionAsync();
+            var px = await kho.LapAsync(new PhieuKho
+            {
+                LyDo = LyDoPhieuKho.XuatSuaChua, KhoId = khoId, PhieuSuaChuaId = p.Id, KhoaPhongId = p.KhoaPhongId,
+                DienGiai = $"Xuất cho {p.SoPhieu} ({p.TaiSan?.MaTaiSan})",
+                ChiTiets = [new ChiTietPhieuKho { VatTuId = vatTuId, SoLuong = soLuong }]
+            }, User.Identity?.Name);
+            var ct = px.ChiTiets[0];
+            var v = await db.VatTus.FindAsync(vatTuId);
+            db.ChiTietVatTuSuaChuas.Add(new ChiTietVatTuSuaChua { PhieuSuaChuaId = id, VatTuId = vatTuId, SoLuong = soLuong, DonGia = ct.DonGia, KhoId = khoId, PhieuKhoId = px.Id });
             db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, LaHeThong = true,
-                NoiDung = $"Xuất kho {soLuong} {v.DonViTinh} {v.Ten}" });
+                NoiDung = $"Xuất kho {soLuong:0.##} {v?.DonViTinh} {v?.Ten} ({px.SoPhieu})" });
             await db.SaveChangesAsync();
-            if (v.DuoiTonToiThieu) { await tb.VatTuDuoiDinhMucAsync(v); await db.SaveChangesAsync(); }
-            TempData["ok"] = v.DuoiTonToiThieu ? $"Đã xuất kho. {v.Ten} còn {v.TonKho:0.##}, dưới định mức — đã báo Phòng CNTT." : "Đã xuất kho vật tư.";
+            await tx.CommitAsync();
+            TempData["ok"] = v?.DuoiTonToiThieu == true ? $"Đã xuất kho ({px.SoPhieu}). {v.Ten} còn {v.TonKho:0.##}, dưới định mức — đã báo Phòng CNTT." : $"Đã xuất kho ({px.SoPhieu}).";
         }
-        catch (DomainException ex) { TempData["err"] = ex.Message; }
+        catch (DomainException ex) { db.ChangeTracker.Clear(); TempData["err"] = ex.Message; }
         return RedirectToAction(nameof(Details), new { id });
     }
 

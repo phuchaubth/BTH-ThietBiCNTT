@@ -1,0 +1,40 @@
+@model List<VatTu>
+@{
+    ViewData["Title"] = "Kho vật tư";
+    var khos = (List<Kho>)ViewBag.Khos; var ton = (Dictionary<(int, int), decimal>)ViewBag.Ton;
+    var duoi = (bool)ViewData["duoiDinhMuc"]!;
+}
+<div class="page-head"><h1>Kho vật tư</h1>
+    @if (User.LaCNTT())
+    {
+        <div class="actions">
+            <a asp-action="Lap" asp-route-loai="Nhap" class="btn btn-sm btn-success"><i class="bi bi-box-arrow-in-down"></i> Nhập kho</a>
+            <a asp-action="Lap" asp-route-loai="Xuat" class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-up"></i> Xuất kho</a>
+            <a asp-action="Lap" asp-route-loai="Chuyen" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left-right"></i> Chuyển kho</a>
+        </div>
+    }
+</div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <input name="q" value="@ViewData["q"]" class="form-control form-control-sm" style="width:240px" placeholder="Mã, tên, nhóm vật tư" aria-label="Tìm vật tư" />
+    <select name="khoId" class="form-select form-select-sm" style="width:220px" aria-label="Kho"><option value="">— Mọi kho —</option>@foreach (var k in khos) { <option value="@k.Id" selected="@(k.Id == (int?)ViewData["khoId"])">@k.Ten</option> }</select>
+    <div class="form-check align-self-center"><input class="form-check-input" type="checkbox" name="duoiDinhMuc" value="true" id="dm" @(duoi ? "checked" : "") /><label class="form-check-label small" for="dm">Dưới định mức</label></div>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Mã</th><th>Vật tư</th><th>ĐVT</th>@foreach (var k in khos) { <th class="text-end">@k.Ma</th> }<th class="text-end">Tổng tồn</th><th class="text-end">Tối thiểu</th><th class="text-end">Đơn giá BQ</th><th class="text-end">Giá trị tồn</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var v in Model)
+    {
+        <tr class="@(v.DuoiTonToiThieu ? "table-warning" : "")">
+            <td class="fw-semibold">@v.Ma</td><td>@v.Ten<div class="small text-muted">@v.Nhom @v.QuyCach</div></td><td class="small">@v.DonViTinh</td>
+            @foreach (var k in khos) { var t = ton.GetValueOrDefault((v.Id, k.Id)); <td class="text-end @(t == 0 ? "text-muted" : "")">@t.ToString("0.##")</td> }
+            <td class="text-end fw-semibold">@v.TonKho.ToString("0.##")</td><td class="text-end small">@v.TonToiThieu.ToString("0.##")</td>
+            <td class="text-end small">@v.DonGia.ToString("N0")</td><td class="text-end small">@((v.TonKho * v.DonGia).ToString("N0"))</td>
+            <td><a asp-action="TheKho" asp-route-vatTuId="@v.Id" class="btn btn-sm btn-link p-0">Thẻ kho</a></td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="@(8 + khos.Count)" class="text-center text-muted py-4">Không có vật tư phù hợp.</td></tr> }
+    </tbody>
+    <tfoot><tr><td colspan="@(3 + khos.Count)" class="text-end small">Tổng giá trị tồn</td><td colspan="4" class="text-end fw-semibold">@Model.Sum(v => v.TonKho * v.DonGia).ToString("N0") đ</td><td></td></tr></tfoot>
+</table></div></div>

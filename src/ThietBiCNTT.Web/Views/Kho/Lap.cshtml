@@ -1,0 +1,59 @@
+@model PhieuKho
+@{
+    ViewData["Title"] = "Lập phiếu " + Model.Loai.Ten().ToLower();
+    var vts = (List<VatTu>)ViewBag.VatTus; var ton = (Dictionary<(int, int), decimal>)ViewBag.Ton;
+    var nhap = Model.Loai == LoaiPhieuKho.Nhap;
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Kho vật tư</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Lap" method="post">
+    <div class="card mb-3"><div class="card-body row g-3">
+        <div class="col-md-4"><label asp-for="LyDo" class="form-label"></label><select asp-for="LyDo" asp-items="ViewBag.DsLyDo" class="form-select" id="lyDo"></select></div>
+        <div class="col-md-4"><label asp-for="KhoId" class="form-label">@(nhap ? "Nhập vào kho" : "Xuất từ kho")</label><select asp-for="KhoId" asp-items="ViewBag.DsKho" class="form-select" id="kho"></select></div>
+        @if (Model.Loai == LoaiPhieuKho.Chuyen) { <div class="col-md-4"><label asp-for="KhoDenId" class="form-label"></label><select asp-for="KhoDenId" asp-items="ViewBag.DsKho" class="form-select" required><option value="">—</option></select></div> }
+        @if (Model.Loai == LoaiPhieuKho.Xuat) { <div class="col-md-4"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">—</option></select><div class="form-text">Bắt buộc khi xuất cấp cho khoa.</div></div> }
+        @if (nhap)
+        {
+            <div class="col-md-4"><label asp-for="NhaCungCapId" class="form-label"></label><select asp-for="NhaCungCapId" asp-items="ViewBag.DsNcc" class="form-select"><option value="">—</option></select></div>
+            <div class="col-md-4"><label asp-for="SoChungTu" class="form-label"></label><input asp-for="SoChungTu" class="form-control" /></div>
+        }
+        <div class="col-md-4"><label asp-for="NguoiGiaoNhan" class="form-label"></label><input asp-for="NguoiGiaoNhan" class="form-control" /></div>
+        <div class="col-md-8"><label asp-for="DienGiai" class="form-label"></label><input asp-for="DienGiai" class="form-control" /></div>
+    </div></div>
+    <div class="card mb-3"><div class="card-header d-flex">Vật tư <button type="button" id="them" class="btn btn-sm btn-outline-primary ms-auto"><i class="bi bi-plus"></i> Thêm dòng</button></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+            <thead><tr><th style="width:45%">Vật tư</th><th>Tồn tại kho</th><th>Số lượng</th>@if (nhap) { <th>Đơn giá nhập</th> }<th>Ghi chú</th><th></th></tr></thead>
+            <tbody id="dong"></tbody>
+        </table></div>
+    </div>
+    <button class="btn btn-primary"><i class="bi bi-check2-circle"></i> Lưu & ghi sổ</button> <a asp-action="Index" class="btn btn-link">Huỷ</a>
+</form>
+<template id="mau">
+    <tr>
+        <td><select name="dong[#].VatTuId" class="form-select form-select-sm vt" aria-label="Vật tư" required><option value="">— Chọn —</option>
+            @foreach (var v in vts) { <option value="@v.Id" data-gia="@v.DonGia.ToString("0")" data-dvt="@v.DonViTinh">@v.Ma – @v.Ten</option> }</select></td>
+        <td class="small ton text-muted">—</td>
+        <td><input name="dong[#].SoLuong" type="number" step="any" min="0.01" class="form-control form-control-sm" style="width:110px" aria-label="Số lượng" required /></td>
+        @if (nhap) { <td><input name="dong[#].DonGia" type="number" step="1" min="0" class="form-control form-control-sm gia" style="width:140px" aria-label="Đơn giá" /></td> }
+        <td><input name="dong[#].GhiChu" class="form-control form-control-sm" aria-label="Ghi chú" /></td>
+        <td><button type="button" class="btn btn-sm btn-link text-danger xoa" aria-label="Xoá dòng"><i class="bi bi-x-lg"></i></button></td>
+    </tr>
+</template>
+@section Scripts {
+<script>
+(function () {
+    const ton = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ton.ToDictionary(x => x.Key.Item1 + ":" + x.Key.Item2, x => x.Value)));
+    const tb = document.getElementById('dong'), kho = document.getElementById('kho');
+    const danhLai = () => [...tb.rows].forEach((r, i) => r.querySelectorAll('[name^="dong["]').forEach(e => e.name = e.name.replace(/^dong\[[^\]]*\]/, 'dong[' + i + ']')));
+    const capNhat = r => { const s = r.querySelector('.vt'); const o = s.selectedOptions[0];
+        r.querySelector('.ton').textContent = s.value ? ((ton[kho.value + ':' + s.value] || 0) + ' ' + (o.dataset.dvt || '')) : '—';
+        const g = r.querySelector('.gia'); if (g && s.value && !g.value) g.value = o.dataset.gia; };
+    const them = () => { tb.insertAdjacentHTML('beforeend', document.getElementById('mau').innerHTML); danhLai(); };
+    document.getElementById('them').onclick = them;
+    tb.addEventListener('change', e => { if (e.target.classList.contains('vt')) capNhat(e.target.closest('tr')); });
+    tb.addEventListener('click', e => { if (e.target.closest('.xoa')) { e.target.closest('tr').remove(); danhLai(); } });
+    kho.addEventListener('change', () => [...tb.rows].forEach(capNhat));
+    them();
+})();
+</script>
+}

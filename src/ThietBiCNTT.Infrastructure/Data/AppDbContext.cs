@@ -38,6 +38,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<KetQuaKiemTra> KetQuaKiemTras => Set<KetQuaKiemTra>();
     public DbSet<TepDinhKem> TepDinhKems => Set<TepDinhKem>();
     public DbSet<HopDong> HopDongs => Set<HopDong>();
+    public DbSet<Kho> Khos => Set<Kho>();
+    public DbSet<TonKhoVatTu> TonKhoVatTus => Set<TonKhoVatTu>();
+    public DbSet<PhieuKho> PhieuKhos => Set<PhieuKho>();
+    public DbSet<ChiTietPhieuKho> ChiTietPhieuKhos => Set<ChiTietPhieuKho>();
+    public DbSet<TheKho> TheKhos => Set<TheKho>();
     public DbSet<HopDongTaiSan> HopDongTaiSans => Set<HopDongTaiSan>();
     public DbSet<BanQuyenPhanMem> BanQuyenPhanMems => Set<BanQuyenPhanMem>();
     public DbSet<CapPhatBanQuyen> CapPhatBanQuyens => Set<CapPhatBanQuyen>();
@@ -125,6 +130,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         b.Entity<KetQuaKiemTra>().Property(x => x.GiaTriSo).HasPrecision(18, 3);
         b.Entity<TepDinhKem>().HasIndex(x => new { x.DoiTuong, x.DoiTuongId });
         b.Entity<HopDong>(e => { e.HasIndex(x => x.SoHopDong); e.HasIndex(x => x.HieuLucDen); });
+        b.Entity<Kho>().HasIndex(x => x.Ma).IsUnique();
+        b.Entity<TonKhoVatTu>(e => { e.HasIndex(x => new { x.KhoId, x.VatTuId }).IsUnique(); e.Property(x => x.SoLuong).HasPrecision(18, 2); });
+        b.Entity<PhieuKho>(e =>
+        {
+            e.HasIndex(x => x.SoPhieu).IsUnique();
+            e.HasOne(x => x.Kho).WithMany().HasForeignKey(x => x.KhoId);
+            e.HasOne(x => x.KhoDen).WithMany().HasForeignKey(x => x.KhoDenId);
+            e.HasMany(x => x.ChiTiets).WithOne(x => x.PhieuKho).HasForeignKey(x => x.PhieuKhoId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ChiTietPhieuKho>(e => { e.Property(x => x.SoLuong).HasPrecision(18, 2); e.Property(x => x.TonSoSach).HasPrecision(18, 2); });
+        b.Entity<TheKho>(e =>
+        {
+            e.HasIndex(x => new { x.KhoId, x.VatTuId, x.ThoiGian });
+            e.Property(x => x.Nhap).HasPrecision(18, 2); e.Property(x => x.Xuat).HasPrecision(18, 2); e.Property(x => x.TonSau).HasPrecision(18, 2);
+        });
+        b.Entity<VatTu>().Property(x => x.TonToiDa).HasPrecision(18, 2);
         b.Entity<HopDongTaiSan>(e =>
         {
             e.HasKey(x => new { x.HopDongId, x.TaiSanId });

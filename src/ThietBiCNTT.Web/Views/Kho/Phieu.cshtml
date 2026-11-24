@@ -1,0 +1,24 @@
+@model List<PhieuKho>
+@{ ViewData["Title"] = "Phiếu kho"; var page = (int)ViewData["page"]!; }
+<div class="page-head"><h1>Kho vật tư</h1></div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="loai" class="form-select form-select-sm" style="width:220px" asp-items="@EnumExtensions.ToSelectList((LoaiPhieuKho?)ViewData["loai"])" aria-label="Loại"><option value="">— Mọi loại —</option></select>
+    <select name="trangThai" class="form-select form-select-sm" style="width:200px" asp-items="@EnumExtensions.ToSelectList((TrangThaiPhieuKho?)ViewData["trangThai"])" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Số phiếu</th><th>Ngày</th><th>Loại · lý do</th><th>Kho</th><th>Đối tượng</th><th class="text-end">Số dòng</th><th class="text-end">Giá trị</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        <tr><td class="fw-semibold"><a asp-action="ChiTiet" asp-route-id="@p.Id">@p.SoPhieu</a></td><td class="small">@p.NgayTao.ToString("dd/MM/yy HH:mm")</td>
+            <td class="small">@p.Loai.Ten()<div class="text-muted">@p.LyDo.Ten()</div></td>
+            <td class="small">@p.Kho?.Ma @(p.KhoDen is null ? "" : "→ " + p.KhoDen.Ma)</td><td class="small">@(p.KhoaPhong?.Ten ?? p.DienGiai)</td>
+            <td class="text-end">@p.ChiTiets.Count</td><td class="text-end small">@Math.Abs(p.TongTien).ToString("N0")</td>
+            <td><span class="badge bg-@(p.TrangThai == TrangThaiPhieuKho.DaGhiSo ? "success" : p.TrangThai == TrangThaiPhieuKho.ChoDuyet ? "warning text-dark" : "secondary")">@p.TrangThai.Ten()</span></td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Chưa có phiếu kho.</td></tr> }
+    </tbody>
+</table></div></div>
+<div class="mt-2"><a class="btn btn-sm btn-outline-secondary @(page <= 1 ? "disabled" : "")" href="?page=@(page - 1)">« Mới hơn</a> <a class="btn btn-sm btn-outline-secondary @(Model.Count < 50 ? "disabled" : "")" href="?page=@(page + 1)">Cũ hơn »</a></div>

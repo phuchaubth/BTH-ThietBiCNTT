@@ -28,7 +28,7 @@
         <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
         <a class="nav-item @Act("KiemTra")" asp-controller="KiemTra" asp-action="Index"><i class="bi bi-clipboard-check"></i> Kiểm tra thiết bị</a>
         @if (quanLy) { <a class="nav-item @Act("KeHoachBaoTri")" asp-controller="KeHoachBaoTri" asp-action="Index"><i class="bi bi-calendar2-check"></i> Bảo trì định kỳ</a> }
-        @if (cntt) { <a class="nav-item @Act("VatTu")" asp-controller="VatTu" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a> }
+        @if (quanLy) { <a class="nav-item @Act("Kho", "VatTu", "KhoDanhMuc")" asp-controller="Kho" asp-action="Index"><i class="bi bi-box-seam"></i> Kho vật tư</a> }
         @if (quanLy)
         {
             <div class="nav-section">Hợp đồng & báo cáo</div>

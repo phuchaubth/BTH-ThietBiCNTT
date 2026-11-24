@@ -1,0 +1,8 @@
+@{ var a = ViewContext.RouteData.Values["action"]?.ToString(); var c = ViewContext.RouteData.Values["controller"]?.ToString(); }
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link @(c == "Kho" && a == "Index" ? "active" : "")" asp-controller="Kho" asp-action="Index">Tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link @(a is "Phieu" or "ChiTiet" or "Lap" ? "active" : "")" asp-controller="Kho" asp-action="Phieu">Phiếu kho</a></li>
+    @if (User.LaCNTT()) { <li class="nav-item"><a class="nav-link @(a == "KiemKe" ? "active" : "")" asp-controller="Kho" asp-action="KiemKe">Kiểm kê kho</a></li> }
+    <li class="nav-item"><a class="nav-link @(c == "VatTu" ? "active" : "")" asp-controller="VatTu" asp-action="Index">Danh mục vật tư</a></li>
+    @if (User.LaCNTT()) { <li class="nav-item"><a class="nav-link @(c == "KhoDanhMuc" ? "active" : "")" asp-controller="KhoDanhMuc" asp-action="Index">Danh mục kho</a></li> }
+</ul>

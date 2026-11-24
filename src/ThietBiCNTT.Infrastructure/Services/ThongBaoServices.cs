@@ -93,7 +93,7 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
 
     public async Task VatTuDuoiDinhMucAsync(VatTu v) =>
         await GuiAsync(await CanBoCNTTAsync(), LoaiThongBao.VatTu, $"Vật tư {v.Ma} dưới định mức (còn {v.TonKho:0.##} {v.DonViTinh})",
-            $"{v.Ten} — tồn tối thiểu {v.TonToiThieu:0.##}. Cần lập đề xuất mua sắm.", "/VatTu", MucDoThongBao.CanhBao);
+            $"{v.Ten} — tồn tối thiểu {v.TonToiThieu:0.##}. Cần lập đề xuất mua sắm.", "/Kho?duoiDinhMuc=true", MucDoThongBao.CanhBao);
 
     private static string MotDong(string s) { var x = s.Split('\n')[0]; return x.Length > 80 ? x[..80] + "…" : x; }
 }

@@ -28,7 +28,7 @@
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-trangThai="Hong"><div class="card kpi"><div class="label">Hỏng</div><div class="value text-danger">@Model.Hong</div></div></a></div>
     <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="TaiSan" asp-action="Index" asp-route-hetBaoHanh="true"><div class="card kpi"><div class="label">Hết BH trong @Model.SoNgayCanhBaoBaoHanh ngày</div><div class="value">@Model.SapHetBaoHanh</div></div></a></div>
     <div class="col-6 col-md-4 col-xl-2"><div class="card kpi"><div class="label">Quá tuổi thọ khuyến nghị</div><div class="value">@Model.TaiSanQuaTuoiTho</div><div class="sub">Cân nhắc thay thế</div></div></div>
-    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="VatTu" asp-action="Index"><div class="card kpi"><div class="label">Vật tư dưới định mức</div><div class="value @(Model.VatTuDuoiDinhMuc > 0 ? "text-danger" : "")">@Model.VatTuDuoiDinhMuc</div></div></a></div>
+    <div class="col-6 col-md-4 col-xl-2"><a class="text-decoration-none" asp-controller="Kho" asp-action="Index" asp-route-duoiDinhMuc="true"><div class="card kpi"><div class="label">Vật tư dưới định mức</div><div class="value @(Model.VatTuDuoiDinhMuc > 0 ? "text-danger" : "")">@Model.VatTuDuoiDinhMuc</div></div></a></div>
 </div>
 
 <div class="row g-3">

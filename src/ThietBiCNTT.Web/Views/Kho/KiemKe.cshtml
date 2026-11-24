@@ -1,0 +1,25 @@
+@model Kho
+@{ ViewData["Title"] = "Kiểm kê kho"; var ton = (Dictionary<int, decimal>)ViewBag.Ton; var vts = (List<VatTu>)ViewBag.VatTus; }
+<div class="page-head"><h1>Kho vật tư</h1></div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex gap-2 mb-3"><select name="khoId" asp-items="ViewBag.DsKho" class="form-select form-select-sm" style="width:260px" aria-label="Kho" onchange="this.form.submit()"></select></form>
+<form asp-action="KiemKe" method="post">
+    <input type="hidden" name="khoId" value="@Model.Id" />
+    <div class="alert alert-info small py-2">Nhập <b>số lượng thực tế</b> đếm được (để trống = không kiểm). Hệ thống chỉ lập phiếu điều chỉnh cho các dòng chênh lệch; phiếu cần <b>Quản trị duyệt</b> mới ghi sổ.</div>
+    <div class="card mb-3"><div class="table-responsive" style="max-height:600px"><table class="table table-sm mb-0 align-middle">
+        <thead class="sticky-top"><tr><th>Mã</th><th>Vật tư</th><th>ĐVT</th><th class="text-end">Tồn sổ sách</th><th style="width:160px">Thực tế</th><th class="text-end">Chênh lệch</th></tr></thead>
+        <tbody>@foreach (var v in vts) { var t = ton.GetValueOrDefault(v.Id);
+            <tr><td class="fw-semibold">@v.Ma</td><td>@v.Ten</td><td class="small">@v.DonViTinh</td><td class="text-end so-sach" data-v="@t.ToString(System.Globalization.CultureInfo.InvariantCulture)">@t.ToString("0.##")</td>
+                <td><input name="thucTe[@v.Id]" type="number" step="any" min="0" class="form-control form-control-sm tt" aria-label="Thực tế @v.Ma" /></td><td class="text-end cl"></td></tr> }
+        </tbody></table></div></div>
+    <div class="d-flex gap-2"><input name="dienGiai" class="form-control" placeholder="Diễn giải (VD: Kiểm kê kho cuối quý IV/2026)" aria-label="Diễn giải" /><button class="btn btn-primary text-nowrap">Lập phiếu điều chỉnh</button></div>
+</form>
+@section Scripts {
+<script>
+document.querySelectorAll('.tt').forEach(i => i.addEventListener('input', () => {
+    const r = i.closest('tr'), ss = +r.querySelector('.so-sach').dataset.v, c = r.querySelector('.cl');
+    if (i.value === '') { c.textContent = ''; return; }
+    const d = +i.value - ss; c.textContent = d === 0 ? '0' : (d > 0 ? '+' : '') + d; c.className = 'text-end cl fw-semibold ' + (d < 0 ? 'text-danger' : d > 0 ? 'text-success' : '');
+}));
+</script>
+}

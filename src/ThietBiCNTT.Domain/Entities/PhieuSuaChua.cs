@@ -191,6 +191,9 @@ public class ChiTietVatTuSuaChua
     public PhieuSuaChua? PhieuSuaChua { get; set; }
     public int VatTuId { get; set; }
     public VatTu? VatTu { get; set; }
+    /// <summary>Kho xuất & phiếu xuất kho tương ứng (truy vết FR-KHO-09).</summary>
+    public int? KhoId { get; set; }
+    public int? PhieuKhoId { get; set; }
     public decimal SoLuong { get; set; }
     public decimal DonGia { get; set; }
     public decimal ThanhTien => SoLuong * DonGia;

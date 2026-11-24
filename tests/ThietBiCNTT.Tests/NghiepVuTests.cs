@@ -298,3 +298,35 @@ public class BanQuyenHopDongTests
         Assert.NotNull(p.NgayNhanVe); Assert.False(p.TreHenTra(DateOnly.FromDateTime(DateTime.Today)));
     }
 }
+
+public class KhoTests
+{
+    [Fact]
+    public void GiaBinhQuanGiaQuyen()
+    {
+        var v = new VatTu { TonKho = 4, DonGia = 650_000 };
+        v.CapNhatGiaBinhQuan(10, 750_000);
+        Assert.Equal(721_429, v.DonGia);
+        var moi = new VatTu { TonKho = 0, DonGia = 0 };
+        moi.CapNhatGiaBinhQuan(5, 100_000);
+        Assert.Equal(100_000, moi.DonGia);
+    }
+
+    [Theory]
+    [InlineData(LyDoPhieuKho.NhapMua, LoaiPhieuKho.Nhap)]
+    [InlineData(LyDoPhieuKho.XuatSuaChua, LoaiPhieuKho.Xuat)]
+    [InlineData(LyDoPhieuKho.ChuyenKho, LoaiPhieuKho.Chuyen)]
+    [InlineData(LyDoPhieuKho.KiemKe, LoaiPhieuKho.DieuChinh)]
+    public void LoaiPhieuTheoLyDo(LyDoPhieuKho lyDo, LoaiPhieuKho loai) => Assert.Equal(loai, PhieuKho.LoaiCua(lyDo));
+
+    [Fact]
+    public void PhieuKho_KiemTraHopLe()
+    {
+        PhieuKho P(LyDoPhieuKho l, params ChiTietPhieuKho[] c) => new() { LyDo = l, Loai = PhieuKho.LoaiCua(l), KhoId = 1, ChiTiets = c.ToList() };
+        Assert.Throws<DomainException>(() => P(LyDoPhieuKho.NhapMua).KiemTraHopLe());
+        Assert.Throws<DomainException>(() => P(LyDoPhieuKho.NhapMua, new ChiTietPhieuKho { VatTuId = 1, SoLuong = -1 }).KiemTraHopLe());
+        Assert.Throws<DomainException>(() => P(LyDoPhieuKho.ChuyenKho, new ChiTietPhieuKho { VatTuId = 1, SoLuong = 1 }).KiemTraHopLe());
+        Assert.Throws<DomainException>(() => P(LyDoPhieuKho.NhapMua, new ChiTietPhieuKho { VatTuId = 1, SoLuong = 1 }, new ChiTietPhieuKho { VatTuId = 1, SoLuong = 2 }).KiemTraHopLe());
+        P(LyDoPhieuKho.KiemKe, new ChiTietPhieuKho { VatTuId = 1, SoLuong = -3 }).KiemTraHopLe();
+    }
+}

@@ -53,18 +53,24 @@ public class VatTu : BaseEntity
     [Required, StringLength(30), Display(Name = "Mã vật tư")] public string Ma { get; set; } = "";
     [Required, StringLength(250), Display(Name = "Tên vật tư / linh kiện")] public string Ten { get; set; } = "";
     [Required, StringLength(20), Display(Name = "Đơn vị tính")] public string DonViTinh { get; set; } = "Cái";
-    [Display(Name = "Tồn kho")] public decimal TonKho { get; set; }
+    [StringLength(100), Display(Name = "Nhóm")] public string? Nhom { get; set; }
+    [StringLength(300), Display(Name = "Quy cách / model tương thích")] public string? QuyCach { get; set; }
+    /// <summary>Tổng tồn mọi kho (được cập nhật khi ghi sổ phiếu kho — không sửa tay).</summary>
+    [ScaffoldColumn(false), Display(Name = "Tồn kho")] public decimal TonKho { get; set; }
     [Display(Name = "Tồn tối thiểu")] public decimal TonToiThieu { get; set; }
-    [Display(Name = "Đơn giá")] public decimal DonGia { get; set; }
+    [Display(Name = "Tồn tối đa (gợi ý số lượng mua)")] public decimal TonToiDa { get; set; }
+    /// <summary>Giá bình quân gia quyền — cập nhật khi nhập kho.</summary>
+    [Display(Name = "Đơn giá (bình quân)")] public decimal DonGia { get; set; }
+
+    /// <summary>Nhập kho: cập nhật giá bình quân gia quyền theo tổng tồn.</summary>
+    public void CapNhatGiaBinhQuan(decimal soLuongNhap, decimal donGiaNhap)
+    {
+        if (soLuongNhap <= 0 || donGiaNhap <= 0) return;
+        var tonTruoc = Math.Max(0, TonKho);
+        DonGia = Math.Round((tonTruoc * DonGia + soLuongNhap * donGiaNhap) / (tonTruoc + soLuongNhap), 0);
+    }
 
     public bool DuoiTonToiThieu => TonKho <= TonToiThieu;
-
-    public void XuatKho(decimal soLuong, bool choXuatAm = false)
-    {
-        if (soLuong <= 0) throw new DomainException("Số lượng xuất phải lớn hơn 0.");
-        if (!choXuatAm && soLuong > TonKho) throw new DomainException($"Vật tư '{Ten}' không đủ tồn kho (còn {TonKho}).");
-        TonKho -= soLuong;
-    }
 }
 
 /// <summary>Nhật ký thao tác hệ thống (audit log).</summary>

@@ -1,0 +1,32 @@
+@model PhieuKho
+@{ ViewData["Title"] = Model.SoPhieu; var dc = Model.Loai == LoaiPhieuKho.DieuChinh; }
+<div class="small text-muted mb-1"><a asp-action="Phieu">Phiếu kho</a> › @Model.SoPhieu</div>
+<div class="page-head"><h1>@Model.Loai.Ten() @Model.SoPhieu</h1>
+    <span class="badge bg-@(Model.TrangThai == TrangThaiPhieuKho.DaGhiSo ? "success" : Model.TrangThai == TrangThaiPhieuKho.ChoDuyet ? "warning text-dark" : "secondary")">@Model.TrangThai.Ten()</span>
+    <div class="actions">
+        <a asp-action="InPhieu" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In phiếu</a>
+        @if (Model.TrangThai == TrangThaiPhieuKho.ChoDuyet && User.IsInRole(VaiTro.QuanTri))
+        {
+            <form asp-action="Duyet" asp-route-id="@Model.Id" method="post" class="d-inline"><button name="dongY" value="true" class="btn btn-sm btn-success">Duyệt & ghi sổ</button> <button name="dongY" value="false" class="btn btn-sm btn-outline-danger">Huỷ phiếu</button></form>
+        }
+    </div>
+</div>
+<div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+    <div class="col-sm-3"><dt>Lý do</dt><dd>@Model.LyDo.Ten()</dd></div>
+    <div class="col-sm-3"><dt>Kho</dt><dd>@Model.Kho?.Ten @(Model.KhoDen is null ? "" : "→ " + Model.KhoDen.Ten)</dd></div>
+    <div class="col-sm-3"><dt>Người lập · ngày</dt><dd>@Model.NguoiTao · @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd></div>
+    <div class="col-sm-3"><dt>Ghi sổ</dt><dd>@Model.NgayGhiSo?.ToString("dd/MM/yyyy HH:mm") @(Model.NguoiDuyet is null ? "" : "· duyệt " + Model.NguoiDuyet)</dd></div>
+    @if (Model.KhoaPhong is not null) { <div class="col-sm-3"><dt>Khoa/phòng</dt><dd>@Model.KhoaPhong.Ten</dd></div> }
+    @if (Model.PhieuSuaChua is not null) { <div class="col-sm-3"><dt>Phiếu sửa chữa</dt><dd><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@Model.PhieuSuaChuaId">@Model.PhieuSuaChua.SoPhieu</a></dd></div> }
+    @if (Model.NhaCungCap is not null) { <div class="col-sm-3"><dt>Nhà cung cấp</dt><dd>@Model.NhaCungCap.Ten @Model.SoChungTu</dd></div> }
+    <div class="col-12"><dt>Diễn giải</dt><dd>@Model.DienGiai</dd></div>
+</dl></div></div>
+<div class="card"><table class="table table-sm mb-0">
+    <thead><tr><th>Vật tư</th><th>ĐVT</th>@if (dc) { <th class="text-end">Tồn sổ</th><th class="text-end">Thực tế</th> }<th class="text-end">@(dc ? "Chênh lệch" : "Số lượng")</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th><th>Ghi chú</th></tr></thead>
+    <tbody>@foreach (var c in Model.ChiTiets) {
+        <tr><td><a asp-action="TheKho" asp-route-vatTuId="@c.VatTuId">@c.VatTu?.Ma</a> · @c.VatTu?.Ten</td><td>@c.VatTu?.DonViTinh</td>
+            @if (dc) { <td class="text-end">@c.TonSoSach?.ToString("0.##")</td><td class="text-end">@((c.TonSoSach + c.SoLuong)?.ToString("0.##"))</td> }
+            <td class="text-end fw-semibold @(c.SoLuong < 0 ? "text-danger" : "")">@c.SoLuong.ToString("0.##")</td><td class="text-end">@c.DonGia.ToString("N0")</td><td class="text-end">@c.ThanhTien.ToString("N0")</td><td class="small">@c.GhiChu</td></tr> }
+    </tbody>
+    <tfoot><tr><td colspan="@(dc ? 6 : 4)" class="text-end">Tổng</td><td class="text-end fw-semibold">@Model.TongTien.ToString("N0") đ</td><td></td></tr></tfoot>
+</table></div>

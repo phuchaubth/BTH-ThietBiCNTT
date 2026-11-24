@@ -85,21 +85,8 @@ public class NhaCungCapController(AppDbContext db) : DanhMucController<NhaCungCa
 public class VatTuController(AppDbContext db) : DanhMucController<VatTu>(db)
 {
     protected override string TieuDe => "Vật tư / linh kiện";
-    protected override string[] Cot => [nameof(VatTu.Ma), nameof(VatTu.Ten), nameof(VatTu.DonViTinh), nameof(VatTu.TonKho), nameof(VatTu.TonToiThieu), nameof(VatTu.DonGia)];
+    protected override string[] Cot => [nameof(VatTu.Ma), nameof(VatTu.Ten), nameof(VatTu.Nhom), nameof(VatTu.DonViTinh), nameof(VatTu.TonKho), nameof(VatTu.TonToiThieu), nameof(VatTu.TonToiDa), nameof(VatTu.DonGia)];
     protected override IQueryable<VatTu> TimKiem(IQueryable<VatTu> q, string s) => q.Where(x => x.Ma.Contains(s) || x.Ten.Contains(s));
-
-    /// <summary>Nhập kho nhanh.</summary>
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> NhapKho(int id, decimal soLuong)
-    {
-        var v = await Db.VatTus.FindAsync(id);
-        if (v is null) return NotFound();
-        if (soLuong <= 0) { TempData["err"] = "Số lượng nhập phải > 0"; return RedirectToAction(nameof(Index)); }
-        v.TonKho += soLuong;
-        await Db.SaveChangesAsync();
-        TempData["ok"] = $"Đã nhập {soLuong} {v.DonViTinh} '{v.Ten}'. Tồn: {v.TonKho}";
-        return RedirectToAction(nameof(Index));
-    }
 }
 
 [Authorize(Roles = VaiTro.QuanTri)]

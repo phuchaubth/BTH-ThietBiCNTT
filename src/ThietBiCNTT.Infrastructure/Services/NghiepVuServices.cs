@@ -17,6 +17,7 @@ public class SoPhieuService(AppDbContext db)
             "DC" => db.PhieuDieuChuyens.Select(x => x.SoPhieu),
             "TL" => db.DeXuatThanhLys.Select(x => x.SoPhieu),
             "KK" => db.DotKiemKes.Select(x => x.Ma),
+            "NK" or "XK" or "CK" or "DC-K" => db.PhieuKhos.Select(x => x.SoPhieu),
             _ => throw new ArgumentException("Tiền tố không hợp lệ", nameof(tienTo))
         };
         var last = await q.Where(s => s.StartsWith(prefix)).OrderByDescending(s => s).FirstOrDefaultAsync();

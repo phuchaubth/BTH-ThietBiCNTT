@@ -11,6 +11,7 @@ public static class DbSeeder
     public static async Task SeedAsync(AppDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles, bool duLieuMau, string? matKhauAdmin = null)
     {
         await Services.ThamSoService.DongBoAsync(db);
+        await Services.KhoService.DongBoAsync(db);
         foreach (var r in VaiTro.TatCa)
             if (!await roles.RoleExistsAsync(r)) await roles.CreateAsync(new IdentityRole(r));
 
@@ -74,6 +75,7 @@ public static class DbSeeder
             await TaoUser(users, "lanhdao", "Phó Giám đốc", null, VaiTro.LanhDao);
             await TaoUser(users, "nhanvien", "ĐD. Phạm Thu Hà", cc.Id, VaiTro.NhanVien);
             await TaoDuLieuMau(db);
+            await Services.KhoService.DongBoAsync(db);
         }
     }
 

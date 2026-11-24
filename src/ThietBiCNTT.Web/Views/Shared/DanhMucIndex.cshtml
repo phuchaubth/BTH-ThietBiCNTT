@@ -37,10 +37,7 @@
             <td class="text-end text-nowrap">
                 @if (item is VatTu)
                 {
-                    <form asp-action="NhapKho" asp-route-id="@id" method="post" class="d-inline-flex gap-1">
-                        <input name="soLuong" type="number" step="1" min="1" class="form-control form-control-sm" style="width:80px" placeholder="SL" required />
-                        <button class="btn btn-sm btn-outline-success" title="Nhập kho"><i class="bi bi-box-arrow-in-down"></i></button>
-                    </form>
+                    <a asp-controller="Kho" asp-action="TheKho" asp-route-vatTuId="@id" class="btn btn-sm btn-outline-secondary" title="Thẻ kho"><i class="bi bi-journal-text"></i></a>
                 }
                 <a asp-action="Edit" asp-route-id="@id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
             </td>
@@ -49,4 +46,4 @@
     </tbody>
 </table>
 </div></div>
-@if (ctrl == "VatTu") { <p class="small text-muted mt-2"><span class="badge bg-warning text-dark">Vàng</span> = tồn kho ≤ định mức tối thiểu, cần lập đề xuất mua sắm.</p> }
+@if (ctrl == "VatTu") { <p class="small text-muted mt-2"><span class="badge bg-warning text-dark">Vàng</span> = tồn ≤ định mức tối thiểu. Tồn kho chỉ thay đổi qua <a href="/Kho/Phieu">phiếu kho</a>.</p> }
