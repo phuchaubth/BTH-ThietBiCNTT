@@ -23,6 +23,7 @@ public class TepController(AppDbContext db, TepService tep) : Controller
             "PhieuSuaChua" => int.TryParse(id, out var p) && await db.PhieuSuaChuas.AnyAsync(x => x.Id == p && x.KhoaPhongId == k),
             "TaiSan" => int.TryParse(id, out var t) && await db.TaiSans.AnyAsync(x => x.Id == t && x.KhoaPhongId == k),
             "LanKiemTra" => long.TryParse(id, out var l) && await db.LanKiemTras.AnyAsync(x => x.Id == l && x.MauKiemTra!.KhoaPhongId == k),
+            "SoDo" => int.TryParse(id, out var s) && await db.SoDoMatBangs.AnyAsync(x => x.Id == s && (x.KhoaPhongId == null || x.KhoaPhongId == k)),
             _ => false
         };
     }

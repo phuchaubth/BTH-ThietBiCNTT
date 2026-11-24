@@ -19,6 +19,8 @@
             <a asp-action="Create" asp-route-copyFrom="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-copy"></i> Nhân bản</a>
         }
         <a asp-action="InTem" asp-route-ids="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In tem</a>
+        @foreach (var sd in (List<SoDoMatBang>)ViewBag.SoDo) { <a asp-controller="SoDo" asp-action="Xem" asp-route-id="@sd.Id" asp-route-chon="@Model.Id" class="btn btn-sm btn-outline-secondary" title="Xem vị trí trên sơ đồ"><i class="bi bi-map"></i> @sd.Ten</a> }
+        @if (ViewBag.Agent is MayTramAgent ag && User.LaCNTT()) { <a asp-controller="Agent" asp-action="ChiTiet" asp-route-id="@ag.Id" class="btn btn-sm btn-outline-secondary" title="Agent gửi lần cuối @ag.LanCuoi.ToString("dd/MM HH:mm")"><i class="bi bi-hdd-network"></i> Agent</a> }
         @if (((List<MauKiemTra>)ViewBag.MauKiemTra) is { Count: > 0 } maus && !Model.DaThanhLy)
         {
             <div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-clipboard-check"></i> Ghi kiểm tra</button>

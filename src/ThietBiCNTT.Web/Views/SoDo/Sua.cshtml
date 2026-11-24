@@ -1,0 +1,20 @@
+@model SoDoMatBang
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm sơ đồ mặt bằng" : "Sửa sơ đồ"; }
+<div class="small text-muted mb-1"><a asp-action="Index">Sơ đồ mặt bằng</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Sua" method="post" enctype="multipart/form-data" class="card" style="max-width:760px"><div class="card-body row g-3">
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: Tầng 2 – Khoa Cấp cứu" /></div>
+    <div class="col-md-4"><label asp-for="ThuTu" class="form-label">Thứ tự hiển thị</label><input asp-for="ThuTu" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">— Sơ đồ chung (mọi người xem) —</option></select>
+        <div class="form-text">Chọn khoa: người của khoa xem được, danh sách đặt thiết bị lọc theo khoa.</div></div>
+    <div class="col-md-6"><label asp-for="ViTriId" class="form-label"></label><select asp-for="ViTriId" asp-items="ViewBag.DsViTri" class="form-select"><option value="">—</option></select></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><input asp-for="MoTa" class="form-control" /></div>
+    <div class="col-12"><label class="form-label" for="anh">Ảnh sơ đồ @(Model.Id == 0 ? "" : "(chọn để thay ảnh — vị trí thiết bị giữ theo %)")</label>
+        <input type="file" name="anh" id="anh" class="form-control" accept="image/png,image/jpeg,image/webp" />
+        <div class="form-text">PNG/JPG/WEBP tối đa 10 MB. Bản vẽ AutoCAD/PDF: xuất ra PNG khổ ngang trước khi tải.</div></div>
+    <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a>
+        @if (Model.Id != 0) { <button form="frmXoa" class="btn btn-outline-danger ms-auto">Xoá sơ đồ</button> }</div>
+</div></form>
+@if (Model.Id != 0) { <form id="frmXoa" asp-action="Xoa" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Xoá sơ đồ và toàn bộ vị trí thiết bị trên đó?')"></form> }

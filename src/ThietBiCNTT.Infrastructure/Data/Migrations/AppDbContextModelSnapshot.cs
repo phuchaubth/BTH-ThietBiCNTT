@@ -829,6 +829,38 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("DeXuatThanhLys");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DiemSoDo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SoDoMatBangId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaiSanId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("X")
+                        .HasPrecision(6, 3)
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("Y")
+                        .HasPrecision(6, 3)
+                        .HasColumnType("decimal(6,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaiSanId");
+
+                    b.HasIndex("SoDoMatBangId", "TaiSanId")
+                        .IsUnique();
+
+                    b.ToTable("DiemSoDos");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DieuChinhNganSach", b =>
                 {
                     b.Property<int>("Id")
@@ -2392,6 +2424,56 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("PhieuSuaChuas");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.SoDoMatBang", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("KhoaPhongId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MoTa")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Ten")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("TepAnhId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ThuTu")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ViTriId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KhoaPhongId");
+
+                    b.HasIndex("ViTriId");
+
+                    b.ToTable("SoDoMatBangs");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.TaiSan", b =>
                 {
                     b.Property<int>("Id")
@@ -3344,6 +3426,25 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("PhieuSuaChua");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DiemSoDo", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.SoDoMatBang", "SoDoMatBang")
+                        .WithMany("Diems")
+                        .HasForeignKey("SoDoMatBangId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ThietBiCNTT.Domain.Entities.TaiSan", "TaiSan")
+                        .WithMany()
+                        .HasForeignKey("TaiSanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SoDoMatBang");
+
+                    b.Navigation("TaiSan");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DieuChinhNganSach", b =>
                 {
                     b.HasOne("ThietBiCNTT.Domain.Entities.KhoanMucNganSach", null)
@@ -3697,6 +3798,23 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("TaiSan");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.SoDoMatBang", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.KhoaPhong", "KhoaPhong")
+                        .WithMany()
+                        .HasForeignKey("KhoaPhongId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ThietBiCNTT.Domain.Entities.ViTri", "ViTri")
+                        .WithMany()
+                        .HasForeignKey("ViTriId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("KhoaPhong");
+
+                    b.Navigation("ViTri");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.TaiSan", b =>
                 {
                     b.HasOne("ThietBiCNTT.Domain.Entities.KhoaPhong", "KhoaPhong")
@@ -3887,6 +4005,11 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("BinhLuans");
 
                     b.Navigation("VatTus");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.SoDoMatBang", b =>
+                {
+                    b.Navigation("Diems");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.TaiSan", b =>

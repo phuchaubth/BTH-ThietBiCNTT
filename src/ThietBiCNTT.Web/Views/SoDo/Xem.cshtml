@@ -1,0 +1,147 @@
+@model SoDoMatBang
+@{
+    ViewData["Title"] = Model.Ten; var diem = (List<ThietBiCNTT.Web.Controllers.DiemHienThi>)ViewBag.Diem; var cntt = User.LaCNTT();
+    var chuaDat = ViewBag.ChuaDat as List<TaiSan> ?? [];
+}
+@section Styles {
+<style>
+    .sodo { position: relative; user-select: none; touch-action: manipulation; background: #eef1f5; border-radius: .5rem; overflow: hidden; }
+    .sodo img { width: 100%; display: block; }
+    .diem { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; color: #fff;
+        display: flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer; padding: 0; z-index: 2; }
+    .diem.coPhieu::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 3px solid #dc3545; animation: nhay 1.2s ease-out infinite; }
+    .diem.quaHan::after { border-color: #dc3545; animation-duration: .6s; }
+    @@keyframes nhay { 0% { transform: scale(.7); opacity: 1 } 100% { transform: scale(1.5); opacity: 0 } }
+    .diem.chon { outline: 3px solid #ffc107; outline-offset: 2px; z-index: 3; }
+    .diem.mo { opacity: .25; }
+    .dangSua .diem { cursor: grab; }
+    .dangSua .sodo { cursor: crosshair; outline: 2px dashed #0d6efd; }
+    .diem .xoa { display: none; position: absolute; top: -9px; right: -9px; width: 18px; height: 18px; border-radius: 50%; background: #dc3545; font-size: 11px; line-height: 18px; }
+    .dangSua .diem .xoa { display: block; }
+    @@media (prefers-reduced-motion: reduce) { .diem.coPhieu::after { animation: none; } }
+</style>
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Sơ đồ mặt bằng</a> › @Model.Ten</div>
+<div class="page-head"><h1>@Model.Ten</h1>
+    <div class="actions">
+        @if (cntt)
+        {
+            <a asp-action="Sua" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a>
+            <button class="btn btn-sm btn-primary" id="btnSua"><i class="bi bi-pin-map"></i> Đặt thiết bị</button>
+            <button class="btn btn-sm btn-success d-none" id="btnLuu"><i class="bi bi-check2"></i> Lưu vị trí</button>
+            <button class="btn btn-sm btn-link d-none" id="btnHuy">Huỷ</button>
+        }
+    </div>
+</div>
+<div class="d-flex flex-wrap gap-3 small mb-2 align-items-center">
+    <span class="text-muted">@(Model.KhoaPhong?.Ten ?? "Sơ đồ chung") @(Model.ViTri is null ? "" : "· " + Model.ViTri.Ten)</span>
+    <span><span class="badge bg-success">&nbsp;</span> Đang sử dụng</span><span><span class="badge bg-warning">&nbsp;</span> Đang sửa</span>
+    <span><span class="badge bg-danger">&nbsp;</span> Hỏng</span><span><span class="badge bg-secondary">&nbsp;</span> Trong kho / khác</span>
+    <span><i class="bi bi-record-circle text-danger"></i> nhấp nháy: có phiếu đang mở (nhanh: quá hạn)</span>
+    <input id="loc" class="form-control form-control-sm ms-auto" style="max-width:220px" placeholder="Tìm mã, tên, IP…" aria-label="Tìm trên sơ đồ" />
+</div>
+<div class="row g-3" id="khung">
+    <div class="col" id="cotSoDo">
+        <div class="sodo" id="sodo">
+            @if (Model.TepAnhId is not null) { <img src="/Tep/Xem/@Model.TepAnhId" alt="Sơ đồ @Model.Ten" draggable="false" id="anhSoDo" /> }
+            else { <div class="p-5 text-center text-muted">Chưa có ảnh sơ đồ.</div> }
+        </div>
+    </div>
+    <div class="col-lg-3" id="cotPhai">
+        <div class="card mb-3" id="thongTin"><div class="card-body small text-muted">Chạm vào biểu tượng thiết bị để xem thông tin. Có @diem.Count thiết bị trên sơ đồ.</div></div>
+        @if (cntt)
+        {
+            <div class="card d-none" id="dsChuaDat"><div class="card-header small">Chọn thiết bị rồi chạm lên sơ đồ để đặt. Kéo biểu tượng để di chuyển.</div>
+                <div class="card-body p-2"><input id="locChua" class="form-control form-control-sm mb-2" placeholder="Lọc…" aria-label="Lọc thiết bị chưa đặt" />
+                <div class="list-group list-group-flush small" style="max-height:420px;overflow:auto" id="listChua">
+                    @foreach (var t in chuaDat) { <button type="button" class="list-group-item list-group-item-action py-1" data-id="@t.Id" data-ma="@t.MaTaiSan" data-ten="@t.Ten" data-icon="@DiemSoDo.Icon(t.LoaiThietBi?.Nhom)" data-tt="@t.TrangThai.Ten()" data-mau="@Badge.Mau(t.TrangThai).Split(' ')[0]"><i class="bi @DiemSoDo.Icon(t.LoaiThietBi?.Nhom)"></i> <b>@t.MaTaiSan</b> @t.Ten</button> }
+                    @if (chuaDat.Count == 0) { <div class="text-muted p-2">Mọi thiết bị đã được đặt.</div> }
+                </div></div></div>
+        }
+    </div>
+</div>
+@Html.AntiForgeryToken()
+@section Scripts {
+<script>
+(function () {
+    const soDoId = @Model.Id, chonBanDau = @(ViewData["chon"] ?? "null");
+    let diem = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(diem, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)));
+    const khung = document.getElementById('sodo'), tt = document.getElementById('thongTin');
+    let sua = false, choDat = null, keo = null, banSao = null;
+    const esc = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+    function ve() {
+        khung.querySelectorAll('.diem').forEach(e => e.remove());
+        for (const d of diem) {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'diem bg-' + (d.mauTrangThai || 'secondary') + (d.phieuMo ? ' coPhieu' : '') + (d.quaHan ? ' quaHan' : '');
+            b.style.left = d.x + '%'; b.style.top = d.y + '%'; b.dataset.id = d.taiSanId;
+            b.title = d.ma + ' – ' + d.ten; b.setAttribute('aria-label', d.ma + ' ' + d.ten + ', ' + d.trangThai);
+            b.innerHTML = '<i class="bi ' + d.icon + '"></i><span class="xoa" title="Gỡ khỏi sơ đồ">×</span>';
+            khung.appendChild(b);
+        }
+        locDiem();
+    }
+    function hienThongTin(d) {
+        khung.querySelectorAll('.diem').forEach(e => e.classList.toggle('chon', +e.dataset.id === d.taiSanId));
+        tt.innerHTML = '<div class="card-body"><div class="fw-semibold"><i class="bi ' + d.icon + '"></i> ' + esc(d.ma) + '</div><div>' + esc(d.ten) + '</div>' +
+            '<div class="small text-muted">' + esc(d.loai) + '</div>' +
+            '<div class="mt-2"><span class="badge bg-' + d.mauTrangThai + '">' + esc(d.trangThai) + '</span></div>' +
+            (d.ip ? '<div class="small mt-1">IP: ' + esc(d.ip) + '</div>' : '') + (d.nguoiSuDung ? '<div class="small">Người dùng: ' + esc(d.nguoiSuDung) + '</div>' : '') +
+            (d.phieuMo ? '<div class="alert alert-' + (d.quaHan ? 'danger' : 'warning') + ' small py-1 px-2 mt-2 mb-0">' + d.phieuMo + ' phiếu đang mở' + (d.quaHan ? ' · QUÁ HẠN' : '') +
+                ' — <a href="/PhieuSuaChua/Details/' + d.phieuMoiNhatId + '">' + esc(d.phieuMoiNhat) + '</a></div>' : '') +
+            '<div class="d-flex gap-2 mt-2"><a class="btn btn-sm btn-outline-primary" href="/TaiSan/Details/' + d.taiSanId + '">Hồ sơ</a>' +
+            '<a class="btn btn-sm btn-outline-danger" href="/PhieuSuaChua/Create?taiSanId=' + d.taiSanId + '">Báo hỏng</a></div></div>';
+    }
+    function locDiem() {
+        const q = document.getElementById('loc').value.trim().toLowerCase();
+        khung.querySelectorAll('.diem').forEach(e => {
+            const d = diem.find(x => x.taiSanId === +e.dataset.id);
+            e.classList.toggle('mo', !!q && !(d.ma + ' ' + d.ten + ' ' + (d.ip || '') + ' ' + (d.nguoiSuDung || '')).toLowerCase().includes(q));
+        });
+    }
+    document.getElementById('loc').oninput = locDiem;
+    const viTri = e => { const r = khung.getBoundingClientRect();
+        return { x: Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100)), y: Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100)) }; };
+
+    khung.addEventListener('pointerdown', e => {
+        const b = e.target.closest('.diem');
+        if (sua && e.target.classList.contains('xoa')) { diem = diem.filter(d => d.taiSanId !== +b.dataset.id); ve(); return; }
+        if (!b) {
+            if (sua && choDat) { const p = viTri(e); diem.push({ ...choDat, x: +p.x.toFixed(3), y: +p.y.toFixed(3), phieuMo: 0 }); choDat.nut.remove(); choDat = null; ve(); }
+            return;
+        }
+        const d = diem.find(x => x.taiSanId === +b.dataset.id);
+        if (!sua) { hienThongTin(d); return; }
+        keo = { d, b }; b.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    khung.addEventListener('pointermove', e => { if (!keo) return; const p = viTri(e); keo.d.x = +p.x.toFixed(3); keo.d.y = +p.y.toFixed(3); keo.b.style.left = keo.d.x + '%'; keo.b.style.top = keo.d.y + '%'; });
+    khung.addEventListener('pointerup', () => keo = null);
+
+    const btnSua = document.getElementById('btnSua');
+    if (btnSua) {
+        const doi = on => { sua = on; document.getElementById('khung').classList.toggle('dangSua', on);
+            ['btnLuu', 'btnHuy', 'dsChuaDat'].forEach(i => document.getElementById(i).classList.toggle('d-none', !on)); btnSua.classList.toggle('d-none', on); };
+        btnSua.onclick = () => { banSao = JSON.stringify(diem); doi(true); };
+        document.getElementById('btnHuy').onclick = () => location.reload();
+        document.getElementById('listChua').onclick = e => {
+            const n = e.target.closest('[data-id]'); if (!n) return;
+            document.querySelectorAll('#listChua .active').forEach(x => x.classList.remove('active')); n.classList.add('active');
+            choDat = { taiSanId: +n.dataset.id, ma: n.dataset.ma, ten: n.dataset.ten, icon: n.dataset.icon, trangThai: n.dataset.tt, mauTrangThai: n.dataset.mau, nut: n };
+        };
+        document.getElementById('locChua').oninput = e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#listChua [data-id]').forEach(x => x.hidden = !x.textContent.toLowerCase().includes(q)); };
+        document.getElementById('btnLuu').onclick = async () => {
+            const fd = new FormData(); fd.append('__RequestVerificationToken', document.querySelector('input[name=__RequestVerificationToken]').value);
+            diem.forEach((d, i) => { fd.append(`diem[${i}].TaiSanId`, d.taiSanId); fd.append(`diem[${i}].X`, d.x); fd.append(`diem[${i}].Y`, d.y); });
+            const r = await fetch('/SoDo/LuuDiem/' + soDoId, { method: 'POST', body: fd, credentials: 'same-origin' });
+            const kq = r.ok ? await r.json() : { ok: false, loi: 'Lỗi ' + r.status };
+            if (kq.ok) location.reload(); else alert(kq.loi);
+        };
+    }
+    // Làm mới trạng thái mỗi 60 giây (màn hình giám sát)
+    setInterval(async () => { if (sua) return; try { const r = await fetch('/SoDo/Diem/' + soDoId, { credentials: 'same-origin' }); if (r.ok && !r.redirected) { diem = await r.json(); ve(); } } catch { } }, 60000);
+    ve();
+    if (chonBanDau) { const d = diem.find(x => x.taiSanId === chonBanDau); if (d) hienThongTin(d); }
+})();
+</script>
+}

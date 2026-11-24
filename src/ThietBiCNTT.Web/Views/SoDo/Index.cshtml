@@ -1,0 +1,15 @@
+@model List<SoDoMatBang>
+@{ ViewData["Title"] = "Sơ đồ mặt bằng"; }
+<div class="page-head"><h1>Sơ đồ mặt bằng</h1>
+    <div class="actions">@if (User.LaCNTT()) { <a asp-action="Sua" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm sơ đồ</a> }</div></div>
+<div class="row g-3">
+    @foreach (var s in Model)
+    {
+        <div class="col-sm-6 col-lg-4"><a asp-action="Xem" asp-route-id="@s.Id" class="card h-100 text-decoration-none text-reset">
+            @if (s.TepAnhId is not null) { <img src="/Tep/Xem/@s.TepAnhId" class="card-img-top" style="height:180px;object-fit:cover;background:#eef1f5" alt="@s.Ten" loading="lazy" /> }
+            <div class="card-body"><div class="fw-semibold">@s.Ten</div>
+                <div class="small text-muted">@(s.KhoaPhong?.Ten ?? "Sơ đồ chung") @(s.ViTri is null ? "" : "· " + s.ViTri.Ten) · @s.Diems.Count thiết bị</div></div>
+        </a></div>
+    }
+    @if (Model.Count == 0) { <div class="col-12 text-center text-muted py-5">Chưa có sơ đồ. @if (User.LaCNTT()) { <span>Tải ảnh mặt bằng (PNG/JPG xuất từ bản vẽ) để bắt đầu.</span> }</div> }
+</div>

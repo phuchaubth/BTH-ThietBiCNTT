@@ -29,6 +29,7 @@
         <a class="nav-item @Act("Home")" asp-controller="Home" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <div class="nav-section">Tài sản</div>
         <a class="nav-item @Act("TaiSan")" asp-controller="TaiSan" asp-action="Index"><i class="bi bi-pc-display"></i> Tài sản & cấu hình</a>
+        <a class="nav-item @Act("SoDo")" asp-controller="SoDo" asp-action="Index"><i class="bi bi-map"></i> Sơ đồ mặt bằng</a>
         @if (quanLy || User.IsInRole(VaiTro.TruongKhoa)) { <a class="nav-item @Act("KiemKe")" asp-controller="KiemKe" asp-action="Index"><i class="bi bi-upc-scan"></i> Kiểm kê</a> }
         @if (cntt) { <a class="nav-item @Act("Agent")" asp-controller="Agent" asp-action="Index"><i class="bi bi-hdd-network"></i> Máy trạm (agent)</a> }
         <div class="nav-section">Bảo trì</div>

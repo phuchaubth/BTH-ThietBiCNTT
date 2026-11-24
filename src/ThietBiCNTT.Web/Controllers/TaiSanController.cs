@@ -144,6 +144,9 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
                 && (m.TaiSanId == id || (m.TaiSanId == null && m.LoaiThietBiId == ts.LoaiThietBiId && (m.KhoaPhongId == null || m.KhoaPhongId == ts.KhoaPhongId)))
                 && (User.LaCNTT() || (m.KhoaPhongId != null && m.KhoaPhongId == k)))
             .OrderBy(m => m.Ten).ToListAsync();
+        ViewBag.SoDo = await db.DiemSoDos.AsNoTracking().Where(d => d.TaiSanId == id && (User.XemToanVien() || d.SoDoMatBang!.KhoaPhongId == null || d.SoDoMatBang.KhoaPhongId == k))
+            .Select(d => d.SoDoMatBang!).ToListAsync();
+        ViewBag.Agent = await db.MayTramAgents.AsNoTracking().FirstOrDefaultAsync(m => m.TaiSanId == id);
         return View(ts);
     }
 

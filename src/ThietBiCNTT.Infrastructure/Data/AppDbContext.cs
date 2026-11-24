@@ -49,6 +49,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
     public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
     public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
+    public DbSet<SoDoMatBang> SoDoMatBangs => Set<SoDoMatBang>();
+    public DbSet<DiemSoDo> DiemSoDos => Set<DiemSoDo>();
     public DbSet<MayTramAgent> MayTramAgents => Set<MayTramAgent>();
     public DbSet<KhoaApi> KhoaApis => Set<KhoaApi>();
     public DbSet<NhatKyApi> NhatKyApis => Set<NhatKyApi>();
@@ -183,6 +185,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasMany(x => x.KhoanChis).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<KhoaApi>().HasIndex(x => x.BamKhoa).IsUnique();
+        b.Entity<SoDoMatBang>().HasMany(x => x.Diems).WithOne(x => x.SoDoMatBang).HasForeignKey(x => x.SoDoMatBangId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<DiemSoDo>(e =>
+        {
+            e.HasIndex(x => new { x.SoDoMatBangId, x.TaiSanId }).IsUnique(); e.HasIndex(x => x.TaiSanId);
+            e.Property(x => x.X).HasPrecision(6, 3); e.Property(x => x.Y).HasPrecision(6, 3);
+        });
         b.Entity<MayTramAgent>(e =>
         {
             e.HasIndex(x => x.Hostname); e.HasIndex(x => x.SerialBios); e.HasIndex(x => x.TaiSanId);
