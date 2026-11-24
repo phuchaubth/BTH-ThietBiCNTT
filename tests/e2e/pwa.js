@@ -45,7 +45,9 @@ async function dangNhap(ctx, u) {
   await p.goto(BASE + '/KiemKe/Create'); await p.fill('[name=Ten]', 'Kiểm kê ngoại tuyến'); await Promise.all([p.waitForNavigation(), p.locator('form button[type=submit], form .btn-primary').last().click()]);
   let dot = p.url().match(/\/KiemKe\/Details\/(\d+)/)?.[1];
   if (!dot) { // đã có đợt toàn viện đang mở (do kịch bản khác) → dùng đợt đó
-    await p.goto(BASE + '/KiemKe'); dot = (await p.content()).match(/\/KiemKe\/Quet\/(\d+)/)?.[1];
+    await p.goto(BASE + '/KiemKe');
+    const ids = [...new Set([...(await p.content()).matchAll(/\/KiemKe\/Details\/(\d+)/g)].map(m => m[1]))];
+    for (const id of ids) { await p.goto(BASE + `/KiemKe/Quet/${id}`); if (p.url().includes(`/KiemKe/Quet/${id}`)) { dot = id; break; } }
   }
   check(!!dot, 'có đợt kiểm kê đang mở #' + dot);
   await p.goto(BASE + `/KiemKe/Quet/${dot}`);
