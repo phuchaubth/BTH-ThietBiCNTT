@@ -204,11 +204,15 @@ public static class DbSeeder
                         Dk(6, "Bản sao lưu CSDL đêm qua thành công"),
                         Dk(7, "Hệ thống chữa cháy phòng máy chủ bình thường, không báo lỗi (FMS.06.01)"), Dk(8, "Các nút ngắt điện khẩn cấp còn nhãn rõ ràng (FMS.08.00 ME5)"),
                         new MucKiemTra { ThuTu = 9, NoiDung = "Ghi chú khác", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
-            new MauKiemTra { Ten = "Thử nguồn điện dự phòng phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS và máy phát", KhoaPhongId = khoa["HCQT"].Id, ChuKyGio = 2160,
-                MoTa = "FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả. Chạy tải ≥ 30 phút ở ≥ 30% công suất danh định (không tính khởi động/làm nguội). Do Phòng Hành chính quản trị thực hiện; Phòng CNTT nhận kết quả và giám sát đúng hạn.",
-                Mucs = [So(1, "Thời gian chạy tải", "phút", 30, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian chuyển nguồn", "giây", null, 10),
-                        So(4, "Thời gian lưu điện của UPS khi mất lưới", "phút", 10, null), Dk(5, "Chuyển nguồn không làm tắt máy chủ"), Dk(6, "Máy phát khởi động và nhận tải bình thường (nếu có)"),
-                        So(7, "Nhiên liệu dự trữ (nếu dùng máy phát)", "giờ chạy", 8, null), new MucKiemTra { ThuTu = 8, NoiDung = "Nhận xét, người phối hợp (HCQT)", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
+            new MauKiemTra { Ten = "Thử UPS phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS", KhoaPhongId = khoa["CNTT"].Id, ChuKyGio = 2160,
+                MoTa = "FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả. Phòng CNTT quản lý và thử UPS: ngắt nguồn lưới có kiểm soát, đo thời gian lưu điện và chuyển nguồn.",
+                Mucs = [So(1, "Thời gian chạy bằng ắc quy khi ngắt lưới", "phút", 10, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian chuyển nguồn", "mili giây", null, 10),
+                        Dk(4, "Máy chủ không tắt/khởi động lại khi chuyển nguồn"), Dk(5, "Ắc quy không phồng, rò dịch; điện áp từng bình trong ngưỡng"), new MucKiemTra { ThuTu = 6, NoiDung = "Nhận xét", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
+            new MauKiemTra { Ten = "Thử máy phát điện dự phòng hằng quý", ViTri = "Khu kỹ thuật – máy phát điện", KhoaPhongId = khoa["HCQT"].Id, ChuKyGio = 2160,
+                MoTa = "FMS.08.01 ME3: Phòng Hành chính quản trị quản lý và thử máy phát. Chạy tải ≥ 30 phút ở ≥ 30% công suất danh định (không tính khởi động/làm nguội). Phòng CNTT nhận kết quả để giám sát cấp điện cho phòng máy chủ.",
+                Mucs = [So(1, "Thời gian chạy tải", "phút", 30, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian từ mất lưới đến cấp điện trở lại", "giây", null, 30),
+                        Dk(4, "Máy phát khởi động và nhận tải bình thường"), Dk(5, "Phòng máy chủ nhận điện từ máy phát khi mất lưới"), So(6, "Nhiên liệu dự trữ", "giờ chạy", 8, null),
+                        new MucKiemTra { ThuTu = 7, NoiDung = "Nhận xét", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
             new MauKiemTra { Ten = "Kiểm tra UPS hằng tuần", LoaiThietBiId = loai["UPS"].Id, ChuKyGio = 168,
                 Mucs = [So(1, "Thời gian lưu điện ước tính", "phút", 10, null), So(2, "Tải hiện tại", "%", null, 80), Dk(3, "Không có đèn/còi cảnh báo")] },
             new MauKiemTra { Ten = "Kiểm tra máy tính đầu ca – Khoa Cấp cứu", LoaiThietBiId = loai["PC"].Id, KhoaPhongId = khoa["CC"].Id, ChuKyGio = 8,
@@ -226,7 +230,6 @@ public static class DbSeeder
             NgaySuDung = homNay.AddYears(-3), HanBaoHanh = homNay.AddMonths(8), KhoaPhongId = khoa["CNTT"].Id, TrangThai = TrangThaiTaiSan.DangSuDung, NguonVon = NguonVon.NganSach };
         var sv1 = Ts("SV-0001", "Máy chủ ứng dụng HIS", "SV", "Dell"); var sv2 = Ts("SV-0002", "Máy chủ CSDL HIS", "SV", "Dell"); var sv3 = Ts("SV-0003", "Máy chủ LIS", "SV", "HP");
         var sv4 = Ts("SV-0004", "Máy chủ PACS", "SV", "HP"); var sw1 = Ts("SW-0001", "Switch lõi tầng 3", "SW", "Cisco"); var ups1 = Ts("UPS-0101", "UPS phòng máy chủ 20kVA", "UPS", "APC");
-        ups1.KhoaPhongId = khoa["HCQT"].Id; // UPS/nguồn điện phòng máy chủ do Phòng Hành chính quản trị quản lý
         db.TaiSans.AddRange(sv1, sv2, sv3, sv4, sw1, ups1);
         await db.SaveChangesAsync();
         db.LichSuTaiSans.AddRange(new[] { sv1, sv2, sv3, sv4, sw1, ups1 }.Select(t => new LichSuTaiSan { TaiSanId = t.Id, LoaiSuKien = LoaiSuKien.TaoMoi, NoiDung = "Nhập dữ liệu ban đầu", ThoiGian = now, NguoiThucHien = "system" }));
