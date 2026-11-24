@@ -227,3 +227,17 @@ public class KhoBaoCaoApiController(AppDbContext db, BaoCaoService baoCao) : Api
             thietBiHongNhieu = r.ThietBiHongNhieu.Take(10).Select(x => new { x.MaTaiSan, x.Ten, x.Khoa, x.SoLanHong, x.ChiPhi, x.MtbfNgay }) });
     }
 }
+
+/// <summary>Agent máy trạm gửi cấu hình (IF-07). Cài qua GPO, chạy định kỳ — xem deploy/agent.</summary>
+[Route("api/v1/agent")]
+public class AgentApiController(AgentService agent) : ApiV1Controller
+{
+    /// <summary>Gửi cấu hình phần cứng, hệ điều hành, mạng, phần mềm. Trả về tài sản được ghép và các thay đổi phát hiện.</summary>
+    [HttpPost("cauhinh"), Authorize(Policy = "api:" + PhamViApi.CauHinhGhi), RequestSizeLimit(2_000_000)]
+    public async Task<IActionResult> CauHinh(CauHinhAgent body)
+    {
+        if (string.IsNullOrWhiteSpace(body.Hostname)) return Loi(400, "Thiếu hostname.");
+        var kq = await agent.NhanAsync(body, HttpContext.Connection.RemoteIpAddress?.ToString(), User.Identity?.Name ?? "agent");
+        return Ok(kq);
+    }
+}

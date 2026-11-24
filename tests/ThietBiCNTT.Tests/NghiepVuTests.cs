@@ -513,3 +513,39 @@ public class TichHopTests
         Assert.False(new Webhook { SuKien = "phieu.tao", DangHoatDong = false }.Nhan("phieu.tao"));
     }
 }
+
+public class AgentTests
+{
+    [Fact]
+    public void DoiChieuChuanHis()
+    {
+        var c = new ChuanCauHinh(8, 20, ["Windows 10", "Windows 11"], ["HIS Client"]);
+        var m = new MayTramAgent { RamGb = 8, OCungTrongGb = 15, HeDieuHanh = "Microsoft Windows 11 Pro (10.0.22631)", PhanMem = "HIS Client 5|5.2\nZalo|24" };
+        var kq = m.DoiChieu(c);
+        Assert.Equal(4, kq.Count);
+        Assert.True(kq[0].Dat); Assert.False(kq[1].Dat); Assert.True(kq[2].Dat); Assert.True(kq[3].Dat);
+        Assert.False(new MayTramAgent { HeDieuHanh = "Windows 7" }.DoiChieu(c)[2].Dat);
+        Assert.Empty(m.DoiChieu(new ChuanCauHinh(0, 0, [], [])));
+    }
+
+    [Fact]
+    public void SoSanhPhanMem_TheoTen_KhongPhanBietHoaThuong()
+    {
+        var (them, bo) = MayTramAgent.SoSanhPhanMem(["Zalo|23", "UltraViewer|6"], ["zalo|24", "AnyDesk|8"]);
+        Assert.Equal(["AnyDesk"], them);
+        Assert.Equal(["UltraViewer"], bo);
+    }
+
+    [Theory]
+    [InlineData("00:1a:2b:3c:4d:5e", "00-1A-2B-3C-4D-5E")]
+    [InlineData("001A2B3C4D5E", "00-1A-2B-3C-4D-5E")]
+    public void ChuanHoaMac(string vao, string ra) => Assert.Equal(ra, ThietBiCNTT.Infrastructure.Services.AgentService.ChuanMac(vao));
+
+    [Fact]
+    public void KhongGui_TheoSoNgay()
+    {
+        var now = new DateTime(2026, 11, 24);
+        Assert.True(new MayTramAgent { LanCuoi = now.AddDays(-8) }.KhongGui(now, 7));
+        Assert.False(new MayTramAgent { LanCuoi = now.AddDays(-8) }.KhongGui(now, 0));
+    }
+}

@@ -62,6 +62,13 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | API & tích hợp | `Api.Bat` | Bật API mở /api/v1 | Bật/Tắt | true |
 | API & tích hợp | `Api.GioiHanMoiPhut` | Giới hạn số lời gọi mỗi khoá | Số nguyên | 120 lần/phút |
 | API & tích hợp | `Api.LuuNhatKyNgay` | Lưu nhật ký gọi API / webhook đã gửi | Số nguyên | 90 ngày |
+| Agent cấu hình | `Agent.ChuanRamGb` | Chuẩn HIS: RAM tối thiểu (0 = không xét) | Số thực | 8 GB |
+| Agent cấu hình | `Agent.ChuanOCungTrongGb` | Chuẩn HIS: ổ C còn trống tối thiểu | Số thực | 20 GB |
+| Agent cấu hình | `Agent.ChuanHeDieuHanh` | Chuẩn HIS: hệ điều hành được phép | Văn bản | Windows 10, Windows 11 |
+| Agent cấu hình | `Agent.ChuanPhanMem` | Chuẩn HIS: phần mềm bắt buộc | Văn bản | (trống) |
+| Agent cấu hình | `Agent.CanhBaoKhongGuiNgay` | Cảnh báo máy không gửi cấu hình sau | Số nguyên | 7 ngày |
+| Agent cấu hình | `Agent.GhiLichSuDoiIP` | Ghi lịch sử khi chỉ đổi IP | Bật/Tắt | false |
+| Agent cấu hình | `Agent.TuGhepTheoHostname` | Tự ghép theo hostname / MAC | Bật/Tắt | true |
 | Ngân sách | `NganSach.BatBuocKhoanMuc` | Bắt buộc chọn khoản mục ngân sách khi gửi duyệt đề xuất | Bật/Tắt | false |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |

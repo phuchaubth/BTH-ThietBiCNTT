@@ -17,7 +17,8 @@ public enum LoaiThongBao
     [Display(Name = "Vật tư dưới định mức")] VatTu,
     [Display(Name = "Kiểm tra bất thường")] KiemTraBatThuong,
     [Display(Name = "Tổng hợp hằng ngày")] TongHopNgay,
-    [Display(Name = "Hệ thống")] HeThong
+    [Display(Name = "Hệ thống")] HeThong,
+    [Display(Name = "Thay đổi cấu hình (agent)")] CauHinh
 }
 
 public enum MucDoThongBao { ThongTin = 1, CanhBao, KhanCap }

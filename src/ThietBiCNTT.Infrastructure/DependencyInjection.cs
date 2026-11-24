@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<MuaSamService>();
         services.AddScoped<NganSachService>();
         services.AddScoped<TichHopService>();
+        services.AddScoped<AgentService>();
         services.AddScoped<WebhookSender>();
         services.AddHttpClient("webhook", c => c.Timeout = TimeSpan.FromSeconds(10));
         services.AddScoped<CanhBaoService>();

@@ -96,6 +96,7 @@ CanhBaoService.TongHopBoSung.Add(KiemTraTongHop.DongAsync);
 CanhBaoService.TongHopBoSung.Add(HopDongTongHop.DongAsync);
 CanhBaoService.TongHopBoSung.Add(MuaSamTongHop.DongAsync);
 CanhBaoService.TongHopBoSung.Add(NganSachTongHop.DongAsync);
+CanhBaoService.TongHopBoSung.Add(AgentTongHop.DongAsync);
 
 var app = builder.Build();
 

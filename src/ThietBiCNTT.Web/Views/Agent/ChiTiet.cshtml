@@ -1,0 +1,45 @@
+@model MayTramAgent
+@{ ViewData["Title"] = Model.Hostname; var dc = Model.DoiChieu((ChuanCauHinh)ViewBag.Chuan); var ls = (List<LichSuTaiSan>)ViewBag.LichSu; var pm = Model.DsPhanMem.ToList(); }
+<div class="small text-muted mb-1"><a asp-action="Index">Máy trạm (agent)</a> › @Model.Hostname</div>
+<div class="page-head"><h1>@Model.Hostname</h1>
+    <div class="actions">@if (User.IsInRole(VaiTro.QuanTri)) { <form asp-action="Xoa" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Xoá máy khỏi danh sách agent?')"><button class="btn btn-sm btn-outline-danger">Xoá</button></form> }</div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-lg-7"><div class="card h-100"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-sm-6"><dt>Tài sản</dt><dd>@if (Model.TaiSan is not null) { <a asp-controller="TaiSan" asp-action="Details" asp-route-id="@Model.TaiSanId">@Model.TaiSan.MaTaiSan – @Model.TaiSan.Ten</a> } else { <span class="badge bg-warning text-dark">Chưa ghép</span> }</dd></div>
+        <div class="col-sm-6"><dt>Mã khai báo trên máy · serial BIOS</dt><dd>@(Model.MaTaiSanKhaiBao ?? "—") · @(Model.SerialBios ?? "—")</dd></div>
+        <div class="col-sm-6"><dt>CPU</dt><dd>@Model.Cpu</dd></div>
+        <div class="col-sm-6"><dt>RAM · ổ C (trống / tổng)</dt><dd>@Model.RamGb?.ToString("0.#") GB · @Model.OCungTrongGb?.ToString("0.#") / @Model.OCungTongGb?.ToString("0.#") GB</dd></div>
+        <div class="col-sm-6"><dt>Hệ điều hành</dt><dd>@Model.HeDieuHanh</dd></div>
+        <div class="col-sm-6"><dt>Người đăng nhập</dt><dd>@Model.NguoiDangNhap</dd></div>
+        <div class="col-sm-6"><dt>IP · MAC</dt><dd class="small">@Model.Ip<br />@Model.Mac</dd></div>
+        <div class="col-sm-6"><dt>Agent</dt><dd class="small">v@(Model.PhienBanAgent) · gửi @Model.SoLanGui lần · đầu @Model.LanDau.ToString("dd/MM/yyyy") · cuối @Model.LanCuoi.ToString("dd/MM/yyyy HH:mm") từ @Model.IpGui</dd></div>
+    </dl></div>
+    <div class="card-body border-top">
+        @if (Model.TaiSanId is null)
+        {
+            <form asp-action="Ghep" asp-route-id="@Model.Id" method="post" class="d-flex gap-2"><input name="maTaiSan" class="form-control form-control-sm" style="max-width:220px" placeholder="Mã tài sản (VD PC-0012)" aria-label="Mã tài sản" required /><button class="btn btn-sm btn-primary">Ghép với tài sản</button></form>
+            <div class="form-text">Hoặc khai báo mã trên máy (CaiDatAgent.ps1 -MaTaiSan …) để agent tự ghép.</div>
+        }
+        else
+        {
+            <form asp-action="BoGhep" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Bỏ ghép?')"><button class="btn btn-sm btn-outline-secondary">Bỏ ghép</button></form>
+        }
+    </div></div></div>
+    <div class="col-lg-5"><div class="card h-100"><div class="card-header">Đối chiếu chuẩn cấu hình HIS</div><ul class="list-group list-group-flush">
+        @foreach (var x in dc) { <li class="list-group-item d-flex small"><i class="bi @(x.Dat ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger") me-2"></i><span class="flex-grow-1">@x.TieuChi</span><span class="text-muted">@x.GiaTri</span></li> }
+        @if (dc.Count == 0) { <li class="list-group-item small text-muted">Chưa khai báo chuẩn (Tham số → Agent cấu hình).</li> }
+    </ul></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-6"><div class="card"><div class="card-header">Lịch sử thay đổi cấu hình</div><ul class="list-group list-group-flush">
+        @foreach (var l in ls) { <li class="list-group-item small"><span class="text-muted">@l.ThoiGian.ToString("dd/MM/yyyy HH:mm") · @l.NguoiThucHien</span><div>@l.NoiDung</div></li> }
+        @if (ls.Count == 0) { <li class="list-group-item small text-muted">Chưa có.</li> }
+    </ul></div></div>
+    <div class="col-lg-6"><div class="card"><div class="card-header d-flex">Phần mềm đã cài <span class="badge bg-secondary ms-2">@pm.Count</span>
+        <input id="locPm" class="form-control form-control-sm ms-auto" style="max-width:200px" placeholder="Lọc…" aria-label="Lọc phần mềm" /></div>
+        <div style="max-height:480px;overflow:auto"><table class="table table-sm mb-0 small" id="bangPm"><tbody>
+            @foreach (var p in pm) { var t = p.Split('|'); <tr><td>@t[0]</td><td class="text-muted text-nowrap">@(t.Length > 1 ? t[1] : "")</td></tr> }
+        </tbody></table></div></div></div>
+</div>
+@section Scripts { <script>document.getElementById('locPm').oninput = e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#bangPm tr').forEach(r => r.hidden = !r.textContent.toLowerCase().includes(q)); };</script> }

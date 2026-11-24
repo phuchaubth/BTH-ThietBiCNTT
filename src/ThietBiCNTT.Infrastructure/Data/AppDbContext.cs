@@ -49,6 +49,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
     public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
     public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
+    public DbSet<MayTramAgent> MayTramAgents => Set<MayTramAgent>();
     public DbSet<KhoaApi> KhoaApis => Set<KhoaApi>();
     public DbSet<NhatKyApi> NhatKyApis => Set<NhatKyApi>();
     public DbSet<Webhook> Webhooks => Set<Webhook>();
@@ -182,6 +183,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasMany(x => x.KhoanChis).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<KhoaApi>().HasIndex(x => x.BamKhoa).IsUnique();
+        b.Entity<MayTramAgent>(e =>
+        {
+            e.HasIndex(x => x.Hostname); e.HasIndex(x => x.SerialBios); e.HasIndex(x => x.TaiSanId);
+            e.Property(x => x.RamGb).HasPrecision(8, 1); e.Property(x => x.OCungTongGb).HasPrecision(10, 1); e.Property(x => x.OCungTrongGb).HasPrecision(10, 1);
+        });
         b.Entity<NhatKyApi>().HasIndex(x => x.ThoiGian);
         b.Entity<WebhookGui>(e => { e.HasIndex(x => new { x.TrangThai, x.GuiTu }); e.HasOne(x => x.Webhook).WithMany().HasForeignKey(x => x.WebhookId).OnDelete(DeleteBehavior.Cascade); });
         b.Entity<ChiNganSach>().HasIndex(x => new { x.KhoanMucNganSachId, x.Ngay });

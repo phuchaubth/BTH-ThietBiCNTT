@@ -23,6 +23,7 @@
 
 **Giai đoạn 4:**
 - API mở REST `/api/v1` (tài sản, danh mục, tạo yêu cầu sửa chữa, phiếu công việc, tồn kho, đơn hàng, KPI) — khoá API theo phạm vi quyền, giới hạn IP/CIDR, hết hạn, thu hồi; giới hạn tần suất; nhật ký mọi lời gọi; tài liệu OpenAPI + Swagger UI
+- Agent thu thập cấu hình máy trạm (PowerShell, cài qua GPO): tự ghép tài sản theo mã / serial BIOS / hostname / MAC, cập nhật cấu hình + lịch sử, phát hiện thay đổi phần cứng & phần mềm (thông báo, webhook), đối chiếu chuẩn cấu hình HIS, cảnh báo máy lâu không gửi
 - Webhook: phiếu tạo/đóng, tài sản đổi trạng thái/ghi giảm, nhận hàng — ký HMAC-SHA256, gửi lại tự động khi lỗi, gửi thử, xem nội dung đã gửi
 
 ## Tài liệu
@@ -41,7 +42,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

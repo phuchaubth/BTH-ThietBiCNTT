@@ -75,8 +75,9 @@ codes=[api("/api/v1/khoaphong", k1)[0] for _ in range(8)]
 check(429 in codes, f"vượt giới hạn → 429 {codes}")
 a.post("/ThamSo/Luu",{"giaTri[Api.GioiHanMoiPhut]":"120"},page=a.get("/ThamSo")[1])
 # Thu hồi
-kid=re.findall(r'/TichHop/ThuHoi/(\d+)', a.get("/TichHop")[1])
-a.post(f"/TichHop/ThuHoi/{kid[-1]}",{},page=a.get("/TichHop")[1])   # khoá tạo đầu tiên (HIS) nằm cuối danh sách
+pg=a.get("/TichHop")[1]
+kid=re.search(r'HIS – báo hỏng.*?/TichHop/ThuHoi/(\d+)', pg, re.S).group(1)
+a.post(f"/TichHop/ThuHoi/{kid}",{},page=pg)
 time.sleep(61)  # chờ qua cửa sổ giới hạn tần suất
 st,b=api("/api/v1/khoaphong", k1); check(st==401 and "thu hồi" in b["loi"], "khoá đã thu hồi → 401")
 nk=a.get("/TichHop/NhatKy?loi=true")[1]; check("/api/v1/taisan" in nk and "401" in nk, "nhật ký gọi API có lỗi")

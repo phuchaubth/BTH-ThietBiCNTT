@@ -24,6 +24,7 @@
         <div class="nav-section">Tài sản</div>
         <a class="nav-item @Act("TaiSan")" asp-controller="TaiSan" asp-action="Index"><i class="bi bi-pc-display"></i> Tài sản & cấu hình</a>
         @if (quanLy || User.IsInRole(VaiTro.TruongKhoa)) { <a class="nav-item @Act("KiemKe")" asp-controller="KiemKe" asp-action="Index"><i class="bi bi-upc-scan"></i> Kiểm kê</a> }
+        @if (cntt) { <a class="nav-item @Act("Agent")" asp-controller="Agent" asp-action="Index"><i class="bi bi-hdd-network"></i> Máy trạm (agent)</a> }
         <div class="nav-section">Bảo trì</div>
         <a class="nav-item @Act("PhieuSuaChua")" asp-controller="PhieuSuaChua" asp-action="Index"><i class="bi bi-tools"></i> Yêu cầu & công việc</a>
         <a class="nav-item @Act("KiemTra")" asp-controller="KiemTra" asp-action="Index"><i class="bi bi-clipboard-check"></i> Kiểm tra thiết bị</a>

@@ -455,6 +455,27 @@ Giám sát đơn giản: dùng công cụ giám sát sẵn có của bệnh vi�
 
 ---
 
+## 12. Triển khai agent thu thập cấu hình máy trạm (GĐ4)
+
+Agent là script PowerShell 5.1 có sẵn trên Windows 10/11 (không cài thêm phần mềm). Chạy dưới tài khoản SYSTEM khi khởi động máy và hằng ngày (trễ ngẫu nhiên ≤ 60 phút), gửi cấu hình về `POST /api/v1/agent/cauhinh`. Agent **không** thu thập tệp hay dữ liệu người bệnh.
+
+1. **Tạo khoá API**: *Quản trị → Tích hợp & API → Khoá API* → tên "Agent máy trạm", chỉ chọn phạm vi `cauhinh.ghi`, giới hạn IP theo dải mạng máy trạm (VD `10.10.0.0/16`). Sao chép khoá (chỉ hiện một lần).
+2. **Tải script**: *Máy trạm (agent)* → tải `ThuThapCauHinh.ps1` và `CaiDatAgent.ps1`, chép vào `\\<domain>\NETLOGON\agent\` (chỉ Domain Admins được ghi).
+3. **Thử trên 1 máy** (PowerShell quyền Administrator):
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File \\bth.local\NETLOGON\agent\ThuThapCauHinh.ps1 -XuatFile C:\Temp\cauhinh.json   # xem dữ liệu, không gửi
+   powershell -ExecutionPolicy Bypass -File \\bth.local\NETLOGON\agent\CaiDatAgent.ps1 -Url http://thietbi.bth.org.vn -ApiKey tbk_xxx -MaTaiSan PC-0123
+   ```
+   Máy xuất hiện ở *Máy trạm (agent)* sau vài giây.
+4. **GPO cho toàn bộ máy trạm**: *Group Policy Management* → tạo GPO "BTH Agent cấu hình" liên kết OU máy trạm → *Computer Configuration → Policies → Windows Settings → Scripts → Startup* → tab *PowerShell Scripts* → thêm `\\bth.local\NETLOGON\agent\CaiDatAgent.ps1`, tham số `-Url http://thietbi.bth.org.vn -ApiKey tbk_xxx`. Script cài lại an toàn ở mỗi lần khởi động (ghi đè, không nhân bản task).
+5. **Ghép tài sản**: agent tự ghép theo thứ tự *mã tài sản khai báo* (`-MaTaiSan`, lưu ở `HKLM\SOFTWARE\BTH\ThietBi\MaTaiSan`) → *serial BIOS* → *hostname* → *MAC* (hai cách sau bật/tắt bằng tham số `Agent.TuGhepTheoHostname`). Máy không khớp nằm ở bộ lọc **Chưa ghép tài sản** để ghép tay.
+6. **Theo dõi**: thay đổi phần cứng / HĐH / phần mềm ghi vào lịch sử tài sản, báo cho Cán bộ CNTT và phát webhook `cauhinh.thaydoi`; bản tin hằng ngày nêu máy không gửi quá `Agent.CanhBaoKhongGuiNgay` ngày và máy không đạt **chuẩn cấu hình HIS** (`Agent.Chuan*`).
+7. **Gỡ**: `CaiDatAgent.ps1 -GoCaiDat`. **Thu hồi khoá** khi nghi lộ: tạo khoá mới, cập nhật tham số GPO, rồi thu hồi khoá cũ.
+
+Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, chỉ SYSTEM và Administrators đọc được. Người dùng thường không xem được khoá.
+
+---
+
 ## Phụ lục A – Cài đặt IIS thủ công (không dùng script)
 
 1. Tạo thư mục `D:\ThietBiCNTT\app`, `keys`, `logs`, `backup`; chép nội dung thư mục `app` của gói vào `D:\ThietBiCNTT\app`.

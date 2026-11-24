@@ -71,6 +71,14 @@ public static class TS
     public const string ApiBat = "Api.Bat";
     public const string ApiGioiHanPhut = "Api.GioiHanMoiPhut";
     public const string ApiLuuNhatKyNgay = "Api.LuuNhatKyNgay";
+    // Agent cấu hình
+    public const string AgentChuanRam = "Agent.ChuanRamGb";
+    public const string AgentChuanOCungTrong = "Agent.ChuanOCungTrongGb";
+    public const string AgentChuanHdh = "Agent.ChuanHeDieuHanh";
+    public const string AgentChuanPhanMem = "Agent.ChuanPhanMem";
+    public const string AgentKhongGuiNgay = "Agent.CanhBaoKhongGuiNgay";
+    public const string AgentGhiDoiIp = "Agent.GhiLichSuDoiIP";
+    public const string AgentTuGhepHostname = "Agent.TuGhepTheoHostname";
     // Bảo mật
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
@@ -144,6 +152,14 @@ public static class ThamSoMacDinh
         T(140, "API & tích hợp", TS.ApiBat, "Bật API mở /api/v1", KieuThamSo.BatTat, "true", moTa: "Tắt: mọi lời gọi API trả 503. Chỉ nên mở trong LAN/VPN (cấu hình tường lửa/IIS)."),
         T(141, "API & tích hợp", TS.ApiGioiHanPhut, "Giới hạn số lời gọi mỗi khoá", KieuThamSo.SoNguyen, "120", "lần/phút", 1, 100000),
         T(142, "API & tích hợp", TS.ApiLuuNhatKyNgay, "Lưu nhật ký gọi API", KieuThamSo.SoNguyen, "90", "ngày", 7, 3650),
+
+        T(150, "Agent cấu hình", TS.AgentChuanRam, "Chuẩn HIS: RAM tối thiểu", KieuThamSo.SoThuc, "8", "GB", 0, 1024, "0 = không xét."),
+        T(151, "Agent cấu hình", TS.AgentChuanOCungTrong, "Chuẩn HIS: ổ C còn trống tối thiểu", KieuThamSo.SoThuc, "20", "GB", 0, 10000, "0 = không xét."),
+        T(152, "Agent cấu hình", TS.AgentChuanHdh, "Chuẩn HIS: hệ điều hành được phép", KieuThamSo.VanBan, "Windows 10, Windows 11", moTa: "Cách nhau dấu phẩy; khớp theo chuỗi con. Để trống = không xét."),
+        T(153, "Agent cấu hình", TS.AgentChuanPhanMem, "Chuẩn HIS: phần mềm bắt buộc", KieuThamSo.VanBan, "", moTa: "VD: HIS Client, Kaspersky — cách nhau dấu phẩy."),
+        T(154, "Agent cấu hình", TS.AgentKhongGuiNgay, "Cảnh báo máy không gửi cấu hình sau", KieuThamSo.SoNguyen, "7", "ngày", 0, 365, "0 = tắt."),
+        T(155, "Agent cấu hình", TS.AgentGhiDoiIp, "Ghi lịch sử khi chỉ đổi địa chỉ IP", KieuThamSo.BatTat, "false", moTa: "Tắt: IP (DHCP) vẫn được cập nhật nhưng không ghi lịch sử, không thông báo."),
+        T(156, "Agent cấu hình", TS.AgentTuGhepHostname, "Tự ghép máy với tài sản theo hostname / MAC", KieuThamSo.BatTat, "true", moTa: "Luôn ghép theo mã tài sản khai báo (registry) và serial BIOS. Tắt nếu hostname đặt không thống nhất."),
 
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),

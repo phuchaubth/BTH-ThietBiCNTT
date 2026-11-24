@@ -1741,6 +1741,93 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("MauKiemTras");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.MayTramAgent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cpu")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("HeDieuHanh")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Hostname")
+                        .IsRequired()
+                        .HasMaxLength(63)
+                        .HasColumnType("nvarchar(63)");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("IpGui")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTime>("LanCuoi")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LanDau")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MaTaiSanKhaiBao")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Mac")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NguoiDangNhap")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("OCungTongGb")
+                        .HasPrecision(10, 1)
+                        .HasColumnType("decimal(10,1)");
+
+                    b.Property<decimal?>("OCungTrongGb")
+                        .HasPrecision(10, 1)
+                        .HasColumnType("decimal(10,1)");
+
+                    b.Property<string>("PhanMem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhienBanAgent")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("RamGb")
+                        .HasPrecision(8, 1)
+                        .HasColumnType("decimal(8,1)");
+
+                    b.Property<string>("SerialBios")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SoLanGui")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaiSanId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Hostname");
+
+                    b.HasIndex("SerialBios");
+
+                    b.HasIndex("TaiSanId");
+
+                    b.ToTable("MayTramAgents");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.MucKiemTra", b =>
                 {
                     b.Property<int>("Id")
@@ -3471,6 +3558,16 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("KhoaPhong");
 
                     b.Navigation("LoaiThietBi");
+
+                    b.Navigation("TaiSan");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.MayTramAgent", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.TaiSan", "TaiSan")
+                        .WithMany()
+                        .HasForeignKey("TaiSanId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("TaiSan");
                 });
