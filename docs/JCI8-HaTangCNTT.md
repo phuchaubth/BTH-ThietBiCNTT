@@ -8,7 +8,7 @@
 | Phạm vi | **Chỉ hạ tầng CNTT**: hệ thống thông tin, máy chủ, lưu trữ, mạng, thiết bị đầu cuối, tiện ích phục vụ CNTT (UPS, điều hoà phòng máy chủ). Không bao gồm thiết bị y tế. |
 | Loại tài liệu | Đặc tả yêu cầu phần mềm bổ sung (SRS – Phụ lục GĐ3) |
 | Căn cứ tiêu chuẩn | *JCI Accreditation Standards for Hospitals, 8th Edition* (hiệu lực **01/01/2025**): chương **HCT – Health Care Technology** (mới), MOI, FMS, GLD, QPS, SQE; *Standards Interpretation FAQs* (cập nhật 04/2025) |
-| Phiên bản | 0.2 (Dự thảo – đã đối chiếu văn bản tiêu chuẩn JCI 8) |
+| Phiên bản | 0.3 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường chương HCT và MOI) |
 | Ngày lập | 24/11/2026 |
 | Đơn vị chủ trì | Phòng Công nghệ thông tin |
 | Đơn vị phối hợp | Phòng Quản lý chất lượng (đầu mối JCI), Phòng Hành chính quản trị (điện, điều hoà) |
@@ -18,6 +18,7 @@
 | Phiên bản | Ngày | Người thực hiện | Nội dung thay đổi |
 |---|---|---|---|
 | 0.1 | 24/11/2026 | Phòng CNTT | Khởi tạo dự thảo: phân tích khoảng trống so với JCI 8, đặc tả 8 phân hệ mới |
+| 0.3 | 24/11/2026 | Phòng CNTT | Đối chiếu đến **mức ME** với bản chương HCT và MOI (kèm Intent) do Phòng QLCL cung cấp: chỉnh chu kỳ diễn tập/thử phục hồi theo HCT.01.04 (kiểm tra **ít nhất hằng năm**; sao lưu đơn giản **ít nhất hằng quý** và sau thay đổi lớn); bổ sung nội dung bắt buộc của kế hoạch và thông báo downtime; chương trình ứng phó tấn công mạng thử nghiệm hằng năm; đánh giá rủi ro an toàn thông tin hằng năm; yêu cầu thiết bị di động/nhắn tin bảo mật/cổng người bệnh; thêm FR-TD-09, FR-SL-09, FR-AN-09, FR-TC-07; bảng 2.1.5 |
 | 0.2 | 24/11/2026 | Phòng CNTT | Đối chiếu văn bản chính thức JCI 8: bổ sung chương **HCT** (HCT.01.00–01.05); sửa nhận định ở v0.1 (downtime thuộc **HCT.01.04**, an ninh mạng thuộc **HCT.01.05 + MOI.01.02**); điền mã tiêu chuẩn vào ma trận truy vết; đưa an ninh mạng và rủi ro lên GĐ3.2; thêm FR-HTT-12..14, FR-DT-13, FR-AN-08, FR-TD-08, FR-JC-08 |
 
 ### Phê duyệt
@@ -115,7 +116,7 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 
 ### 2.1. Phân tích chương HCT và các tiêu chuẩn liên quan trong JCI 8
 
-> **Nguồn và giới hạn.** Nội dung dưới đây lấy từ văn bản tiêu chuẩn JCI 8 (bản chỉ gồm *câu tiêu chuẩn*), bảng "Summary of Changes to the Manual" và bộ FAQ do JCI công bố. Câu tiêu chuẩn được **dịch/tóm lược** sang tiếng Việt; bản tiếng Anh của JCI là bản có giá trị. **Số lượng yếu tố đo lường (ME)** lấy từ bảng thay đổi. **Nội dung chi tiết của từng ME và phần "Intent" chưa có** trong các tài liệu này – chỉ có trong sách tiêu chuẩn đầy đủ của JCI; khi Phòng QLCL cung cấp, bảng 2.1.1 và mục 9 sẽ được bổ sung đến mức ME (mục 11, câu hỏi 4).
+> **Nguồn và giới hạn.** Nội dung dưới đây lấy từ văn bản tiêu chuẩn JCI 8 (bản chỉ gồm *câu tiêu chuẩn*), bảng "Summary of Changes to the Manual" và bộ FAQ do JCI công bố. Câu tiêu chuẩn được **dịch/tóm lược** sang tiếng Việt; bản tiếng Anh của JCI là bản có giá trị. **Từ v0.3, chương HCT và MOI đã được đối chiếu đến từng ME và phần Intent** (bản có kèm bản dịch tiếng Việt do Phòng QLCL cung cấp) – xem bảng 2.1.5. Các chương FMS, GLD, QPS, SQE mới ở mức câu tiêu chuẩn và số ME (mục 11, câu hỏi 4). Ký hiệu **(D)** là ME mà JCI yêu cầu **có văn bản/hồ sơ**. Nội dung ME trong tài liệu này là **tóm lược của Phòng CNTT**, không sao chép nguyên văn; bản của JCI là bản có giá trị.
 
 #### 2.1.1. Chương HCT (Health Care Technology) – chương mới của bản 8
 
@@ -154,6 +155,57 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 | GLD.05.00 | Lãnh đạo chịu trách nhiệm **xem xét, lựa chọn, giám sát hợp đồng** lâm sàng và phi lâm sàng, kiểm tra việc tuân thủ | Đánh giá nhà cung cấp hằng năm (FR-JC-07, nâng lên M) |
 | QPS.03.00–03.04, QPS.04.00–04.01 | Thu thập, phân tích dữ liệu, phát hiện xu hướng bất lợi, duy trì cải tiến; **chương trình quản lý rủi ro** do người đủ năng lực giám sát | Bộ chỉ số (FR-JC-03), CAPA (mục 5), sổ rủi ro (4.4) |
 | SQE.01.07 | Nhân viên tham gia giáo dục và đào tạo | Danh sách đào tạo (FR-DT-09) |
+
+#### 2.1.5. Đối chiếu mức yếu tố đo lường (ME) – chương HCT và MOI
+
+| ME | Yêu cầu (tóm lược) | Chức năng đáp ứng |
+|---|---|---|
+| HCT.01.00 ME1 | Lãnh đạo hỗ trợ, cấp nguồn lực cho dịch vụ công nghệ | FR-JC-04 (báo cáo & đề nghị nguồn lực) |
+| HCT.01.00 ME2 | Lãnh đạo chỉ định người đủ năng lực giám sát (tham chiếu GLD.06.00 ME1) | FR-HTT-12 |
+| HCT.01.00 ME3 **(D)** | Lãnh đạo và người được chỉ định **tham gia** lựa chọn, thử nghiệm, triển khai, đánh giá hệ thống mới | FR-TD-06 (ghi người tham gia từng bước) |
+| HCT.01.00 ME4 | Hệ thống mới được **giám sát, đánh giá** tính dễ dùng, hiệu quả, sử dụng đúng mục đích, an toàn người bệnh; cải tiến theo kết quả | **FR-TD-09** (đánh giá sau triển khai), FR-JC-03 |
+| HCT.01.01 ME1 | Nhắn tin/trao đổi dữ liệu người bệnh phải qua **nền tảng bảo mật**: đăng nhập mã hoá, riêng từng người; danh bạ chỉ người được phép; biên nhận gửi/đọc; dấu ngày giờ; chống truy cập trái phép | FR-HTT-09 (checklist nền tảng nhắn tin) |
+| HCT.01.01 ME2 **(D)** | **Hướng dẫn bằng văn bản** khi dùng thiết bị di động trao đổi dữ liệu người bệnh; có quy trình **thu hồi thiết bị** khi nhân viên thôi việc | FR-HTT-09, FR-AN-08, FR-TC-06 |
+| HCT.01.01 ME3 | Thông tin liên quan chăm sóc gửi qua điện tử được ghi vào bệnh án | Ngoài phạm vi (nội dung bệnh án); chỉ lưu hướng dẫn trong FR-AN-08 |
+| HCT.01.01 ME4 | Cổng người bệnh/tin nhắn/email: mã hoá, đăng nhập bảo mật có yêu cầu mật khẩu, nhật ký thao tác, đồng ý của người bệnh | FR-HTT-09 (checklist cổng người bệnh) |
+| HCT.01.01 ME5 **(D)** | Có quy trình xử lý kịp thời thắc mắc về thông tin đã trao đổi và theo dõi để cải tiến | FR-JC-03 (chỉ số), FR-HD |
+| HCT.01.02 ME1 **(D)** | Hướng dẫn bằng văn bản bảo vệ thông tin khi dùng telehealth | FR-HTT-13 |
+| HCT.01.02 ME2–ME3 | Giữ bí mật thông tin; tích hợp thông tin khi dùng nhiều điểm tiếp xúc, nhiều nền tảng | FR-HTT-13, FR-HTT-06/09 |
+| HCT.01.02 ME4 **(D)** | Mọi nhân viên telehealth được **đào tạo an ninh mạng, có hồ sơ**: an toàn thiết bị, quyền truy cập, mật khẩu, lừa đảo/kỹ thuật xã hội, mối đe doạ mạng | FR-DT-09 |
+| HCT.01.03 ME1 | Chỉ định người đủ năng lực **lựa chọn** công cụ AI theo từng chuyên môn (dược, vết thương, phẫu thuật…) | FR-HTT-13 |
+| HCT.01.03 ME2 **(D)** | Hướng dẫn bằng văn bản **giám sát hiệu quả** công cụ AI: người hành nghề quyết định cuối cùng; an toàn và riêng tư dữ liệu; phát hiện sai lệch; phân tích từ người dùng/bên thứ ba; cập nhật; khía cạnh đạo đức | FR-HTT-13 |
+| HCT.01.03 ME3 | **Theo dõi mức sử dụng và xu hướng**, báo cáo kết quả cho bên liên quan | FR-HTT-13, FR-JC-04 |
+| HCT.01.04 ME1 **(D)** | Chương trình bằng văn bản ứng phó downtime có kế hoạch và đột xuất, **thử nghiệm ít nhất mỗi năm** (tham chiếu FMS.08.00 ME1, HCT.01.05 ME1) | FR-DT-01, 10..13; chu kỳ ở 4.1.3 |
+| HCT.01.04 ME2 | Xác định **tác động có thể xảy ra** của downtime lên mọi mặt chăm sóc, dịch vụ | FR-DT-01 (mục "tác động dự kiến"), FR-HTT-07 |
+| HCT.01.04 ME3 | **Chiến lược duy trì chăm sóc an toàn** trong downtime, kể cả dịch vụ do nhà cung cấp ngoài | FR-DT-01 (quy trình thay thế, bên thứ ba) |
+| HCT.01.04 ME4 | Chiến lược **truyền thông** trong và ngoài bệnh viện | FR-DT-01, FR-DT-05, FR-DT-06 |
+| HCT.01.04 ME5 | Biện pháp **khôi phục** và **sao lưu liên tục**; bảo đảm toàn vẹn, bảo mật | FR-SL-01..09 |
+| HCT.01.04 ME6 | Nhân viên được **đào tạo** biện pháp ứng phó downtime | FR-DT-09 |
+| HCT.01.05 ME1 **(D)** | Chương trình ứng phó **sự cố tấn công mạng** bằng văn bản, **thử nghiệm ít nhất mỗi năm**: xác định tác động và chiến lược duy trì chăm sóc | **FR-AN-09**, FR-AN-03 |
+| HCT.01.05 ME2 | Chiến lược truyền thông trong và ngoài cho người bị ảnh hưởng | FR-AN-04 |
+| HCT.01.05 ME3 | Biện pháp khôi phục và sao lưu liên tục sau tấn công mạng | FR-SL-01, FR-SL-06, FR-AN-05 |
+| MOI.01.01 ME2 **(D)** | **Danh sách bằng văn bản** người được truy cập và **mức truy cập theo vai trò** | FR-TC-02, FR-TC-03 |
+| MOI.01.01 ME3–ME5 | Quy trình cấp quyền, chỉ người được phép truy cập và ghi bệnh án | FR-TC-01..05 |
+| MOI.01.01 ME6 | **Giám sát tuân thủ**, hành động khi có vi phạm | **FR-TC-07** |
+| MOI.01.02 ME1 **(D)** | Thực hiện và lưu hồ sơ **đánh giá rủi ro an toàn thông tin hằng năm** trên toàn bệnh viện, xếp thứ tự ưu tiên | FR-RR-08 |
+| MOI.01.02 ME2–ME3 | Lưu trữ dữ liệu chống mất, đánh cắp, hư hỏng, phá huỷ, mã độc tống tiền; áp dụng thực hành bảo mật tốt nhất | FR-SL-01, FR-AN-08 |
+| MOI.01.02 ME4 | Đặt mục tiêu, cải thiện rủi ro dữ liệu và **theo dõi kết quả** | FR-RR-04, FR-HD |
+| MOI.01.02 ME5 **(D)** | **Chính sách bằng văn bản** và quy trình khi xảy ra tấn công mạng thành công | FR-AN-08, FR-AN-09 |
+| MOI.01.03 ME1 **(D)** | Xác định thời gian lưu giữ dữ liệu, tuân thủ pháp luật | FR-HTT-14 |
+| MOI.01.03 ME2–ME3 | Lưu giữ bảo mật; **huỷ/xoá** dữ liệu không làm lộ bí mật | FR-HTT-14 |
+| MOI.01.04 ME1–ME2 | Đào tạo về hệ thống thông tin, an toàn thông tin; nhân viên dùng bệnh án điện tử được **đào tạo và đánh giá** | FR-DT-09 |
+| MOI.01.04 ME3 | **Đào tạo an ninh mạng hằng năm** theo vai trò | FR-DT-09 |
+| MOI.02.00 ME1–ME3 **(D)** | Văn bản hướng dẫn xem xét, quản lý chính sách – quy trình; mẫu thống nhất | FR-DT-02 (áp dụng chung cho tài liệu), FR-JC-01 |
+| MOI.02.01 ME1–ME4 | Chính sách, quy trình, kế hoạch có sẵn, nhân viên biết cách truy cập, được đào tạo, thực hiện và được giám sát | FR-DT-03 (bộ downtime), FR-DT-09 |
+| MOI.02.03 ME1–ME3 | Phổ biến dữ liệu đúng nhu cầu, đúng thời hạn; nhân viên chăm sóc có quyền truy cập dữ liệu cần thiết | FR-DT-03, FR-DT-05 |
+
+**Các điểm làm thay đổi thiết kế so với v0.2:**
+1. **HCT.01.04 ME1 và HCT.01.05 ME1 yêu cầu thử nghiệm ít nhất mỗi năm** với mọi hệ thống dữ liệu, không chỉ hệ thống trọng yếu → chu kỳ diễn tập mặc định của mức Trung bình và Thấp đổi từ "không bắt buộc" thành 12 tháng (bảng 4.1.3).
+2. Phần Intent của HCT.01.04: **kế hoạch phục hồi thử ít nhất mỗi năm; sao lưu đơn giản thử ít nhất mỗi quý và mỗi khi có thay đổi lớn về phần cứng/phần mềm của hệ thống sao lưu** → chu kỳ thử phục hồi mặc định rút xuống 3 tháng cho mức Tối quan trọng và Cao; thêm FR-SL-09.
+3. Thông báo downtime có kế hoạch phải nêu tối thiểu **ba nội dung** (hệ thống và khoa bị ảnh hưởng; giờ bắt đầu và thời gian dự kiến; lý do và thay đổi dự kiến sau đó) → FR-DT-05.
+4. Intent nêu mốc thực hành: **dùng bộ biểu mẫu giấy khi downtime đột xuất kéo dài quá ngưỡng (ví dụ 30 phút)**, định nghĩa dữ liệu phải **nhập lại dạng có cấu trúc / quét / chép lại**, và **quy trình quản lý giấy tờ dùng trong downtime** để giữ bảo mật → FR-DT-01.
+5. Downtime do tấn công mạng cần **kế hoạch khác biệt** với downtime thường; chương trình ứng phó tấn công mạng phải **thử nghiệm hằng năm** → FR-AN-09.
+6. Bản sao lưu nên lưu ở **vị trí vật lý ngoại tuyến** (Intent HCT.01.05) → đã có ở FR-SL-01 (cờ "ngoài cơ sở/ngoại tuyến").
 
 #### 2.1.4. Điều chỉnh so với v0.1
 
@@ -256,7 +308,7 @@ flowchart TB
 | FR-HTT-06 | Sơ đồ phụ thuộc | Gắn HTTT với tài sản hạ tầng (máy chủ, máy ảo, SAN/NAS, CSDL, switch lõi, tường lửa, đường truyền, UPS, điều hoà) và với HTTT khác (ví dụ HIS phụ thuộc AD, LIS gửi kết quả vào HIS). Hiển thị sơ đồ dạng cây/đồ thị | M |
 | FR-HTT-07 | Phân tích ảnh hưởng | Từ một tài sản: liệt kê HTTT và khoa bị ảnh hưởng nếu tài sản ngừng (đi theo chuỗi phụ thuộc). Từ một HTTT: liệt kê điểm lỗi đơn (thành phần không có dự phòng) | M |
 | FR-HTT-08 | Thành phần dự phòng | Đánh dấu phụ thuộc có dự phòng hay không (ví dụ 2 nguồn điện, cụm máy chủ, đường truyền dự phòng); thành phần không dự phòng của HTTT tối quan trọng tự đề xuất vào sổ rủi ro (FR-RR-03) | S |
-| FR-HTT-09 | Điểm tích hợp & kênh truyền dữ liệu | **(HCT.01.01)** Danh sách giao diện kết nối (HL7/API/tệp) với hệ thống khác và thiết bị y tế kết nối; **kênh truyền dữ liệu người bệnh qua điện tử, thiết bị di động, email, ứng dụng nhắn tin** (có/không, mã hoá, phạm vi dùng, quy trình kèm theo); dùng trong phân tích ảnh hưởng | M |
+| FR-HTT-09 | Điểm tích hợp & kênh truyền dữ liệu | **(HCT.01.01)** Danh sách giao diện kết nối (HL7/API/tệp) với hệ thống khác và thiết bị y tế kết nối; **kênh truyền dữ liệu người bệnh qua điện tử, thiết bị di động, email, ứng dụng nhắn tin** (có/không, mã hoá, phạm vi dùng, quy trình kèm theo); dùng trong phân tích ảnh hưởng. **Checklist theo ME HCT.01.01:** nền tảng nhắn tin bảo mật (đăng nhập mã hoá riêng từng người, danh bạ người được phép, biên nhận gửi/đọc, dấu ngày giờ, chống truy cập trái phép); thiết bị di động (hướng dẫn bằng văn bản, thu hồi khi nhân viên thôi việc, xoá dữ liệu từ xa khi mất); cổng người bệnh (mã hoá, đăng nhập bảo mật, nhật ký thao tác, sự đồng ý của người bệnh) | M |
 | FR-HTT-12 | Người giám sát CNTT y tế | **(HCT.01.00)** Hồ sơ người được lãnh đạo chỉ định giám sát CNTT y tế: họ tên, chức danh, văn bản chỉ định (số, ngày, tệp), trình độ/chứng chỉ, ngày bắt đầu, người thay thế; lịch sử các lần thay đổi. Thiếu người được chỉ định còn hiệu lực → cảnh báo trên báo cáo JC | M |
 | FR-HTT-13 | Telehealth & công cụ hỗ trợ quyết định lâm sàng / AI | **(HCT.01.02, 01.03)** Cờ trên hệ thống: *dịch vụ telehealth*, *công cụ hỗ trợ quyết định lâm sàng / AI* (loại: chẩn đoán, điều trị, dự báo, sức khoẻ dân số, khác). Telehealth: bắt buộc đính kèm **hướng dẫn bảo vệ dữ liệu** có phiên bản và phê duyệt. Công cụ hỗ trợ quyết định/AI: theo dõi bốn bước **lựa chọn → triển khai → giám sát → cải tiến** (mỗi bước có người phụ trách, ngày, kết luận, tệp); lịch xem xét định kỳ (mặc định 12 tháng) và cảnh báo đến hạn | M |
 | FR-HTT-14 | Thời gian lưu giữ dữ liệu | **(MOI.01.03)** Mỗi hệ thống khai báo loại dữ liệu và thời gian lưu giữ, căn cứ pháp lý, cách huỷ/xoá khi hết hạn; đối chiếu với thời gian lưu của tác vụ sao lưu (FR-SL-01): bản sao lưu lưu ngắn hơn thời gian lưu giữ dữ liệu lưu trữ → cảnh báo | S |
@@ -278,12 +330,12 @@ flowchart TB
 
 | Mức trọng yếu | RTO mặc định | RPO mặc định | Chu kỳ diễn tập downtime | Chu kỳ thử phục hồi |
 |---|---|---|---|---|
-| Tối quan trọng | 4 giờ | 15 phút | 6 tháng | 6 tháng |
-| Cao | 8 giờ | 1 giờ | 12 tháng | 12 tháng |
-| Trung bình | 24 giờ | 24 giờ | Không bắt buộc | 12 tháng |
-| Thấp | 72 giờ | 24 giờ | Không bắt buộc | Không bắt buộc |
+| Tối quan trọng | 4 giờ | 15 phút | 6 tháng | 3 tháng |
+| Cao | 8 giờ | 1 giờ | 12 tháng | 3 tháng |
+| Trung bình | 24 giờ | 24 giờ | 12 tháng | 6 tháng |
+| Thấp | 72 giờ | 24 giờ | 12 tháng | 12 tháng |
 
-> Các giá trị trên là **giả định khởi tạo**, Bệnh viện điều chỉnh khi phê duyệt (xem mục 11).
+> **Căn cứ chu kỳ:** HCT.01.04 ME1 và HCT.01.05 ME1 – thử nghiệm chương trình **ít nhất mỗi năm** (nên chu kỳ diễn tập tối đa 12 tháng cho mọi mức; hệ thống Tối quan trọng được đặt chặt hơn theo quyết định nội bộ). Intent HCT.01.04 – sao lưu đơn giản thử **ít nhất mỗi quý** (chu kỳ thử phục hồi 3 tháng cho hệ thống trọng yếu). **RTO/RPO không do JCI quy định**; đây là giả định khởi tạo của Phòng CNTT, Bệnh viện điều chỉnh khi phê duyệt (xem mục 11).
 
 #### 4.1.4. Màn hình chính
 
@@ -308,7 +360,7 @@ flowchart TB
 
 | Mã | Chức năng | Mô tả | Ưu tiên |
 |---|---|---|---|
-| FR-DT-01 | Lập kế hoạch downtime theo HTTT | Nội dung có cấu trúc: phạm vi; tiêu chí kích hoạt (ví dụ hệ thống không truy cập được quá 15 phút); vai trò & danh bạ liên lạc (CNTT, nhà cung cấp, đầu mối khoa); các bước khi bắt đầu downtime, trong downtime, khi khôi phục; quy trình thay thế cho từng khoa (đính kèm); **biểu mẫu giấy thay thế** (đính kèm, in được); quy trình **nhập bù dữ liệu** sau khôi phục và người chịu trách nhiệm đối chiếu; tiêu chí kết thúc downtime | M |
+| FR-DT-01 | Lập kế hoạch downtime theo HTTT | Nội dung có cấu trúc: phạm vi; tiêu chí kích hoạt (ví dụ hệ thống không truy cập được quá 15 phút); vai trò & danh bạ liên lạc (CNTT, nhà cung cấp, đầu mối khoa); các bước khi bắt đầu downtime, trong downtime, khi khôi phục; quy trình thay thế cho từng khoa (đính kèm); **biểu mẫu giấy thay thế** (đính kèm, in được); quy trình **nhập bù dữ liệu** sau khôi phục và người chịu trách nhiệm đối chiếu; tiêu chí kết thúc downtime. **Bổ sung theo ME HCT.01.04:** *tác động dự kiến* lên các mặt chăm sóc và dịch vụ (ME2); chiến lược duy trì chăm sóc kể cả dịch vụ do bên ngoài cung cấp, ví dụ xét nghiệm/chẩn đoán hình ảnh thuê ngoài (ME3); chiến lược truyền thông nội bộ và bên ngoài, gồm **kênh thay thế** khi mạng hỏng, ví dụ điện thoại (ME4); **ngưỡng phát bộ biểu mẫu giấy** (tham số, mặc định 30 phút); phân loại dữ liệu sau downtime: nhập lại có cấu trúc / quét / chép lại; **quy trình quản lý giấy tờ dùng trong downtime** để giữ bí mật; chiến lược khôi phục và chuyển đổi dự phòng (failover); nhân viên được **thông báo ngay khi phát hiện** downtime đột xuất | M |
 | FR-DT-02 | Phiên bản & phê duyệt | Kế hoạch có phiên bản; luồng Nháp → Chờ duyệt → Hiệu lực → Hết hiệu lực. Người duyệt: Trưởng phòng CNTT; HTTT Tối quan trọng cần thêm Lãnh đạo. Ngày rà soát lại (mặc định 12 tháng) – đến hạn tự nhắc | M |
 | FR-DT-03 | Bộ tài liệu downtime cho khoa | Mỗi khoa xem/tải được "bộ downtime" của khoa mình: danh sách HTTT khoa phụ thuộc, hướng dẫn ngắn, biểu mẫu giấy, số điện thoại. Xuất PDF một trang để dán tại khoa và lưu offline (vì khi downtime có thể không truy cập được hệ thống) | M |
 
@@ -317,7 +369,7 @@ flowchart TB
 | Mã | Chức năng | Mô tả | Ưu tiên |
 |---|---|---|---|
 | FR-DT-04 | Ghi nhận downtime đột xuất | Tạo sự kiện: HTTT bị ảnh hưởng (một hoặc nhiều), thời điểm bắt đầu, mức độ (ngừng hoàn toàn / suy giảm), khoa bị ảnh hưởng (gợi ý từ FR-HTT-05), có kích hoạt kế hoạch downtime không. Có thể tạo từ phiếu sửa chữa/lệnh công việc (liên kết hai chiều) hoặc tạo trực tiếp | M |
-| FR-DT-05 | Downtime có kế hoạch | Đăng ký trước: HTTT, khung giờ dự kiến, lý do (liên kết phiếu thay đổi 4.5 nếu có), khoa bị ảnh hưởng. Hệ thống gửi thông báo tới Trưởng khoa bị ảnh hưởng trước N giờ (tham số, mặc định 48 giờ) và nhắc lại trước 1 giờ | M |
+| FR-DT-05 | Downtime có kế hoạch | Đăng ký trước: HTTT, khung giờ dự kiến, lý do (liên kết phiếu thay đổi 4.5 nếu có), khoa bị ảnh hưởng. Hệ thống gửi thông báo tới Trưởng khoa bị ảnh hưởng trước N giờ (tham số, mặc định 48 giờ) và nhắc lại trước 1 giờ. **Nội dung thông báo bắt buộc có ba mục** (Intent HCT.01.04): hệ thống/ứng dụng ngừng và khoa bị ảnh hưởng; giờ bắt đầu và thời gian dự kiến ngừng; lý do và những thay đổi dự kiến sau khi hoàn tất (ví dụ bảo trì thường kỳ không đổi gì, hay nâng cấp) | M |
 | FR-DT-06 | Nhật ký diễn biến | Dòng thời gian trong sự kiện: thông báo khoa, kích hoạt quy trình giấy, liên hệ nhà cung cấp, khôi phục từng phần, kết thúc; mỗi dòng có người ghi và thời điểm | M |
 | FR-DT-07 | Kết thúc & nhập bù | Ghi thời điểm khôi phục; hệ thống tính thời lượng và so với RTO (đạt/vượt); checklist nhập bù dữ liệu theo khoa, mỗi khoa xác nhận đã nhập bù xong | M |
 | FR-DT-08 | Rút kinh nghiệm | Bắt buộc với downtime đột xuất của HTTT Tối quan trọng/Cao hoặc vượt RTO: nguyên nhân gốc, điều làm tốt, điều cần cải thiện, hành động khắc phục (tạo CAPA – mục 5), có cần sửa kế hoạch downtime không | M |
@@ -383,7 +435,8 @@ flowchart LR
 | FR-SL-02 | Nhật ký kết quả sao lưu – nhập tay | Cán bộ CNTT ghi kết quả từng lần hoặc theo ngày: thành công / có cảnh báo / lỗi, dung lượng, thời lượng, ghi chú; có thể dùng phiếu kiểm tra hằng ngày hiện có (4.12) với mục "kết quả sao lưu" gắn tác vụ | M |
 | FR-SL-03 | Nhật ký kết quả sao lưu – tự động | API nhận kết quả (JSON) từ phần mềm sao lưu/script (SQL Server Agent, Veeam, Windows Server Backup…) với khoá API; hoặc đọc email báo cáo từ hộp thư cấu hình sẵn | S |
 | FR-SL-04 | Phát hiện thiếu / lỗi | Job nền so lịch với nhật ký: thiếu kết quả sau thời điểm dự kiến + khoảng chờ (tham số) → coi như **không rõ**; lỗi hoặc thiếu → cảnh báo người phụ trách; lỗi liên tiếp ≥ 2 lần với HTTT Tối quan trọng → tự tạo phiếu sửa chữa ưu tiên Cao | M |
-| FR-SL-05 | Lịch thử phục hồi | Tự sinh đợt thử phục hồi theo chu kỳ (4.1.3) cho từng HTTT; nhắc trước 14 ngày, cảnh báo quá hạn | M |
+| FR-SL-05 | Lịch thử phục hồi | Tự sinh đợt thử phục hồi theo chu kỳ (4.1.3; hệ thống trọng yếu **hằng quý**) cho từng HTTT; nhắc trước 14 ngày, cảnh báo quá hạn | M |
+| FR-SL-09 | Thử phục hồi sau thay đổi lớn | **(Intent HCT.01.04)** Khi hệ thống/phần mềm sao lưu có **thay đổi lớn** (nâng cấp, đổi phần mềm, đổi nơi lưu): phiếu thay đổi (4.5) loại "hệ thống sao lưu" khi hoàn tất tự tạo một lần thử phục hồi ngoài lịch | M |
 | FR-SL-06 | Biên bản thử phục hồi | Ghi: bản sao lưu được chọn (ngày, loại, nơi lưu), môi trường phục hồi (máy thử / môi trường dự phòng), thời điểm bắt đầu/kết thúc → **RTO đạt được**, thời điểm dữ liệu của bản phục hồi → **RPO đạt được**, kiểm tra toàn vẹn (ứng dụng mở được, đối chiếu số bản ghi mẫu, người dùng nghiệp vụ xác nhận), kết quả Đạt/Không đạt, tệp minh chứng (ảnh chụp, log) | M |
 | FR-SL-07 | Xử lý thử phục hồi không đạt | Không đạt hoặc vượt RTO/RPO → bắt buộc tạo CAPA; lịch thử lại trong 30 ngày (tham số) | M |
 | FR-SL-08 | Bảng theo dõi sao lưu | Ma trận HTTT × ngày (30 ngày gần nhất) màu theo kết quả; tỷ lệ sao lưu thành công theo HTTT; ngày thử phục hồi gần nhất & kết quả; cột "đạt 3-2-1" | M |
@@ -458,6 +511,7 @@ flowchart LR
 | FR-TD-05 | Kết quả thực hiện | Thành công / Thành công có vấn đề / Đã quay lui / Thất bại; kiểm thử sau thay đổi; người dùng nghiệp vụ xác nhận (với thay đổi lớn). Thất bại hoặc quay lui → gợi ý tạo CAPA | M |
 | FR-TD-06 | Đánh giá trước triển khai hệ thống mới | **(HCT.01.03 – lựa chọn, triển khai)** Với loại Triển khai mới (kể cả công cụ hỗ trợ quyết định lâm sàng / AI): checklist cấu hình được (yêu cầu bảo mật, phân quyền, sao lưu, tích hợp, đào tạo người dùng, kế hoạch downtime, đánh giá của chủ sở hữu nghiệp vụ, đánh giá an toàn thông tin; với công cụ hỗ trợ quyết định/AI: cơ sở chuyên môn, người chịu trách nhiệm giám sát, tiêu chí theo dõi hiệu quả); khi hoàn tất → tạo bản ghi HTTT mới trạng thái Đang triển khai | M |
 | FR-TD-07 | Cập nhật hồ sơ | Thay đổi thành công trên tài sản → ghi vào lịch sử tài sản (cơ chế hiện có); thay đổi phiên bản HTTT → cập nhật phiên bản trên hồ sơ HTTT | M |
+| FR-TD-09 | Đánh giá sau triển khai | **(HCT.01.00 ME4)** Sau khi hệ thống mới/thay đổi lớn đưa vào vận hành (mặc định 90 ngày): đánh giá tính dễ dùng, mức sử dụng đúng mục đích, mức tích hợp với hệ thống hiện có, tác động tới an toàn người bệnh/sai sót, tác động tới nhân viên; kết luận và cải tiến (CAPA) | S |
 | FR-TD-08 | Đánh giá rủi ro trước thay đổi/bảo trì ảnh hưởng chăm sóc | **(FMS.10.00)** Thay đổi hoặc bảo trì làm ngừng/suy giảm HTTT phục vụ người bệnh bắt buộc có đánh giá rủi ro **trước khi thực hiện**: ảnh hưởng tới khoa nào, biện pháp bảo đảm an toàn người bệnh (quy trình giấy, lịch ngoài giờ cao điểm), người phụ trách tại khoa; không có đánh giá → không chuyển "Đã duyệt" | M |
 
 #### 4.5.2. Luồng trạng thái
@@ -504,11 +558,12 @@ stateDiagram-v2
 |---|---|---|---|
 | FR-AN-01 | Ghi nhận sự cố | Nguồn phát hiện (người dùng báo, cảnh báo hệ thống, cơ quan chức năng thông báo), loại (mã độc / mã hoá tống tiền, lừa đảo – phishing, truy cập trái phép, rò rỉ dữ liệu, từ chối dịch vụ, lỗ hổng nghiêm trọng, khác), HTTT/tài sản bị ảnh hưởng, thời điểm phát hiện. Người dùng cuối báo qua form báo hỏng hiện có với lựa chọn "Nghi ngờ mất an toàn thông tin" → chuyển vào phân hệ này | M |
 | FR-AN-02 | Phân mức | Thông thường / Nghiêm trọng / Rất nghiêm trọng (tiêu chí cấu hình được, gợi ý theo quy định ứng cứu sự cố). Có liên quan dữ liệu cá nhân / thông tin người bệnh không (cờ bắt buộc chọn) | M |
-| FR-AN-03 | Quy trình ứng phó | Các bước theo mẫu: Phát hiện → Ngăn chặn → Loại bỏ → Khôi phục → Rút kinh nghiệm; mỗi bước có checklist, người thực hiện, thời điểm; tệp minh chứng (log, ảnh) | M |
+| FR-AN-03 | Quy trình ứng phó | Các bước theo mẫu: Phát hiện → Ngăn chặn → Loại bỏ → Khôi phục → Rút kinh nghiệm; mỗi bước có checklist, người thực hiện, thời điểm; tệp minh chứng (log, ảnh). Với **tấn công mạng gây ngừng hệ thống**: dùng kế hoạch riêng, khác kế hoạch downtime thường (HCT.01.05 Intent), có bước báo cáo ngay cho CNTT, Lãnh đạo và nhóm an ninh mạng (nếu có) | M |
 | FR-AN-04 | Thông báo & leo thang | Nghiêm trọng trở lên → thông báo ngay Trưởng phòng CNTT và Lãnh đạo; nhắc thời hạn báo cáo cơ quan chức năng (thời hạn là tham số); ghi nhận đã báo cáo (ngày, cơ quan, số văn bản) | M |
 | FR-AN-05 | Liên kết | Sự cố gây ngừng HTTT → mở sự kiện downtime (4.2); cần khôi phục từ sao lưu → liên kết lần phục hồi; hành động sau sự cố → CAPA; rủi ro mới → sổ rủi ro | M |
 | FR-AN-06 | Quyền xem hạn chế | Chi tiết sự cố an ninh chỉ nhóm CNTT được phân quyền và Lãnh đạo xem; người báo chỉ thấy trạng thái tiếp nhận | M |
 | FR-AN-07 | Theo dõi lỗ hổng | Ghi nhận lỗ hổng/khuyến cáo (nguồn, mức CVSS, tài sản/HTTT bị ảnh hưởng, hạn vá theo mức) và trạng thái vá; quá hạn → cảnh báo | S |
+| FR-AN-09 | Chương trình ứng phó tấn công mạng & thử nghiệm hằng năm | **(HCT.01.05 ME1, MOI.01.02 ME5)** Chương trình bằng văn bản (có phiên bản, phê duyệt): tác động dự kiến lên chăm sóc và vận hành; chiến lược duy trì chăm sóc; truyền thông trong/ngoài; khôi phục từ sao lưu. **Thử nghiệm ít nhất mỗi năm** (diễn tập tình huống, kiểm thử xâm nhập): tự sinh lịch, biên bản chốt không sửa được (dùng khung diễn tập 4.2), kết luận và CAPA. Kèm danh mục kiểm tra "nền tảng an ninh": lọc email, cập nhật cấu hình, chống mã độc, kiểm thử xâm nhập, giới hạn truy cập vật lý, sao lưu ngoại tuyến | M |
 | FR-AN-08 | Chính sách & quy trình an ninh mạng | **(HCT.01.05)** Kho tài liệu chính sách, quy trình, thủ tục an ninh mạng và quản lý rủi ro mạng (phân loại tài sản thông tin, kiểm soát truy cập, quản lý bản vá, mã độc, ứng phó sự cố, quản lý rủi ro bên thứ ba): có phiên bản, người soạn, người phê duyệt (Lãnh đạo), ngày hiệu lực, hạn rà soát; liên kết với đánh giá rủi ro mạng hằng năm (FR-RR-08) | M |
 
 ---
@@ -529,6 +584,7 @@ stateDiagram-v2
 | FR-TC-04 | Phát hiện tự động | Đánh dấu: tài khoản không đăng nhập quá N ngày (tham số, mặc định 90), tài khoản dùng chung/không gắn người, tài khoản quyền quản trị, tài khoản không thuộc khoa nào | S |
 | FR-TC-05 | Thực hiện & đóng đợt | Yêu cầu thu hồi/đổi quyền tạo thành danh sách việc cho cán bộ CNTT; cán bộ CNTT xác nhận đã thực hiện trên HTTT; đóng đợt → biên bản rà soát (số tài khoản, số thu hồi, số đổi quyền, người xác nhận) | M |
 | FR-TC-06 | Thu hồi khi nghỉ việc | Ghi nhận thông báo nghỉ việc/chuyển khoa (nhập tay hoặc từ phòng Tổ chức cán bộ) → tạo việc thu hồi trên tất cả HTTT người đó có tài khoản theo đợt rà soát gần nhất; theo dõi hạn hoàn thành (tham số, mặc định 1 ngày làm việc) | S |
+| FR-TC-07 | Giám sát tuân thủ truy cập | **(MOI.01.01 ME6)** Ghi nhận và theo dõi vi phạm truy cập/phát hành thông tin (nguồn: nhật ký hệ thống, báo cáo của khoa, kết quả rà soát), người xử lý, hành động đã thực hiện; thống kê theo kỳ | S |
 
 ---
 
@@ -730,7 +786,8 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 | 1 | Danh sách HTTT trọng yếu và RTO/RPO từng hệ thống | Bảng 4.1.3 (Tối quan trọng: RTO 4 giờ, RPO 15 phút) – cấu hình được | Lãnh đạo + Trưởng phòng CNTT |
 | 2 | Kết quả sao lưu nhập tay hay tự động; phần mềm sao lưu đang dùng | GĐ3.1 nhập tay (và qua phiếu kiểm tra hằng ngày); API tự động ở GĐ3.3 | Phòng CNTT |
 | 3 | Nơi nhận báo cáo định kỳ (Ban Giám đốc / Hội đồng QLCL) và chu kỳ | Báo cáo quý gửi Ban Giám đốc, đồng gửi Phòng QLCL | Lãnh đạo |
-| 4 | Nội dung từng ME và "Intent" của HCT.01.00–01.05, MOI.01.00–01.04, FMS.08, FMS.10, GLD.05.00 (hiện chỉ có câu tiêu chuẩn và số ME) | Truy vết ở mức tiêu chuẩn (mục 9); ME bổ sung khi có sách tiêu chuẩn đầy đủ | Phòng QLCL |
+| 4 | Nội dung ME và Intent của các chương **FMS, GLD, QPS, SQE** (chương HCT và MOI đã có – bảng 2.1.5) | Truy vết ở mức tiêu chuẩn cho các chương này (mục 9) | Phòng QLCL |
+| 11 | Chu kỳ diễn tập (tối đa 12 tháng mọi mức) và thử phục hồi (3 tháng với hệ thống trọng yếu) có phù hợp năng lực nhân sự không | Theo bảng 4.1.3; điều chỉnh được trong Tham số hệ thống | Trưởng phòng CNTT |
 | 5 | Ai duyệt kế hoạch downtime HTTT Tối quan trọng | Trưởng phòng CNTT + một Phó Giám đốc phụ trách | Lãnh đạo |
 | 6 | Thời hạn báo cáo sự cố an ninh mạng cho cơ quan chức năng | Tham số, Phòng CNTT nhập theo văn bản hiện hành | Phòng CNTT (pháp chế góp ý) |
 | 7 | Nguồn thông tin nghỉ việc/chuyển khoa cho FR-TC-06 | Nhập tay; tích hợp phần mềm nhân sự để sau | Phòng Tổ chức cán bộ |
