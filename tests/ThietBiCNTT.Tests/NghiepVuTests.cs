@@ -564,3 +564,35 @@ public class DiDongTests
         Assert.Equal(now, ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(Ms(now.AddMinutes(2)), now)); // lệch nhẹ → kẹp về hiện tại
     }
 }
+
+public class BaoCaoDinhKyTests
+{
+    [Fact]
+    public void KyDenHan_ThangVaTuan()
+    {
+        var k = LichGuiBaoCao.KyDenHan(ChuKyGui.Thang, new DateTime(2026, 12, 1, 8, 0, 0))!.Value;
+        Assert.Equal("2026-11", k.Ky); Assert.Equal(new DateTime(2026, 11, 1), k.Tu); Assert.Equal(new DateTime(2026, 12, 1), k.Den);
+        Assert.Null(LichGuiBaoCao.KyDenHan(ChuKyGui.Thang, new DateTime(2026, 12, 2)));
+        var t = LichGuiBaoCao.KyDenHan(ChuKyGui.Tuan, new DateTime(2026, 11, 23, 9, 0, 0))!.Value; // thứ Hai
+        Assert.Equal(new DateTime(2026, 11, 16), t.Tu); Assert.Equal(new DateTime(2026, 11, 23), t.Den); Assert.Equal("2026-W47", t.Ky);
+        Assert.Null(LichGuiBaoCao.KyDenHan(ChuKyGui.Tuan, new DateTime(2026, 11, 24)));
+        var g = LichGuiBaoCao.KyGanNhat(ChuKyGui.Tuan, new DateTime(2026, 11, 26)); // thứ Năm → tuần trước đã trọn
+        Assert.Equal(new DateTime(2026, 11, 16), g.Tu); Assert.Equal(new DateTime(2026, 11, 23), g.Den);
+        Assert.Equal("2026-10", LichGuiBaoCao.KyGanNhat(ChuKyGui.Thang, new DateTime(2026, 11, 26)).Ky);
+    }
+
+    [Fact]
+    public void LichGui_KiemTra()
+    {
+        Assert.Throws<DomainException>(() => new LichGuiBaoCao { NguoiNhan = " , " }.KiemTra());
+        Assert.Throws<DomainException>(() => new LichGuiBaoCao { NguoiNhan = "lanhdao", Loai = LoaiBaoCaoDinhKy.TuyBien }.KiemTra());
+        Assert.Equal(["lanhdao", "a@b.vn"], new LichGuiBaoCao { NguoiNhan = "lanhdao; a@b.vn\n" }.DsNguoiNhan);
+    }
+
+    [Fact]
+    public void Tco_TongVaChiSo()
+    {
+        var x = new ThietBiCNTT.Infrastructure.Services.DongTco("PC", "PC-1", null, null, null, 1, 10_000_000, 3_000_000, 500_000, 1_000_000, 500_000, 2, 2.5);
+        Assert.Equal(5_000_000, x.VanHanh); Assert.Equal(15_000_000, x.Tong); Assert.Equal(6_000_000, x.MoiNam); Assert.Equal(30, x.TyLeSua);
+    }
+}

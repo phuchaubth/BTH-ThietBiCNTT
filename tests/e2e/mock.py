@@ -14,7 +14,8 @@ async def smtp(reader, writer):
             if s == ".":
                 data = False; body = "\n".join(buf)
                 subj = next((l for l in buf if l.lower().startswith("subject:")), "")
-                ghi("EMAIL " + ",".join(rcpt) + " | " + subj); buf = []; rcpt = []
+                tep = [l.split("filename=",1)[1].strip('"; ') for l in buf if "filename=" in l]
+                ghi("EMAIL " + ",".join(rcpt) + " | " + subj + (" | ATTACH " + ",".join(tep) if tep else "")); buf = []; rcpt = []
                 writer.write(b"250 OK queued\r\n")
             else: buf.append(s)
         else:

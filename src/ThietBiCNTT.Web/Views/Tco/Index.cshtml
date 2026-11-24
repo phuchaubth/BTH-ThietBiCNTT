@@ -1,0 +1,38 @@
+@model List<DongTco>
+@{
+    ViewData["Title"] = "Tổng chi phí sở hữu"; var nhom = (NhomTco)ViewData["nhom"]!; var nguong = (int)ViewBag.Nguong; var theoTs = nhom == NhomTco.TaiSan;
+    string TenNhom(NhomTco n) => n switch { NhomTco.TaiSan => "Từng tài sản", NhomTco.Loai => "Loại thiết bị", NhomTco.Model => "Model", _ => "Khoa/phòng" };
+}
+<partial name="_TabsBaoCao" />
+<div class="page-head"><h1>Tổng chi phí sở hữu (TCO)</h1>
+    <div class="actions"><a class="btn btn-sm btn-outline-success" href="/Tco/Xuat?khoa=@ViewData["khoa"]&loai=@ViewData["loai"]&thanhLy=@ViewData["thanhLy"]"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a></div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Nhóm theo">
+        @foreach (var n in Enum.GetValues<NhomTco>()) { <button name="nhom" value="@n" class="btn @(n == nhom ? "btn-primary" : "btn-outline-primary")">@TenNhom(n)</button> }
+    </div>
+    <select name="khoa" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm" style="width:200px" aria-label="Khoa" onchange="this.form.requestSubmit()"><option value="">Toàn viện</option></select>
+    <select name="loai" asp-items="ViewBag.DsLoai" class="form-select form-select-sm" style="width:200px" aria-label="Loại" onchange="this.form.requestSubmit()"><option value="">Mọi loại</option></select>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="thanhLy" value="true" id="tl" @((bool)ViewData["thanhLy"]! ? "checked" : "") onchange="this.form.requestSubmit()" /><label class="form-check-label small" for="tl">Gồm tài sản đã thanh lý</label></div>
+</form>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Nguyên giá</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.NguyenGia).ToString("N0")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Chi phí vận hành</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.VanHanh).ToString("N0")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">TCO</div><div class="fs-5 fw-semibold text-primary">@Model.Sum(x => x.Tong).ToString("N0")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Tài sản</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.SoTaiSan)</div></div></div>
+</div>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle small">
+    <thead><tr><th>@TenNhom(nhom)</th>@if (theoTs) { <th>Loại · model · khoa</th> } else { <th class="text-end">Số TS</th> }
+        <th class="text-end">Nguyên giá</th><th class="text-end">Sửa chữa</th><th class="text-end">Bảo trì ĐK</th><th class="text-end">HĐ bảo trì</th><th class="text-end">Bản quyền</th>
+        <th class="text-end">TCO</th><th class="text-end">Hỏng</th><th class="text-end">Tuổi</th><th class="text-end">TCO/năm/TS</th><th class="text-end" title="Chi phí sửa chữa / nguyên giá">% sửa</th></tr></thead>
+    <tbody>@foreach (var x in Model.Take(500)) {
+        <tr><td class="fw-semibold">@if (theoTs) { <a href="/qr/@x.MaTaiSan">@x.Nhom</a> } else { @x.Nhom }</td>
+            @if (theoTs) { <td class="text-muted">@x.Loai · @x.Model · @(x.Khoa ?? "Kho")</td> } else { <td class="text-end">@x.SoTaiSan</td> }
+            <td class="text-end">@x.NguyenGia.ToString("N0")</td><td class="text-end">@x.SuaChua.ToString("N0")</td><td class="text-end">@x.BaoTri.ToString("N0")</td>
+            <td class="text-end">@x.HopDong.ToString("N0")</td><td class="text-end">@x.BanQuyen.ToString("N0")</td><td class="text-end fw-semibold">@x.Tong.ToString("N0")</td>
+            <td class="text-end">@x.SoLanHong</td><td class="text-end">@x.NamSuDung.ToString("0.#")</td><td class="text-end">@x.MoiNam.ToString("N0")</td>
+            <td class="text-end @(x.TyLeSua >= nguong ? "text-danger fw-semibold" : "")">@x.TyLeSua.ToString("0.#")%</td></tr> }
+    @if (Model.Count == 0) { <tr><td colspan="12" class="text-center text-muted py-4">Không có dữ liệu.</td></tr> }
+    </tbody>
+</table></div></div>
+<p class="small text-muted mt-2">TCO = nguyên giá + sửa chữa (vật tư + thuê ngoài) + bảo trì định kỳ + hợp đồng bảo trì/thuê ngoài chia đều cho tài sản gắn hợp đồng + giá hợp đồng bản quyền phân bổ theo giấy phép cấp cho tài sản.
+    Tô đỏ: chi phí sửa chữa ≥ @nguong% nguyên giá (tham số TaiSan.NguongChiPhiSuaPhanTram) — cân nhắc thay mới / thanh lý.@(Model.Count > 500 ? " Hiển thị 500 dòng đầu — xuất Excel để xem đủ." : "")</p>

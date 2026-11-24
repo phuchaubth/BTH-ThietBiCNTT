@@ -22,14 +22,14 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
     private string DiaChiGoc => thamSo.Chuoi(TS.DiaChiTruyCap).TrimEnd('/');
 
     public async Task GuiAsync(IEnumerable<string?> nguoiNhan, LoaiThongBao loai, string tieuDe, string? noiDung, string? link,
-        MucDoThongBao mucDo = MucDoThongBao.ThongTin, bool guiNhomCNTT = false, string? boQua = null)
+        MucDoThongBao mucDo = MucDoThongBao.ThongTin, bool guiNhomCNTT = false, string? boQua = null, bool chiTrongUngDung = false)
     {
         var ten = nguoiNhan.Where(x => !string.IsNullOrWhiteSpace(x) && !string.Equals(x, boQua, StringComparison.OrdinalIgnoreCase))
             .Select(x => x!.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var ds = await db.Users.Where(u => ten.Contains(u.UserName!) && u.DangHoatDong).ToListAsync();
         var now = DateTime.Now;
-        var email = thamSo.BatTat(TS.EmailBat);
-        var tele = thamSo.BatTat(TS.TelegramBat);
+        var email = !chiTrongUngDung && thamSo.BatTat(TS.EmailBat);
+        var tele = !chiTrongUngDung && thamSo.BatTat(TS.TelegramBat);
         var url = link is null ? null : (DiaChiGoc.Length > 0 ? DiaChiGoc + link : link);
         foreach (var u in ds)
         {
@@ -123,7 +123,9 @@ public class EmailSender(ThamSoService thamSo, IConfiguration config) : IKenhGui
         msg.From.Add(new MailboxAddress("Quản lý TTB CNTT", tu));
         msg.To.Add(MailboxAddress.Parse(tin.DiaChi));
         msg.Subject = tin.TieuDe;
-        msg.Body = new TextPart("html") { Text = tin.NoiDung };
+        var body = new BodyBuilder { HtmlBody = tin.NoiDung };
+        if (tin.TepDinhKem is { } tep && File.Exists(tep)) body.Attachments.Add(tin.TenTepDinhKem ?? Path.GetFileName(tep), await File.ReadAllBytesAsync(tep, ct));
+        msg.Body = body.ToMessageBody();
         using var smtp = new SmtpClient { Timeout = 20000 };
         var port = thamSo.SoNguyen(TS.SmtpPort);
         await smtp.ConnectAsync(host, port, thamSo.BatTat(TS.SmtpBaoMat)

@@ -179,6 +179,7 @@ public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<Thon
                 if (DateTime.Now - lanCanhBao >= TimeSpan.FromMinutes(5))
                 {
                     await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
+                    await scope.ServiceProvider.GetRequiredService<BaoCaoDinhKyService>().ChayAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<TichHopService>().DonDepAsync(
                         scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.ApiLuuNhatKyNgay), ct);
                     lanCanhBao = DateTime.Now;

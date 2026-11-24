@@ -186,36 +186,6 @@ public class BaoCaoController(AppDbContext db, BaoCaoService svc) : Controller
     {
         var (t, d) = Ky(tu, den);
         var r = await svc.LapAsync(t, d, khoa);
-        using var wb = new XLWorkbook();
-        void Sheet(string ten, string tieuDe, string[] cot, IEnumerable<object?[]> dong, Action<IXLWorksheet>? dinhDang = null)
-        {
-            var ws = wb.AddWorksheet(ten);
-            ws.Cell(1, 1).Value = tieuDe; ws.Cell(1, 1).Style.Font.Bold = true; ws.Cell(1, 1).Style.Font.FontSize = 13;
-            ws.Cell(2, 1).Value = $"Kỳ báo cáo: {r.Tu:dd/MM/yyyy} – {r.Den:dd/MM/yyyy} · {r.PhamVi}";
-            for (var i = 0; i < cot.Length; i++) ws.Cell(4, i + 1).Value = cot[i];
-            var n = 5;
-            foreach (var x in dong) { for (var i = 0; i < x.Length; i++) ws.Cell(n, i + 1).Value = XLCellValue.FromObject(x[i]); n++; }
-            ExcelTaiSanService.DinhDangBang(ws, 4, n - 1, cot.Length);
-            dinhDang?.Invoke(ws);
-        }
-        static object? G(double? v) => v is null ? null : Math.Round(v.Value, 1);
-        string[] cotSla = ["Nhóm", "Số phiếu", "Đã xử lý", "Đúng SLA", "% đúng SLA", "MTTR (giờ)", "Dừng máy (giờ)", "Chi phí (đ)"];
-        object?[] DongSla(DongSla x) => [x.Nhom, x.SoPhieu, x.DaXong, x.DungHan, Math.Round(x.TyLeDungHan, 1), G(x.MttrGio), Math.Round(x.DungMayGio, 1), x.ChiPhi];
-        Sheet("TheoThang", "SLA & MTTR THEO THÁNG", cotSla, r.TheoThang.Append(r.Tong).Select(DongSla), ws => ws.Column(8).Style.NumberFormat.Format = "#,##0");
-        Sheet("TheoKhoa", "SLA & MTTR THEO KHOA/PHÒNG", cotSla, r.TheoKhoa.Select(DongSla), ws => ws.Column(8).Style.NumberFormat.Format = "#,##0");
-        Sheet("TheoUuTien", "SLA THEO MỨC ƯU TIÊN", cotSla, r.TheoUuTien.Select(DongSla), ws => ws.Column(8).Style.NumberFormat.Format = "#,##0");
-        Sheet("KhoaTrongYeu", "THỜI GIAN DỪNG MÁY – KHOA TRỌNG YẾU", cotSla, r.DungMayKhoaTrongYeu.Select(DongSla), ws => ws.Column(8).Style.NumberFormat.Format = "#,##0");
-        Sheet("KyThuatVien", "NĂNG SUẤT KỸ THUẬT VIÊN", ["Kỹ thuật viên", "Số phiếu", "Sửa chữa đã xong", "Đúng SLA", "% đúng SLA", "MTTR (giờ)", "Giờ công", "Đánh giá TB (1-5)", "Lệnh bảo trì"],
-            r.TheoKtv.Select(x => new object?[] { x.KyThuatVien, x.SoPhieu, x.DaXong, x.DungHan, Math.Round(x.TyLeDungHan, 1), G(x.MttrGio), x.GioCong, G(x.DanhGiaTb), x.BaoTri }));
-        Sheet("ThietBiHongNhieu", "THIẾT BỊ HỎNG NHIỀU NHẤT (TOP 20)", ["Mã TS", "Tên", "Khoa", "Loại", "Số lần hỏng", "Dừng máy (giờ)", "Chi phí SC (đ)", "MTBF (ngày)", "Nguyên giá (đ)"],
-            r.ThietBiHongNhieu.Select(x => new object?[] { x.MaTaiSan, x.Ten, x.Khoa, x.Loai, x.SoLanHong, Math.Round(x.DungMayGio, 1), x.ChiPhi, x.MtbfNgay, x.NguyenGia }),
-            ws => { ws.Column(7).Style.NumberFormat.Format = "#,##0"; ws.Column(9).Style.NumberFormat.Format = "#,##0"; });
-        string[] cotCp = ["Nhóm", "Số phiếu", "Vật tư (đ)", "Thuê ngoài (đ)", "Tổng (đ)"];
-        Sheet("ChiPhiTheoKhoa", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO KHOA", cotCp, r.ChiPhiTheoKhoa.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.Tong }),
-            ws => ws.Columns(3, 5).Style.NumberFormat.Format = "#,##0");
-        Sheet("ChiPhiTheoLoai", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO LOẠI THIẾT BỊ", cotCp, r.ChiPhiTheoLoai.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.Tong }),
-            ws => ws.Columns(3, 5).Style.NumberFormat.Format = "#,##0");
-        using var ms = new MemoryStream(); wb.SaveAs(ms);
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_{r.Tu:yyyyMMdd}_{r.Den:yyyyMMdd}.xlsx");
+        return File(BaoCaoExcel.Kpi(r), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"BaoCao_{r.Tu:yyyyMMdd}_{r.Den:yyyyMMdd}.xlsx");
     }
 }

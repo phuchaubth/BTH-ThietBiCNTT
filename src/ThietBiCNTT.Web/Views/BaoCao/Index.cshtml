@@ -5,6 +5,7 @@
     string Gio(double? g) => g is null ? "—" : g.Value.ToString("0.0");
     string Pct(int daXong, double tyLe) => daXong == 0 ? "—" : tyLe.ToString("0") + "%";
 }
+<partial name="_TabsBaoCao" />
 <div class="page-head"><h1>Báo cáo & KPI</h1>
     <form method="get" class="d-flex flex-wrap gap-2 ms-2 align-items-center">
         <label class="small" for="tu">Từ</label><input id="tu" type="date" name="tu" value="@Model.Tu.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />

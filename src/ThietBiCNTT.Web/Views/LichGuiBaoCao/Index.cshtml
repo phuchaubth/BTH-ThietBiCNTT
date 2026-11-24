@@ -1,0 +1,20 @@
+@model List<LichGuiBaoCao>
+@{ ViewData["Title"] = "Gửi báo cáo định kỳ"; var sua = User.LaDuyet() || User.IsInRole(VaiTro.CanBoCNTT); }
+<partial name="_TabsBaoCao" />
+<div class="page-head"><h1>Gửi báo cáo định kỳ</h1>
+    <div class="actions">@if (sua) { <a asp-action="Sua" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm lịch gửi</a> }</div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+    <thead><tr><th>Tên</th><th>Báo cáo</th><th>Chu kỳ</th><th>Người nhận</th><th>Lần gửi cuối</th><th></th></tr></thead>
+    <tbody>@foreach (var l in Model) {
+        <tr class="@(l.DangBat ? "" : "text-muted")"><td class="fw-semibold">@l.Ten @if (!l.DangBat) { <span class="badge bg-secondary">Tắt</span> }</td>
+            <td class="small">@l.Loai.Ten() @(l.BaoCaoMau is null ? "" : "· " + l.BaoCaoMau.Ten)</td><td class="small">@l.ChuKy.Ten()</td><td class="small">@l.NguoiNhan</td>
+            <td class="small">@if (l.LanGuiCuoi is not null) { <span>@l.LanGuiCuoi?.ToString("dd/MM/yyyy HH:mm") · kỳ @l.KyDaGui</span><div class="@(l.KetQuaCuoi?.StartsWith("Lỗi") == true ? "text-danger" : "text-muted")">@l.KetQuaCuoi</div> } else { <span>Chưa gửi</span> }</td>
+            <td class="text-nowrap">@if (l.TepCuoi is not null) { <a asp-action="Tep" asp-route-id="@l.Id" class="btn btn-sm btn-link">Tải tệp</a> }
+                @if (sua) {
+                    <form asp-action="GuiNgay" asp-route-id="@l.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-primary" title="Gửi báo cáo kỳ gần nhất ngay bây giờ">Gửi ngay</button></form>
+                    <a asp-action="Sua" asp-route-id="@l.Id" class="btn btn-sm btn-link">Sửa</a>
+                    <form asp-action="Xoa" asp-route-id="@l.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá lịch gửi?')"><button class="btn btn-sm btn-link text-danger">Xoá</button></form> }</td></tr> }
+    @if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Chưa có lịch gửi. VD: gửi Lãnh đạo báo cáo KPI vận hành hằng tháng.</td></tr> }
+    </tbody>
+</table></div></div>
+<p class="small text-muted mt-2">Gửi sau giờ bản tin tổng hợp (tham số ThongBao.GioTongHop) vào thứ Hai (hằng tuần) hoặc ngày 1 (hằng tháng), tệp Excel đính kèm email. Cần bật email trong Tham số → Thông báo; người nhận là tên đăng nhập còn nhận thông báo trong ứng dụng.</p>

@@ -1,0 +1,17 @@
+@model LichGuiBaoCao
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm lịch gửi báo cáo" : "Sửa lịch gửi"; }
+<div class="small text-muted mb-1"><a asp-action="Index">Gửi định kỳ</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Sua" method="post" class="card" style="max-width:720px"><div class="card-body row g-3">
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="col-12"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: KPI vận hành hằng tháng gửi Ban Giám đốc" /></div>
+    <div class="col-md-6"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiBaoCaoDinhKy>(Model.Loai)" class="form-select" id="loai"></select></div>
+    <div class="col-md-6" id="oMau"><label asp-for="BaoCaoMauId" class="form-label"></label><select asp-for="BaoCaoMauId" asp-items="ViewBag.DsMau" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="ChuKy" class="form-label"></label><select asp-for="ChuKy" asp-items="@EnumExtensions.ToSelectList<ChuKyGui>(Model.ChuKy)" class="form-select"></select></div>
+    <div class="col-md-6 d-flex align-items-end"><div class="form-check"><input asp-for="DangBat" class="form-check-input" /><label asp-for="DangBat" class="form-check-label"></label></div></div>
+    <div class="col-12"><label asp-for="NguoiNhan" class="form-label"></label><textarea asp-for="NguoiNhan" class="form-control" rows="2" placeholder="lanhdao, giamdoc@bth.org.vn"></textarea>
+        <div class="form-text">Tên đăng nhập (gửi tới email của tài khoản + thông báo trong ứng dụng) hoặc địa chỉ email, cách nhau dấu phẩy.</div></div>
+    <div class="col-12"><button class="btn btn-primary">Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</div></form>
+@section Scripts { <script>const l = document.getElementById('loai'), o = document.getElementById('oMau'); const f = () => o.hidden = l.value !== 'TuyBien'; l.onchange = f; f();</script> }

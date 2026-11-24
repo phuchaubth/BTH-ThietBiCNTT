@@ -49,6 +49,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
     public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
     public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
+    public DbSet<BaoCaoMau> BaoCaoMaus => Set<BaoCaoMau>();
+    public DbSet<LichGuiBaoCao> LichGuiBaoCaos => Set<LichGuiBaoCao>();
     public DbSet<SoDoMatBang> SoDoMatBangs => Set<SoDoMatBang>();
     public DbSet<DiemSoDo> DiemSoDos => Set<DiemSoDo>();
     public DbSet<MayTramAgent> MayTramAgents => Set<MayTramAgent>();

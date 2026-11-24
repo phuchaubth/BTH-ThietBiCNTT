@@ -83,6 +83,7 @@ builder.Services.AddOpenApi("v1", o =>
         return Task.CompletedTask;
     });
 });
+builder.Services.AddScoped<BaoCaoDinhKyService>();
 builder.Services.AddHostedService<BaoTriBackgroundService>();
 builder.Services.AddHostedService<ThongBaoBackgroundService>();
 

@@ -19,7 +19,7 @@ namespace ThietBiCNTT.Web.Infrastructure;
 public class ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> o, ILoggerFactory l, UrlEncoder e, TichHopService th, AppDbContext db)
     : AuthenticationHandler<AuthenticationSchemeOptions>(o, l, e)
 {
-    public const string Scheme = "ApiKey";
+    public new const string Scheme = "ApiKey";
     public const string ClaimPhamVi = "scope";
 
     public static string? DocKhoa(HttpRequest r)

@@ -1,0 +1,77 @@
+@model CauHinhBaoCao
+@{
+    ViewData["Title"] = "Báo cáo tuỳ biến"; var kq = ViewBag.KetQua as KetQuaBaoCao; var mau = ViewBag.Mau as BaoCaoMau; var dsMau = (List<BaoCaoMau>)ViewBag.DsMau;
+    var truong = BaoCaoTuyBienService.Truong(Model.Nguon); var toi = User.Identity?.Name;
+    string Gt(object? v) => v switch { null => "", DateTime d => d.ToString(d.TimeOfDay == TimeSpan.Zero ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"), DateOnly d => d.ToString("dd/MM/yyyy"),
+        decimal m => m.ToString("#,0.##"), _ => v.ToString()! };
+}
+<partial name="_TabsBaoCao" />
+<div class="page-head"><h1>@(mau?.Ten ?? "Báo cáo tuỳ biến")</h1>
+    <div class="actions dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-folder2-open"></i> Mẫu đã lưu (@dsMau.Count)</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            @foreach (var m in dsMau) { <li><a class="dropdown-item" asp-route-mauId="@m.Id">@m.Ten @if (m.ChiaSe) { <span class="badge bg-light text-dark border">chia sẻ</span> } @if (m.NguoiTao != toi) { <small class="text-muted">· @m.NguoiTao</small> }</a></li> }
+            @if (dsMau.Count == 0) { <li><span class="dropdown-item-text small text-muted">Chưa có mẫu.</span></li> }
+        </ul>
+    </div>
+</div>
+<form method="get" id="frm" class="card mb-3"><div class="card-body row g-3">
+    <input type="hidden" name="chay" value="true" />
+    @if (mau is not null) { <input type="hidden" name="mauId" value="@mau.Id" /> }
+    <div class="col-md-3"><label class="form-label" for="Nguon">Dữ liệu</label>
+        <select asp-for="Nguon" asp-items="@EnumExtensions.ToSelectList<NguonBaoCao>(Model.Nguon)" class="form-select form-select-sm" onchange="document.querySelectorAll('#frm [name=Truong],#frm [name=NhomTheo],#frm [name=SapXep],#frm [name=TrangThai]').forEach(e=>e.disabled=true);this.form.submit()"></select></div>
+    <div class="col-md-3"><label class="form-label" for="KhoaPhongId">Khoa/phòng</label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm"><option value="">Tất cả</option></select></div>
+    <div class="col-md-3"><label class="form-label" for="LoaiThietBiId">Loại thiết bị</label><select asp-for="LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select form-select-sm"><option value="">Tất cả</option></select></div>
+    <div class="col-md-3"><label class="form-label" for="TrangThai">Trạng thái</label><select name="TrangThai" id="TrangThai" class="form-select form-select-sm"><option value="">Tất cả</option>
+        @foreach (var t in BaoCaoTuyBienService.TrangThai(Model.Nguon)) { var e = Model.Nguon == NguonBaoCao.TaiSan ? (Enum)Enum.Parse<TrangThaiTaiSan>(t) : Enum.Parse<TrangThaiPhieuSuaChua>(t); <option value="@t" selected="@(Model.TrangThai == t)">@e.Ten()</option> }</select></div>
+    <div class="col-md-3"><label class="form-label" for="Tu">@(Model.Nguon == NguonBaoCao.TaiSan ? "Ngày mua" : "Ngày báo") từ</label><input asp-for="Tu" type="date" class="form-control form-control-sm" /></div>
+    <div class="col-md-3"><label class="form-label" for="Den">đến trước ngày</label><input asp-for="Den" type="date" class="form-control form-control-sm" /></div>
+    <div class="col-md-3"><label class="form-label" for="TuKhoa">Từ khoá</label><input asp-for="TuKhoa" class="form-control form-control-sm" /></div>
+    <div class="col-md-3 d-flex align-items-end"><div class="form-check"><input asp-for="TheoKyGui" class="form-check-input" /><label asp-for="TheoKyGui" class="form-check-label small">Khi gửi định kỳ: dùng kỳ của lịch gửi</label></div></div>
+    <div class="col-12"><div class="form-label">Trường hiển thị</div><div class="d-flex flex-wrap gap-1">
+        @foreach (var t in truong) { <input type="checkbox" class="btn-check" name="Truong" value="@t.Ma" id="t-@t.Ma" checked="@Model.Truong.Contains(t.Ma)" autocomplete="off" /><label class="btn btn-sm btn-outline-secondary" for="t-@t.Ma">@t.Ten @(t.LaSo ? "∑" : "")</label> }
+    </div></div>
+    <div class="col-md-3"><label class="form-label" for="NhomTheo">Nhóm theo</label><select name="NhomTheo" id="NhomTheo" class="form-select form-select-sm"><option value="">— Không nhóm (danh sách) —</option>
+        @foreach (var t in truong.Where(t => !t.LaSo)) { <option value="@t.Ma" selected="@(Model.NhomTheo == t.Ma)">@t.Ten</option> }</select>
+        <div class="form-text">Nhóm: đếm số bản ghi và cộng các trường ∑ đã chọn.</div></div>
+    <div class="col-md-3"><label class="form-label" for="SapXep">Sắp xếp theo</label><select name="SapXep" id="SapXep" class="form-select form-select-sm"><option value="">Mặc định</option>
+        @foreach (var t in truong) { <option value="@t.Ma" selected="@(Model.SapXep == t.Ma)">@t.Ten</option> }</select></div>
+    <div class="col-md-2 d-flex align-items-end"><div class="form-check"><input asp-for="Giam" class="form-check-input" /><label asp-for="Giam" class="form-check-label">Giảm dần</label></div></div>
+    <div class="col-md-4 d-flex align-items-end gap-2 justify-content-end">
+        <button class="btn btn-primary btn-sm"><i class="bi bi-play-fill"></i> Chạy báo cáo</button>
+        <button class="btn btn-outline-success btn-sm" formaction="/BaoCaoTuyBien/Xuat" name="ten" value="@(mau?.Ten ?? "Báo cáo tuỳ biến")"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#luu"><i class="bi bi-save"></i> Lưu mẫu</button>
+    </div>
+    <div class="col-12 collapse" id="luu"><div class="d-flex flex-wrap gap-2 align-items-center border-top pt-3">
+        <input name="tenMau" id="tenMau" class="form-control form-control-sm" style="max-width:320px" placeholder="Tên mẫu" value="@(mau?.NguoiTao == toi ? mau?.Ten : "")" aria-label="Tên mẫu" />
+        <div class="form-check"><input type="checkbox" class="form-check-input" id="chiaSe" checked="@(mau?.ChiaSe == true)" /><label class="form-check-label small" for="chiaSe">Chia sẻ cho cán bộ quản lý khác</label></div>
+        <button type="button" class="btn btn-sm btn-success" id="btnLuu">@(mau?.NguoiTao == toi ? "Cập nhật mẫu" : "Lưu mẫu mới")</button>
+        @if (mau is not null && (mau.NguoiTao == toi || User.IsInRole(VaiTro.QuanTri))) { <button type="button" class="btn btn-sm btn-outline-danger" id="btnXoaMau">Xoá mẫu</button> }
+    </div></div>
+</div></form>
+<form method="post" id="frmLuu" asp-action="LuuMau" class="d-none">@if (mau?.NguoiTao == toi) { <input type="hidden" name="mauId" value="@mau!.Id" /> }</form>
+@if (mau is not null) { <form method="post" id="frmXoaMau" asp-action="XoaMau" asp-route-id="@mau.Id" class="d-none"></form> }
+@if (kq is not null)
+{
+    <div class="small text-muted mb-2">@kq.TongBanGhi bản ghi @(string.IsNullOrEmpty(kq.MoTaLoc) ? "" : "· " + kq.MoTaLoc) @(kq.DaNhom ? $"· {kq.Dong.Count} nhóm" : "") @(kq.Dong.Count > 1000 ? "· hiển thị 1.000 dòng đầu, xuất Excel để xem đủ" : "")</div>
+    <div class="card"><div class="table-responsive" style="max-height:70vh"><table class="table table-sm table-hover mb-0 small" id="bangKq">
+        <thead class="sticky-top bg-white"><tr>@foreach (var c in kq.Cot) { <th class="@(c.LaSo ? "text-end" : "")">@c.Ten</th> }</tr></thead>
+        <tbody>@foreach (var r in kq.Dong.Take(1000)) { <tr>@for (var i = 0; i < r.Length; i++) { <td class="@(kq.Cot[i].LaSo ? "text-end" : "")">@Gt(r[i])</td> }</tr> }</tbody>
+        @if (kq.Cot.Any(c => c.LaSo) && kq.Dong.Count > 0)
+        {
+            <tfoot><tr class="fw-semibold">@for (var i = 0; i < kq.Cot.Count; i++) { var ii = i; <td class="@(kq.Cot[i].LaSo ? "text-end" : "")">@(i == 0 ? "Tổng" : kq.Cot[i].LaSo ? kq.Dong.Sum(r => Convert.ToDecimal(r[ii] ?? 0m)).ToString("#,0.##") : "")</td> }</tr></tfoot>
+        }
+    </table></div></div>
+}
+@section Scripts {
+<script>
+document.getElementById('btnLuu').onclick = () => {
+    const f = document.getElementById('frmLuu'), src = new FormData(document.getElementById('frm'));
+    for (const [k, v] of src) { if (k === 'chay' || k === 'mauId' || k === 'ten' || k === 'tenMau') continue; const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); }
+    const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; f.appendChild(i); };
+    add('ten', document.getElementById('tenMau').value); add('chiaSe', document.getElementById('chiaSe').checked);
+    f.submit();
+};
+const x = document.getElementById('btnXoaMau'); if (x) x.onclick = () => { if (confirm('Xoá mẫu báo cáo?')) document.getElementById('frmXoaMau').submit(); };
+</script>
+}

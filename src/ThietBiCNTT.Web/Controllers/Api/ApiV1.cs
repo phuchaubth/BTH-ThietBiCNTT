@@ -217,9 +217,9 @@ public class KhoBaoCaoApiController(AppDbContext db, BaoCaoService baoCao) : Api
     [HttpGet("baocao/kpi"), Authorize(Policy = "api:" + PhamViApi.BaoCaoDoc)]
     public async Task<IActionResult> Kpi(DateTime? tu, DateTime? den, int? khoaPhongId)
     {
-        var d = (den ?? DateTime.Today).Date.AddDays(1);
-        var t = (tu ?? d.AddDays(-30)).Date;
-        if (t >= d || (d - t).TotalDays > 731) return Loi(400, "Kỳ báo cáo không hợp lệ (tối đa 2 năm).");
+        var d = (den ?? DateTime.Today).Date;            // ngày cuối kỳ (tính cả ngày này)
+        var t = (tu ?? d.AddDays(-29)).Date;
+        if (t > d || (d - t).TotalDays > 731) return Loi(400, "Kỳ báo cáo không hợp lệ (tối đa 2 năm).");
         var r = await baoCao.LapAsync(t, d, khoaPhongId);
         object Dong(DongSla x) => new { nhom = x.Nhom, soPhieu = x.SoPhieu, daXong = x.DaXong, dungHan = x.DungHan, tyLeDungHan = Math.Round(x.TyLeDungHan, 1),
             mttrGio = x.MttrGio is { } m ? Math.Round(m, 1) : (double?)null, chiPhi = x.ChiPhi, dungMayGio = Math.Round(x.DungMayGio, 1) };

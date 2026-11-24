@@ -66,6 +66,9 @@ public class TinNhanCho
     public DateTime ThoiGianTao { get; set; }
     public DateTime GuiTu { get; set; }
     public DateTime? ThoiGianGui { get; set; }
+    /// <summary>Tệp đính kèm email (đường dẫn trên máy chủ) — VD báo cáo định kỳ.</summary>
+    [StringLength(500)] public string? TepDinhKem { get; set; }
+    [StringLength(200)] public string? TenTepDinhKem { get; set; }
 
     public void DanhDauDaGui(DateTime now) { TrangThai = TrangThaiGui.DaGui; ThoiGianGui = now; LoiCuoi = null; }
 
