@@ -549,7 +549,6 @@ stateDiagram-v2
 | FR-JC-05 | Xuất hồ sơ bằng chứng | Chọn chương/tiêu chuẩn và khoảng thời gian → xuất gói (ZIP): mục lục theo ME, các biên bản/báo cáo xuất PDF/Excel, tệp đính kèm gốc | S |
 | FR-JC-06 | Chế độ truy vết (tracer) | Từ một HTTT, xem toàn bộ chuỗi bằng chứng trên một trang: kế hoạch downtime → đào tạo → diễn tập → sự kiện → sao lưu → thử phục hồi → rủi ro → thay đổi → rà soát quyền; dùng khi đoàn đánh giá phỏng vấn | M |
 | FR-JC-07 | Đánh giá nhà cung cấp hằng năm **(GLD.05.00)** | Với hợp đồng hỗ trợ HTTT (4.6): phiếu đánh giá (thời gian phản hồi, chất lượng xử lý, tuân thủ hợp đồng, bảo mật), dữ liệu gợi ý từ phiếu "gửi hãng" và SLA; kết luận tiếp tục / cảnh báo / thay thế | M |
-
 | FR-JC-08 | Danh mục tiêu chuẩn mặc định JCI 8 | Hệ thống nạp sẵn danh mục các tiêu chuẩn ở mục 2.1 (mã, tóm lược tiếng Việt, số ME) làm dữ liệu khởi tạo của FR-JC-01; Phòng QLCL bổ sung nội dung từng ME và "Intent" từ sách tiêu chuẩn đầy đủ | M |
 
 #### 4.8.2. Bộ chỉ số
