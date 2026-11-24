@@ -1,0 +1,11 @@
+@model NguoiGiamSatCntt
+@{ ViewData["Title"] = Model.HoTen; }
+<div class="small text-muted mb-1"><a asp-action="Index">Người giám sát CNTT y tế</a> › @Model.HoTen</div>
+<div class="page-head"><h1>@Model.HoTen</h1>@if (Model.HieuLuc((DateOnly)ViewBag.HomNay)) { <span class="badge bg-success">Hiệu lực</span> }
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a></div> }</div>
+<div class="row g-3"><div class="col-lg-8"><div class="card"><div class="card-body"><dl class="row info mb-0">
+    <div class="col-sm-6"><dt>Chức danh</dt><dd>@Model.ChucDanh</dd></div><div class="col-sm-6"><dt>Tài khoản</dt><dd>@Model.TaiKhoan</dd></div>
+    <div class="col-sm-6"><dt>Văn bản chỉ định</dt><dd>@Model.SoVanBan – @Model.NgayVanBan.ToString("dd/MM/yyyy")</dd></div><div class="col-sm-6"><dt>Hiệu lực</dt><dd>@Model.NgayBatDau.ToString("dd/MM/yyyy") – @(Model.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "nay")</dd></div>
+    <div class="col-12"><dt>Trình độ / chứng chỉ / kinh nghiệm</dt><dd style="white-space:pre-line">@Model.TrinhDo</dd></div><div class="col-sm-6"><dt>Người thay thế</dt><dd>@Model.NguoiThayThe</dd></div><div class="col-sm-6"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div>
+</dl></div></div></div>
+<div class="col-lg-4">@await Html.PartialAsync("_DinhKem", (DoiTuong: "NguoiGiamSatCntt", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: User.LaCNTT()))</div></div>

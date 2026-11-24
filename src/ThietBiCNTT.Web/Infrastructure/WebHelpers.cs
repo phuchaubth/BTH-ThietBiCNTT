@@ -87,6 +87,12 @@ public static class Badge
 
 public static class UserExtensions
 {
+    /// <summary>FR-AN-06: nhóm được xử lý chi tiết sự cố an ninh mạng (tham số Jci.NhomAnToanThongTin) và Quản trị.</summary>
+    public static bool LaAttt(this ClaimsPrincipal u, ThamSoService ts) =>
+        u.IsInRole(VaiTro.QuanTri) || (u.Identity?.Name is { } n && ts.Chuoi(TS.JciNhomAnToanThongTin).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Contains(n, StringComparer.OrdinalIgnoreCase));
+    /// <summary>Xem chi tiết sự cố an ninh mạng: nhóm an toàn thông tin và Lãnh đạo.</summary>
+    public static bool XemAn(this ClaimsPrincipal u, ThamSoService ts) => u.IsInRole(VaiTro.LanhDao) || u.LaAttt(ts);
+
     /// <summary>GĐ3.1: người được gán bước duyệt "Trưởng phòng CNTT" (tham số Jci.NguoiDuyetCntt).</summary>
     public static bool LaDuyetCntt(this ClaimsPrincipal u, ThamSoService ts) =>
         u.Identity?.Name is { } n && ts.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)

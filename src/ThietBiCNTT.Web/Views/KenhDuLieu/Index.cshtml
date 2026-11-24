@@ -1,0 +1,15 @@
+@model List<KenhTruyenDuLieu>
+@{ ViewData["Title"] = "Kênh truyền dữ liệu người bệnh"; var loai = ViewData["loai"] as LoaiKenh?; bool coHd = ViewBag.CoHuongDan; }
+<div class="page-head"><h1>Kênh truyền dữ liệu người bệnh</h1><span class="text-muted small">HCT.01.01 – điện tử, thiết bị di động, nhắn tin, cổng người bệnh</span>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm kênh</a></div> }</div>
+@if (!coHd) { <div class="alert alert-warning py-2 small">Chưa có <a asp-controller="TaiLieu" asp-action="Index" asp-route-loai="HuongDanThietBiDiDong">hướng dẫn thiết bị di động & nhắn tin</a> đang hiệu lực (HCT.01.01 ME2).</div> }
+<form method="get" class="d-flex gap-2 mb-3"><select name="loai" class="form-select form-select-sm" style="width:300px" asp-items="@EnumExtensions.ToSelectList(loai)" aria-label="Loại"><option value="">— Mọi loại —</option></select><button class="btn btn-sm btn-outline-secondary">Lọc</button></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Kênh</th><th>Loại</th><th>Hệ thống</th><th>Phạm vi</th><th>Đánh giá theo ME</th></tr></thead><tbody>
+@foreach (var k in Model)
+{
+    var thieu = k.ThieuYeuCau(coHd);
+    <tr><td>@if (User.LaCNTT()) { <a asp-action="Form" asp-route-id="@k.Id" class="fw-semibold">@k.Ten</a> } else { <b>@k.Ten</b> }<div class="small text-muted">@k.MoTa</div></td><td class="small">@k.Loai.Ten()</td><td class="small">@k.HeThong?.Ma</td><td class="small">@k.PhamViDung</td>
+        <td class="small">@if (thieu.Count == 0) { <span class="text-success"><i class="bi bi-check-circle"></i> Đáp ứng</span> } else { <span class="text-danger">Thiếu: @string.Join("; ", thieu)</span> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">Chưa đăng ký kênh nào.</td></tr> }
+</tbody></table></div></div>

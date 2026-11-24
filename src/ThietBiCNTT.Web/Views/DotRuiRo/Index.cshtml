@@ -1,0 +1,18 @@
+@model List<DotDanhGiaRuiRo>
+@{ ViewData["Title"] = "Đợt đánh giá rủi ro hằng năm"; }
+<div class="page-head"><h1>Đợt đánh giá rủi ro hằng năm</h1><span class="text-muted small">FMS.02.00 ME1–ME4 · MOI.01.02 ME1 · FR-RR-05, FR-RR-08</span><div class="actions"><a asp-controller="RuiRo" asp-action="Index" class="btn btn-sm btn-outline-secondary">Sổ rủi ro</a></div></div>
+@if (User.LaCNTT())
+{
+    <div class="card mb-3"><div class="card-body"><form asp-action="Tao" method="post" class="row g-2 align-items-end">
+        <div class="col-md-2"><label class="form-label small mb-0" for="nam">Năm</label><input id="nam" name="nam" type="number" value="@DateTime.Today.Year" class="form-control form-control-sm" required /></div>
+        <div class="col-md-8"><label class="form-label small mb-0" for="tp">Thành phần tham gia</label><input id="tp" name="thanhPhan" class="form-control form-control-sm" placeholder="Người giám sát CNTT y tế, Trưởng phòng CNTT, đại diện HCQT, QLCL, các khoa trọng yếu…" /></div>
+        <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Tạo đợt</button></div></form></div></div>
+}
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Năm</th><th>Chủ trì</th><th>Trạng thái</th><th>Phê duyệt</th><th>Gửi cơ quan quản trị</th></tr></thead><tbody>
+@foreach (var d in Model)
+{
+    <tr><td class="fw-semibold"><a asp-action="Details" asp-route-id="@d.Id">@d.Nam</a></td><td class="small">@d.ChuTri</td><td>@if (d.DaChot) { <span class="badge bg-success">Đã chốt @d.NgayChot?.ToString("dd/MM/yyyy")</span> } else { <span class="badge bg-secondary">Đang thực hiện</span> }</td>
+        <td class="small">@(d.NguoiDuyet is null ? "—" : $"{d.NguoiDuyet} {d.NgayDuyet:dd/MM/yyyy}")</td><td class="small">@(d.NgayGuiCoQuanQuanTri is null ? "—" : $"{d.NgayGuiCoQuanQuanTri:dd/MM/yyyy}")</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">Chưa có đợt đánh giá nào.</td></tr> }
+</tbody></table></div></div>

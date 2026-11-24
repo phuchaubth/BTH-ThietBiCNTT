@@ -11,6 +11,7 @@ public static class DbSeeder
     public static async Task SeedAsync(AppDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles, bool duLieuMau, string? matKhauAdmin = null)
     {
         await Services.ThamSoService.DongBoAsync(db);
+        await Services.DanhMucJci.DongBoAsync(db);
         foreach (var r in VaiTro.TatCa)
             if (!await roles.RoleExistsAsync(r)) await roles.CreateAsync(new IdentityRole(r));
 
@@ -189,6 +190,7 @@ public static class DbSeeder
         await db.SaveChangesAsync();
         await TaoMauKiemTraMau(db, loai, khoa);
         await TaoHaTangMauAsync(db, loai, khoa);
+        await TaoGD32MauAsync(db, khoa);
     }
 
     private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
@@ -204,11 +206,11 @@ public static class DbSeeder
                         Dk(6, "Bản sao lưu CSDL đêm qua thành công"),
                         Dk(7, "Hệ thống chữa cháy phòng máy chủ bình thường, không báo lỗi (FMS.06.01)"), Dk(8, "Các nút ngắt điện khẩn cấp còn nhãn rõ ràng (FMS.08.00 ME5)"),
                         new MucKiemTra { ThuTu = 9, NoiDung = "Ghi chú khác", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
-            new MauKiemTra { Ten = "Thử UPS phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS", KhoaPhongId = khoa["CNTT"].Id, ChuKyGio = 2160,
+            new MauKiemTra { Ten = "Thử UPS phòng máy chủ hằng quý", ViTri = "Phòng máy chủ – UPS", KhoaPhongId = khoa["CNTT"].Id, ChuKyGio = 2160, LaThuNguonDuPhong = true,
                 MoTa = "FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả. Phòng CNTT quản lý và thử UPS: ngắt nguồn lưới có kiểm soát, đo thời gian lưu điện và chuyển nguồn.",
                 Mucs = [So(1, "Thời gian chạy bằng ắc quy khi ngắt lưới", "phút", 10, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian chuyển nguồn", "mili giây", null, 10),
                         Dk(4, "Máy chủ không tắt/khởi động lại khi chuyển nguồn"), Dk(5, "Ắc quy không phồng, rò dịch; điện áp từng bình trong ngưỡng"), new MucKiemTra { ThuTu = 6, NoiDung = "Nhận xét", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
-            new MauKiemTra { Ten = "Thử máy phát điện dự phòng hằng quý", ViTri = "Khu kỹ thuật – máy phát điện", KhoaPhongId = khoa["HCQT"].Id, ChuKyGio = 2160,
+            new MauKiemTra { Ten = "Thử máy phát điện dự phòng hằng quý", ViTri = "Khu kỹ thuật – máy phát điện", KhoaPhongId = khoa["HCQT"].Id, ChuKyGio = 2160, LaThuNguonDuPhong = true,
                 MoTa = "FMS.08.01 ME3: Phòng Hành chính quản trị quản lý và thử máy phát. Chạy tải ≥ 30 phút ở ≥ 30% công suất danh định (không tính khởi động/làm nguội). Phòng CNTT nhận kết quả để giám sát cấp điện cho phòng máy chủ.",
                 Mucs = [So(1, "Thời gian chạy tải", "phút", 30, null), So(2, "Tỷ lệ tải so với công suất danh định", "%", 30, null), So(3, "Thời gian từ mất lưới đến cấp điện trở lại", "giây", null, 30),
                         Dk(4, "Máy phát khởi động và nhận tải bình thường"), Dk(5, "Phòng máy chủ nhận điện từ máy phát khi mất lưới"), So(6, "Nhiên liệu dự trữ", "giờ chạy", 8, null),
@@ -326,6 +328,60 @@ public static class DbSeeder
             Ma = $"HD-{now:yyMM}-0001", Nguon = NguonHanhDong.SuKienDowntime, NguonId = sk.Id, MoTa = "Thay ắc quy UPS phòng máy chủ và thử chuyển nguồn hằng tháng.", Loai = LoaiHanhDong.KhacPhuc,
             HeThongId = his.Id, NguoiChiuTrachNhiem = "ktv1", Han = homNay.AddDays(-5), UuTien = MucDoUuTien.Cao, TrangThai = TrangThaiHanhDong.DangLam, NguoiTao = "admin"
         });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Dữ liệu mẫu GĐ3.2: người giám sát, tài liệu, kênh dữ liệu, telehealth/AI, sự cố an ninh, rủi ro, đào tạo.</summary>
+    private static async Task TaoGD32MauAsync(AppDbContext db, Dictionary<string, KhoaPhong> khoa)
+    {
+        if (await db.RuiRos.AnyAsync()) return;
+        var now = DateTime.Now; var hn = DateOnly.FromDateTime(now); var his = await db.HeThongThongTins.FirstAsync(h => h.Ma == "HIS");
+        db.NguoiGiamSatCntts.Add(new NguoiGiamSatCntt { HoTen = "Trần Minh Bảo", ChucDanh = "Phó trưởng phòng CNTT", TaiKhoan = "ktv2", SoVanBan = "QĐ-125/QĐ-BV", NgayVanBan = hn.AddMonths(-8), NgayBatDau = hn.AddMonths(-8),
+            TrinhDo = "Thạc sĩ CNTT; chứng chỉ an toàn thông tin; 12 năm kinh nghiệm hệ thống thông tin bệnh viện", NguoiThayThe = "Nguyễn Văn An", NguoiTao = "admin" });
+        // Tài liệu: chính sách ATTT hiệu lực; chương trình ứng phó tấn công mạng còn nháp (minh hoạ cảnh báo)
+        db.TaiLieuQuyDinhs.AddRange(
+            new TaiLieuQuyDinh { Ma = $"VB-{now:yyMM}-0001", Loai = LoaiTaiLieu.ChinhSachAnNinhMang, Ten = "Chính sách an ninh mạng và quản lý rủi ro mạng", PhienBan = 1, TrangThai = TrangThaiKeHoach.HieuLuc,
+                NoiDung = "1. Phân loại tài sản thông tin: dữ liệu người bệnh là mức nhạy cảm cao.\n2. Kiểm soát truy cập theo vai trò, mật khẩu tối thiểu 10 ký tự, xác thực nhiều lớp với tài khoản quản trị.\n3. Quản lý bản vá: máy chủ ≤ 30 ngày, lỗ hổng nghiêm trọng ≤ 7 ngày.\n4. Chống mã độc, lọc email, kiểm thử xâm nhập hằng năm.\n5. Sao lưu 3-2-1, có bản ngoại tuyến.\n6. Khi bị tấn công thành công: cô lập máy, báo Trưởng phòng CNTT ngay, kích hoạt chương trình ứng phó, không trả tiền chuộc khi chưa có chỉ đạo.",
+                NgayHieuLuc = hn.AddMonths(-4), NgayRaSoat = hn.AddMonths(8), NguoiGuiDuyet = "ktv2", NguoiDuyetCntt = "admin", NgayDuyetCntt = now.AddMonths(-4), NguoiDuyetLanhDao = "lanhdao", NgayDuyetLanhDao = now.AddMonths(-4), NguoiTao = "ktv2" },
+            new TaiLieuQuyDinh { Ma = $"VB-{now:yyMM}-0002", Loai = LoaiTaiLieu.ChuongTrinhUngPhoMang, Ten = "Chương trình ứng phó tấn công mạng", PhienBan = 1, TrangThai = TrangThaiKeHoach.Nhap, NguoiTao = "ktv2",
+                NoiDung = "Tác động dự kiến: mã độc mã hoá HIS làm ngừng toàn bộ khoa lâm sàng. Chiến lược duy trì chăm sóc: dùng quy trình giấy của kế hoạch downtime. Truyền thông: thông báo Lãnh đạo, các khoa, cơ quan chức năng theo quy định. Khôi phục: từ bản sao lưu ngoại tuyến." });
+        // Hệ thống telehealth và công cụ AI (HCT.01.02, HCT.01.03)
+        var tele = new HeThongThongTin { Ma = "TELE", Ten = "Khám bệnh từ xa (telehealth)", Loai = LoaiHeThong.LamSang, MucTrongYeu = MucTrongYeu.TrungBinh, TrangThai = TrangThaiHeThong.VanHanh, PhienBan = "1.0", LaTelehealth = true,
+            ChuSoHuu = "Trưởng khoa Khám bệnh", ChuSoHuuKhoaPhongId = khoa["KB"].Id, PhuTrachChinh = "ktv1", NguoiTao = "system" };
+        var ai = new HeThongThongTin { Ma = "AI-NKH", Ten = "Cảnh báo sớm nhiễm khuẩn huyết (AI)", Loai = LoaiHeThong.LamSang, MucTrongYeu = MucTrongYeu.TrungBinh, TrangThai = TrangThaiHeThong.VanHanh, PhienBan = "0.9", LaCongCuAi = true, LoaiCongCuAi = LoaiCongCuAi.DuBao,
+            NgayXemXetAi = hn.AddDays(-10), ChuSoHuu = "Trưởng khoa Hồi sức tích cực", ChuSoHuuKhoaPhongId = khoa["HSTC"].Id, PhuTrachChinh = "ktv1", NguoiTao = "system" };
+        db.HeThongThongTins.AddRange(tele, ai); await db.SaveChangesAsync();
+        db.BuocVongDois.AddRange(new BuocVongDoi { HeThongId = ai.Id, Buoc = BuocVongDoiAi.LuaChon, NguoiPhuTrach = "BS. Lê Thị Cúc", Ngay = hn.AddMonths(-7), NoiDung = "So sánh 3 giải pháp; chọn theo độ nhạy và tích hợp HIS.", KetLuan = "Chọn giải pháp B" },
+            new BuocVongDoi { HeThongId = ai.Id, Buoc = BuocVongDoiAi.TrienKhai, NguoiPhuTrach = "BS. Lê Thị Cúc", Ngay = hn.AddMonths(-6), NoiDung = "Chạy song song 4 tuần tại HSTC, đối chiếu với đánh giá của bác sĩ.", KetLuan = "Đạt, triển khai chính thức" });
+        // Kênh truyền dữ liệu (HCT.01.01)
+        db.KenhTruyenDuLieus.AddRange(
+            new KenhTruyenDuLieu { Ten = "Nhóm Zalo điều dưỡng khoa Cấp cứu", Loai = LoaiKenh.NhanTinBaoMat, MoTa = "Trao đổi kết quả cận lâm sàng khẩn", PhamViDung = "Khoa Cấp cứu", MaHoa = true, DangNhapRieng = false, DanhBaNguoiDuocPhep = false, BienNhanGuiDoc = true, DauThoiGian = true, BaoVeTruyCap = false, NguoiTao = "ktv1" },
+            new KenhTruyenDuLieu { Ten = "Cổng thông tin người bệnh", Loai = LoaiKenh.CongNguoiBenh, MoTa = "Xem kết quả, đặt lịch hẹn", HeThongId = his.Id, MaHoa = true, DangNhapRieng = true, NhatKyThaoTac = true, DongYNguoiBenh = false, NguoiTao = "ktv1" },
+            new KenhTruyenDuLieu { Ten = "Giao diện HL7 LIS–HIS", Loai = LoaiKenh.GiaoDienKetNoi, HeThongId = his.Id, MaHoa = true, NguoiTao = "ktv1" });
+        // Sự cố an ninh mạng: một đã đóng (phishing), một người dùng vừa báo
+        var an1 = new SuCoAnNinh { Ma = $"AN-{now:yyMM}-0001", Nguon = NguonSuCoAn.NguoiDungBao, Loai = LoaiSuCoAn.Phishing, MucDo = MucDoAn.ThongThuong, LienQuanDuLieuCaNhan = false, TrangThai = TrangThaiSuCoAn.DaDong, PhatHien = now.AddDays(-21),
+            MoTa = "Nhân viên phòng Tài chính nhận email giả mạo ngân hàng, đã bấm vào liên kết nhưng chưa nhập mật khẩu.", NguoiBao = "nhanvien", NguoiPhuTrach = "ktv2", NgayDong = now.AddDays(-20), NguoiDong = "ktv2", NguoiTao = "nhanvien" };
+        an1.Buocs.Add(new BuocUngPho { Buoc = BuocUngPhoAn.PhatHien, NoiDung = "Xác nhận email giả mạo qua tiêu đề thư.", NguoiThucHien = "ktv2", ThoiDiem = now.AddDays(-21), HoanThanh = true });
+        an1.Buocs.Add(new BuocUngPho { Buoc = BuocUngPhoAn.NganChan, NoiDung = "Chặn tên miền trên tường lửa; quét máy tính, đổi mật khẩu người dùng.", NguoiThucHien = "ktv2", ThoiDiem = now.AddDays(-21), HoanThanh = true });
+        var an2 = new SuCoAnNinh { Ma = $"AN-{now:yyMM}-0002", Nguon = NguonSuCoAn.NguoiDungBao, Loai = LoaiSuCoAn.Khac, MucDo = MucDoAn.ThongThuong, TrangThai = TrangThaiSuCoAn.Moi, PhatHien = now.AddHours(-3),
+            MoTa = "Máy tính khoa Cấp cứu hiện thông báo lạ yêu cầu liên hệ để mở khoá tệp.", NguoiBao = "nhanvien", NguoiTao = "nhanvien" };
+        db.SuCoAnNinhs.AddRange(an1, an2);
+        // Rủi ro
+        RuiRo Rr(int stt, string moTa, NhomRuiRo nhom, int kn, int hq, int? tk, int? th, string? ks, PhuongAnRuiRo? pa, int xemXetThang)
+        {
+            var r = new RuiRo { Ma = $"RR-{now:yyMM}-{stt:D4}", MoTa = moTa, Nhom = nhom, HeThongId = his.Id, KiemSoatHienCo = ks, PhuongAn = pa, NguoiChiuTrachNhiem = "ktv2", NgayXemXetLai = hn.AddMonths(xemXetThang), NguoiTao = "ktv2" };
+            r.ChamDiem(kn, hq, tk, th, "", "ktv2", now.AddMonths(-5)); return r;
+        }
+        db.RuiRos.AddRange(
+            Rr(1, "Ắc quy UPS xuống cấp, mất điện lưới có thể làm máy chủ HIS tắt đột ngột, hỏng dữ liệu và ngừng toàn bộ khoa lâm sàng.", NhomRuiRo.DienDieuHoa, 4, 5, 2, 5, "Kiểm tra UPS hằng tuần; chưa có máy phát tự động chuyển nguồn", PhuongAnRuiRo.GiamThieu, 1),
+            Rr(2, "Switch lõi không có dự phòng: hỏng thiết bị làm mất kết nối HIS, LIS, PACS.", NhomRuiRo.Mang, 3, 5, null, null, "Có cấu hình sao lưu; chưa có thiết bị dự phòng", null, 2),
+            Rr(3, "Mã độc mã hoá tống tiền lây qua email làm mất dữ liệu và ngừng hệ thống.", NhomRuiRo.AnNinhMang, 3, 5, 2, 5, "Chống mã độc, lọc email, sao lưu hằng đêm (chưa có bản ngoại tuyến)", PhuongAnRuiRo.GiamThieu, 3),
+            Rr(4, "Hết dung lượng thư mục sao lưu làm sao lưu đêm thất bại không được phát hiện kịp thời.", NhomRuiRo.DuLieu, 4, 3, null, null, "Cảnh báo lỗi sao lưu của hệ thống", null, 6),
+            Rr(5, "Phụ thuộc một nhà cung cấp phần mềm HIS, hợp đồng hỗ trợ sắp hết hạn.", NhomRuiRo.NhaCungCap, 3, 3, null, null, "Hợp đồng bảo trì 24/7", null, 6));
+        // Đào tạo
+        var cc = khoa["CC"]; var dt = new BuoiDaoTao { Ngay = now.AddMonths(-2), Loai = LoaiDaoTao.Downtime, ChuDe = "Quy trình downtime HIS cho điều dưỡng khoa Cấp cứu", HeThongId = his.Id, KhoaPhongId = cc.Id, NguoiGiang = "Nguyễn Văn An", NoiDung = "Khi nào kích hoạt, dùng bộ biểu mẫu giấy, nhập bù dữ liệu sau khôi phục.", NguoiTao = "ktv1" };
+        dt.ThamDus.AddRange([new() { HoTen = "Phạm Thu Hà", MaNhanVien = "NV0123", KhoaPhongId = cc.Id, ChucDanh = "Điều dưỡng", DatDanhGia = true }, new() { HoTen = "Lê Văn Hùng", MaNhanVien = "NV0145", KhoaPhongId = cc.Id, ChucDanh = "Điều dưỡng", DatDanhGia = true }, new() { HoTen = "Võ Thị Mai", MaNhanVien = "NV0167", KhoaPhongId = cc.Id, ChucDanh = "Bác sĩ", DatDanhGia = true }]);
+        db.BuoiDaoTaos.AddRange(dt, new BuoiDaoTao { Ngay = now.AddMonths(-14), Loai = LoaiDaoTao.AnToanThongTin, ChuDe = "An toàn thông tin cho nhân viên toàn viện (năm trước)", NguoiGiang = "Trần Minh Bảo", NguoiTao = "ktv2" });
         await db.SaveChangesAsync();
     }
 }

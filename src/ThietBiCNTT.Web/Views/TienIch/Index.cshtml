@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Tiện ích CNTT"; var ct = ViewBag.ChuongTrinh as TaiLieuQuyDinh; var pv = ViewBag.PhamVi as TaiLieuQuyDinh; var tp = (List<ThanhPhanTienIch>)ViewBag.ThanhPhan; var nguon = (List<NguonDuPhong>)ViewBag.Nguon; int thang = ViewBag.Thang; var homNay = (DateOnly)ViewBag.HomNay;
+    var thieuBt = tp.Where(x => x.KeHoachBaoTri is null).ToList();
+}
+<div class="page-head"><h1>Tiện ích CNTT</h1><span class="text-muted small">FMS.08.00 · FMS.08.01 – hệ thống thông tin, liên lạc, dữ liệu và nguồn điện phòng máy chủ</span></div>
+<div class="row g-3 mb-3">
+    <div class="col-md-6"><div class="card h-100"><div class="card-header">Chương trình quản lý tiện ích (ME1, FMS.01.01 ME2)</div><div class="card-body small">
+        @if (ct is not null) { <div><a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@ct.Id" class="fw-semibold">@ct.Ten v@(ct.PhienBan)</a> hiệu lực từ @ct.NgayHieuLuc?.ToString("dd/MM/yyyy"), rà soát trước <b class="@(ct.DenHanRaSoat(homNay) ? "overdue" : "")">@ct.NgayRaSoat?.ToString("dd/MM/yyyy")</b></div> }
+        else { <div class="text-danger">Chưa có chương trình quản lý tiện ích CNTT hiệu lực. @if (User.LaCNTT()) { <a asp-controller="TaiLieu" asp-action="Form" asp-route-loai="ChuongTrinhTienIch">Soạn chương trình</a> }</div> }
+        <div class="mt-1">Hồ sơ phạm vi dịch vụ Phòng CNTT (GLD.06.00 ME3): @if (pv is not null) { <a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@pv.Id">@pv.Ten v@(pv.PhienBan)</a> } else { <span class="text-warning">chưa có</span> }</div>
+    </div></div></div>
+    <div class="col-md-6"><div class="card h-100"><div class="card-header">Tóm tắt</div><div class="card-body small">
+        <div>Thành phần trong danh mục: <b>@tp.Count</b> (tác động lớn: <b>@tp.Count(x => x.TacDongLon)</b>)</div>
+        <div>Chưa có kế hoạch bảo trì (ME4): <b class="@(thieuBt.Count > 0 ? "text-danger" : "text-success")">@thieuBt.Count</b> · quá hạn bảo trì: <b class="@(tp.Any(x => x.QuaHanBaoTri) ? "text-danger" : "text-success")">@tp.Count(x => x.QuaHanBaoTri)</b></div>
+        <div>Nguồn điện dự phòng quá hạn thử (≥ mỗi @thang tháng): <b class="@(nguon.Any(x => x.QuaHan) ? "text-danger" : "text-success")">@nguon.Count(x => x.QuaHan)</b> / @nguon.Count</div></div></div></div></div>
+<div class="card mb-3"><div class="card-header">Thử nguồn điện dự phòng — ít nhất mỗi quý <span class="small fw-normal text-muted">FMS.08.01 ME3 (D) · FR-HTT-16</span></div>
+    <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Phiếu thử</th><th>Phòng thực hiện</th><th>Chu kỳ</th><th>Lần thử gần nhất</th><th>Kết quả</th><th>Hạn kế tiếp</th></tr></thead><tbody>
+    @foreach (var n in nguon)
+    {
+        <tr class="@(n.QuaHan ? "table-danger" : "")"><td>@if (User.LaCNTT()) { <a asp-controller="KiemTra" asp-action="Ghi" asp-route-mauId="@n.Mau.Id">@n.Mau.Ten</a> } else { @n.Mau.Ten }</td><td class="small">@n.Mau.KhoaPhong?.Ten</td>
+            <td class="small @(n.ChuKyQuaDai ? "text-danger" : "")">@(n.Mau.ChuKyGio / 24) ngày @if (n.ChuKyQuaDai) { <span class="badge bg-danger">&gt; @thang tháng</span> }</td>
+            <td class="small">@(n.LanCuoi is null ? "chưa thử" : n.LanCuoi.ThoiGian.ToString("dd/MM/yyyy HH:mm") + " · " + n.LanCuoi.NguoiKiem)</td>
+            <td>@if (n.LanCuoi is not null) { <a asp-controller="KiemTra" asp-action="Lan" asp-route-id="@n.LanCuoi.Id" class="text-decoration-none"><span class="badge @(n.LanCuoi.CoBatThuong ? "bg-danger" : "bg-success")">@(n.LanCuoi.CoBatThuong ? "Bất thường" : "Đạt")</span></a> }</td>
+            <td class="small">@n.HanTiep?.ToString("dd/MM/yyyy") @if (n.QuaHan) { <span class="badge bg-danger">Quá hạn</span> }</td></tr>
+    }
+    @if (nguon.Count == 0) { <tr><td colspan="6" class="text-center text-danger py-3">Chưa có phiếu mẫu nào được đánh dấu "thử nguồn điện dự phòng". Tạo phiếu mẫu (UPS — Phòng CNTT; máy phát — Phòng HCQT) trong <a asp-controller="KiemTra" asp-action="Mau">Kiểm tra thiết bị → Phiếu mẫu</a>.</td></tr> }
+    </tbody></table></div></div>
+<div class="card"><div class="card-header">Danh mục thành phần tiện ích <span class="small fw-normal text-muted">FMS.08.00 ME3–ME4 · FR-HTT-15 — lấy từ tài sản trong sơ đồ phụ thuộc</span></div>
+    <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Thành phần</th><th>Đơn vị quản lý</th><th>Vị trí</th><th class="text-center">HTTT phụ thuộc</th><th>Dự phòng</th><th>Kế hoạch bảo trì</th><th>Bảo trì gần nhất</th></tr></thead><tbody>
+    @foreach (var x in tp)
+    {
+        <tr class="@(x.KeHoachBaoTri is null ? "table-warning" : "")"><td><a asp-controller="TaiSan" asp-action="Details" asp-route-id="@x.TaiSan.Id" class="fw-semibold">@x.TaiSan.MaTaiSan</a> @if (x.TacDongLon) { <span class="badge bg-danger">tác động lớn</span> }<div class="small text-muted">@x.TaiSan.Ten</div></td>
+            <td class="small">@x.TaiSan.KhoaPhong?.Ten</td><td class="small">@x.TaiSan.ViTri?.Ten</td><td class="text-center">@x.SoHeThong @if (x.SoHeThongToiQuanTrong > 0) { <span class="badge bg-danger">@x.SoHeThongToiQuanTrong TQT</span> }</td>
+            <td>@(x.CoDuPhong ? "Có" : "Không")</td>
+            <td class="small">@if (x.KeHoachBaoTri is { } k) { <a asp-controller="KeHoachBaoTri" asp-action="Index">@k.Ten</a> <span class="@(x.QuaHanBaoTri ? "overdue" : "text-muted")">· @k.ChuKyNgay ngày, kế tiếp @k.NgayTiepTheo.ToString("dd/MM/yyyy")</span> } else { <span class="text-danger">chưa có kế hoạch</span> }</td>
+            <td class="small">@(x.BaoTriCuoi?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
+    }
+    @if (tp.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-3">Chưa khai báo phụ thuộc tài sản cho hệ thống nào.</td></tr> }
+    </tbody></table></div></div>

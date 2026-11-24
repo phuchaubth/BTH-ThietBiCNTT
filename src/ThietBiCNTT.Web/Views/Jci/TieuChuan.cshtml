@@ -1,0 +1,23 @@
+@model List<DongTieuChuan>
+@{
+    ViewData["Title"] = "Tiêu chuẩn JCI 8 – bằng chứng"; var chuong = ViewData["chuong"] as string; var bcLoc = ViewData["bangChung"] as MucBangChung?; var tong = (Dictionary<MucBangChung, int>)ViewBag.Tong; var dsChuong = (List<string>)ViewBag.DsChuong;
+    string Mau(MucBangChung m) => m switch { MucBangChung.Du => "success", MucBangChung.MotPhan => "warning text-dark", MucBangChung.Thieu => "danger", MucBangChung.KhongApDung => "secondary", _ => "light text-dark border" };
+}
+<div class="page-head"><h1>Tiêu chuẩn JCI 8 – tự đánh giá bằng chứng</h1><span class="text-muted small">FR-JC-01, 02, 08 – bằng chứng tính tự động từ dữ liệu hệ thống; người phụ trách đánh giá bổ sung</span>
+    <div class="actions"><a asp-action="ChiSo" class="btn btn-sm btn-outline-secondary">Bộ chỉ số</a><a asp-controller="BaoCaoLanhDao" asp-action="Index" class="btn btn-sm btn-outline-secondary">Báo cáo quý</a></div></div>
+<div class="d-flex flex-wrap gap-2 mb-3">@foreach (var m in Enum.GetValues<MucBangChung>()) { <a asp-action="TieuChuan" asp-route-chuong="@chuong" asp-route-bangChungLoc="@m" class="badge bg-@Mau(m) text-decoration-none fs-6 fw-normal">@m.Ten(): @(tong.GetValueOrDefault(m))</a> } <a asp-action="TieuChuan" class="small align-self-center">bỏ lọc</a></div>
+<form method="get" class="d-flex gap-2 mb-3"><select name="chuong" class="form-select form-select-sm" style="width:160px" aria-label="Chương"><option value="">— Mọi chương —</option>@foreach (var c in dsChuong) { <option value="@c" selected="@(c == chuong)">@c</option> }</select><button class="btn btn-sm btn-outline-secondary">Lọc</button></form>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-top"><thead><tr><th>Tiêu chuẩn</th><th>Bằng chứng từ hệ thống</th><th>Đánh giá của người phụ trách</th></tr></thead><tbody>
+@foreach (var d in Model)
+{
+    var t = d.TieuChuan;
+    <tr><td style="width:36%"><b>@t.Ma</b> <span class="badge bg-light text-dark border">@t.SoMe ME</span><div class="small">@t.TomTat</div><div class="small text-muted">@t.ChucNang</div>
+        @if (!string.IsNullOrWhiteSpace(t.GhiChu)) { <div class="small fst-italic text-primary">QLCL: @t.GhiChu</div> }
+        @if (User.IsInRole(VaiTro.QuanTri)) { <details class="small"><summary class="text-muted">Sửa tóm lược / ghi chú QLCL</summary><form asp-action="GhiChu" asp-route-id="@t.Id" method="post"><textarea name="tomTat" class="form-control form-control-sm mb-1" rows="2">@t.TomTat</textarea><input name="ghiChu" value="@t.GhiChu" class="form-control form-control-sm mb-1" placeholder="Ghi chú / mã ME chi tiết" /><button class="btn btn-sm btn-outline-secondary">Lưu</button></form></details> }</td>
+        <td style="width:34%"><span class="badge bg-@Mau(d.BangChung.Muc)">@d.BangChung.Muc.Ten()</span><div class="small">@d.BangChung.ChiTiet</div></td>
+        <td>@if (d.DanhGia is { } g) { <span class="badge @(g.DanhGia == DanhGiaTieuChuan.Dat ? "bg-success" : g.DanhGia == DanhGiaTieuChuan.DatMotPhan ? "bg-warning text-dark" : "bg-danger")">@g.DanhGia.Ten()</span> <span class="small text-muted">@g.NguoiDanhGia · @g.NgayDanhGia.ToString("dd/MM/yyyy")</span> @if (!string.IsNullOrWhiteSpace(g.GhiChu)) { <div class="small">@g.GhiChu</div> } }
+            @if (User.LaCNTT()) { <form asp-action="DanhGia" asp-route-id="@t.Id" method="post" class="d-flex gap-1 mt-1"><select name="danhGia" asp-items="@EnumExtensions.ToSelectList<DanhGiaTieuChuan>(d.DanhGia?.DanhGia)" class="form-select form-select-sm" style="width:130px" aria-label="Đánh giá"></select><input name="ghiChu" class="form-control form-control-sm" placeholder="Ghi chú" /><button class="btn btn-sm btn-outline-primary">Ghi</button></form> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="3" class="text-center text-muted py-3">Không có tiêu chuẩn.</td></tr> }
+</tbody></table></div></div>
+<div class="small text-muted mt-2">Mã tiêu chuẩn và số ME theo bản JCI 8 (hiệu lực 01/01/2025). "Chưa tự động" nghĩa là hệ thống chưa có dữ liệu để tính — người phụ trách tự đánh giá.</div>

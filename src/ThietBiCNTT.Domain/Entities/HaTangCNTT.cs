@@ -65,6 +65,11 @@ public class HeThongThongTin : BaseEntity
     [StringLength(100), Display(Name = "Số quyết định phê duyệt cấp độ")] public string? SoQdCapDo { get; set; }
     [Display(Name = "Ngày quyết định"), DataType(DataType.Date)] public DateOnly? NgayQdCapDo { get; set; }
     [StringLength(1000), Display(Name = "Ghi chú")] public string? GhiChu { get; set; }
+    // GĐ3.2 – HCT.01.02, HCT.01.03
+    [Display(Name = "Dịch vụ telehealth")] public bool LaTelehealth { get; set; }
+    [Display(Name = "Công cụ hỗ trợ quyết định lâm sàng / AI")] public bool LaCongCuAi { get; set; }
+    [Display(Name = "Loại công cụ AI")] public LoaiCongCuAi? LoaiCongCuAi { get; set; }
+    [Display(Name = "Hạn xem xét lại công cụ AI"), DataType(DataType.Date)] public DateOnly? NgayXemXetAi { get; set; }
 
     public List<HeThongKhoaPhong> KhoaPhongs { get; set; } = [];
     public List<PhuThuocHeThong> PhuThuocs { get; set; } = [];
@@ -502,8 +507,12 @@ public enum KetLuanDienTap
 /// <summary>FR-DT-10..12: đợt diễn tập kế hoạch downtime.</summary>
 public class DotDienTap : BaseEntity
 {
-    public int HeThongId { get; set; }
+    /// <summary>Null với thử chương trình ứng phó tấn công mạng (toàn bệnh viện, gắn với tài liệu chương trình).</summary>
+    public int? HeThongId { get; set; }
     public HeThongThongTin? HeThong { get; set; }
+    [Display(Name = "Loại")] public LoaiThuNghiem LoaiThuNghiem { get; set; } = LoaiThuNghiem.Downtime;
+    public int? TaiLieuId { get; set; }
+    public TaiLieuQuyDinh? TaiLieu { get; set; }
     public int? KeHoachDowntimeId { get; set; }
     public KeHoachDowntime? KeHoachDowntime { get; set; }
     [Display(Name = "Hạn thực hiện")] public DateOnly HanThucHien { get; set; }
@@ -788,7 +797,10 @@ public enum NguonHanhDong
     [Display(Name = "Diễn tập downtime")] DienTap,
     [Display(Name = "Thử phục hồi")] ThuPhucHoi,
     [Display(Name = "Kiểm tra bất thường")] KiemTra,
-    [Display(Name = "Sao lưu lỗi")] SaoLuu
+    [Display(Name = "Sao lưu lỗi")] SaoLuu,
+    [Display(Name = "Sự cố an ninh mạng")] SuCoAnNinh,
+    [Display(Name = "Rủi ro CNTT")] RuiRo,
+    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao
 }
 
 public enum LoaiHanhDong

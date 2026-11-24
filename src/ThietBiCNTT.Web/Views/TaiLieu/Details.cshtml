@@ -1,0 +1,33 @@
+@model TaiLieuQuyDinh
+@{
+    ViewData["Title"] = Model.Ten; var cntt = User.LaCNTT(); var duocCntt = (bool)ViewBag.DuocDuyetCntt; var homNay = (DateOnly)ViewBag.HomNay; var pbs = (List<TaiLieuQuyDinh>)ViewBag.PhienBans;
+    var coTheDuyet = Model.TrangThai == TrangThaiKeHoach.ChoDuyet && ((Model.NguoiDuyetCntt is null && duocCntt) || (Model.NguoiDuyetCntt is not null && Model.NguoiDuyetLanhDao is null && User.IsInRole(VaiTro.LanhDao)));
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Chính sách & chương trình</a> › @Model.Ma</div>
+<div class="page-head"><h1>@Model.Ten · v@(Model.PhienBan)</h1> @Html.Raw(Badge.Html(Model.TrangThai)) <span class="badge bg-light text-dark border">@Model.Loai.Ten()</span>
+    @if (Model.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">Đến hạn rà soát</span> }
+    <div class="actions">
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.Nhap) { <a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a><form asp-action="GuiDuyet" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-primary">Gửi duyệt</button></form> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.HieuLuc) { <form asp-action="PhienBanMoi" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-outline-primary">Tạo phiên bản mới</button></form> }
+        @if (cntt && Model.DenHanRaSoat(homNay)) { <form asp-action="DaRaSoat" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-success">Đã rà soát, giữ nguyên</button></form> }
+    </div></div>
+@if (!string.IsNullOrWhiteSpace(Model.LyDoTuChoi)) { <div class="alert alert-danger py-2 small"><b>Bị từ chối:</b> @Model.LyDoTuChoi</div> }
+<div class="row g-3"><div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body" style="white-space:pre-line">@Model.NoiDung</div></div>
+    @if (Model.TrangThai == TrangThaiKeHoach.ChoDuyet && (coTheDuyet || duocCntt || User.IsInRole(VaiTro.LanhDao)))
+    {
+        <div class="card mb-3 border-warning"><div class="card-header">Phê duyệt (Trưởng phòng CNTT → Lãnh đạo)</div><div class="card-body d-flex gap-2 flex-wrap">
+            @if (coTheDuyet) { <form asp-action="Duyet" asp-route-id="@Model.Id" method="post"><button class="btn btn-success">Duyệt</button></form> }
+            <form asp-action="TuChoi" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 flex-grow-1"><input name="lyDo" class="form-control" placeholder="Lý do từ chối" required /><button class="btn btn-outline-danger">Từ chối</button></form></div></div>
+    }
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "TaiLieuQuyDinh", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt && Model.TrangThai == TrangThaiKeHoach.Nhap))
+</div><div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Thông tin</div><div class="card-body small">
+        <div>Hệ thống: @(Model.HeThong is null ? "Toàn bệnh viện" : Model.HeThong.Ma)</div><div>Hiệu lực: <b>@Model.NgayHieuLuc?.ToString("dd/MM/yyyy")</b></div><div>Hạn rà soát: <b>@Model.NgayRaSoat?.ToString("dd/MM/yyyy")</b></div>
+        <div>Gửi duyệt: @Model.NguoiGuiDuyet</div><div>Trưởng phòng CNTT: @Model.NguoiDuyetCntt @Model.NgayDuyetCntt?.ToString("dd/MM/yyyy")</div><div>Lãnh đạo: @Model.NguoiDuyetLanhDao @Model.NgayDuyetLanhDao?.ToString("dd/MM/yyyy")</div></div></div>
+    @if (Model.TrangThai != TrangThaiKeHoach.HieuLuc || User.XemToanVien())
+    {
+        <div class="card"><div class="card-header">Các phiên bản</div><ul class="list-group list-group-flush small">
+            @foreach (var p in pbs) { <li class="list-group-item @(p.Id == Model.Id ? "active" : "")"><a class="@(p.Id == Model.Id ? "text-white" : "")" asp-action="Details" asp-route-id="@p.Id">v@(p.PhienBan)</a> @Html.Raw(Badge.Html(p.TrangThai))</li> }</ul></div>
+    }
+</div></div>

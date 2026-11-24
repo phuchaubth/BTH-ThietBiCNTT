@@ -14,6 +14,7 @@
 <div class="small text-muted mb-1"><a asp-action="Index">Hệ thống thông tin</a> › @Model.Ma</div>
 <div class="page-head"><h1>@Model.Ma · @Model.Ten</h1> @Html.Raw(Badge.Html(Model.MucTrongYeu)) @Html.Raw(Badge.Html(Model.TrangThai))
     <div class="actions">
+        @if (cntt || User.IsInRole(VaiTro.LanhDao)) { <a asp-controller="Jci" asp-action="Tracer" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3"></i> Tracer JCI</a> }
         @if (cntt) { <a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
             <a asp-controller="SuKienDowntime" asp-action="Create" asp-route-heThongId="@Model.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-exclamation-octagon"></i> Ghi nhận downtime</a> }
     </div></div>
@@ -81,6 +82,34 @@
         <div><b>Hệ thống bị ảnh hưởng nếu hệ thống này ngừng</b>:
             @if (phuThuocVao.Count == 0) { <span class="text-muted">không có</span> } else { foreach (var h in phuThuocVao) { <a asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> } }</div>
     </div></div>
+    }
+
+    @if (Model.LaTelehealth || Model.LaCongCuAi || ((List<KenhTruyenDuLieu>)ViewBag.Kenhs).Count > 0)
+    {
+        var hdTl = ViewBag.HdTelehealth as TaiLieuQuyDinh; var hdAi = ViewBag.HdAi as TaiLieuQuyDinh; var buocs = (List<BuocVongDoi>)ViewBag.Buocs; var kenhs = (List<KenhTruyenDuLieu>)ViewBag.Kenhs;
+        <div class="card mb-3"><div class="card-header">Telehealth, công cụ AI, kênh truyền dữ liệu <span class="small fw-normal text-muted">HCT.01.01 – 01.03</span></div><div class="card-body small">
+        @if (Model.LaTelehealth) { <div class="mb-2"><b>Telehealth:</b> @if (hdTl is not null) { <span class="text-success">có hướng dẫn bảo vệ dữ liệu hiệu lực — <a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@hdTl.Id">@hdTl.Ten v@(hdTl.PhienBan)</a></span> } else { <span class="text-danger">chưa có hướng dẫn bảo vệ dữ liệu hiệu lực (HCT.01.02 ME1)</span> } </div> }
+        @if (Model.LaCongCuAi)
+        {
+            <div class="mb-2"><b>Công cụ AI (@Model.LoaiCongCuAi?.Ten()):</b> @if (hdAi is not null) { <span class="text-success">có hướng dẫn giám sát hiệu lực — <a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@hdAi.Id">@hdAi.Ten</a></span> } else { <span class="text-danger">chưa có hướng dẫn giám sát hiệu lực (HCT.01.03 ME2)</span> }
+                · xem xét lại trước <b class="@(Model.NgayXemXetAi <= homNay ? "overdue" : "")">@Model.NgayXemXetAi?.ToString("dd/MM/yyyy")</b></div>
+            <table class="table table-sm"><thead><tr><th>Bước</th><th>Ngày</th><th>Người phụ trách</th><th>Nội dung / kết luận</th></tr></thead><tbody>
+            @foreach (var b in buocs) { <tr><td>@b.Buoc.Ten()</td><td>@b.Ngay.ToString("dd/MM/yyyy")</td><td>@b.NguoiPhuTrach</td><td style="white-space:pre-line">@b.NoiDung @if (!string.IsNullOrWhiteSpace(b.KetLuan)) { <div class="text-muted">→ @b.KetLuan</div> }</td></tr> }
+            @foreach (var thieuBuoc in Enum.GetValues<BuocVongDoiAi>().Where(x => buocs.All(b => b.Buoc != x))) { <tr class="text-muted"><td>@thieuBuoc.Ten()</td><td colspan="3">chưa ghi nhận</td></tr> }
+            </tbody></table>
+            @if (cntt)
+            {
+                <form asp-action="GhiBuocAi" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-md-3"><select name="buoc" asp-items="@EnumExtensions.ToSelectList<BuocVongDoiAi>()" class="form-select form-select-sm" aria-label="Bước"></select></div>
+                    <div class="col-md-3"><input name="nguoiPhuTrach" class="form-control form-control-sm" placeholder="Người phụ trách (DS, BS…)" required /></div>
+                    <div class="col-md-3"><input name="ngay" type="date" value="@homNay.ToString("yyyy-MM-dd")" class="form-control form-control-sm" required aria-label="Ngày" /></div>
+                    <div class="col-md-3"><input name="ketLuan" class="form-control form-control-sm" placeholder="Kết luận" /></div>
+                    <div class="col-12"><textarea name="noiDung" class="form-control form-control-sm" rows="2" placeholder="Nội dung: tiêu chí chọn, kiểm thử, theo dõi mức sử dụng, sai lệch phát hiện, cập nhật, khía cạnh đạo đức…" required></textarea></div>
+                    <div class="col-12"><button class="btn btn-sm btn-outline-primary">Ghi bước</button></div></form>
+            }
+        }
+        @if (kenhs.Count > 0) { <div class="mt-2"><b>Kênh truyền dữ liệu:</b> @foreach (var k in kenhs) { <a asp-controller="KenhDuLieu" asp-action="Index" asp-route-loai="@k.Loai" class="badge bg-light text-dark border text-decoration-none me-1">@k.Ten</a> }</div> }
+        </div></div>
     }
 
     <div class="card mb-3"><div class="card-header d-flex">Kế hoạch downtime <span class="ms-auto">@if (cntt) { <a asp-controller="KeHoachDowntime" asp-action="Form" asp-route-heThongId="@Model.Id" class="btn btn-sm btn-outline-primary py-0">Phiên bản mới</a> }</span></div>

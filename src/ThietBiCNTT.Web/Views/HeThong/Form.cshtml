@@ -25,6 +25,12 @@
     <div class="col-md-6"><label asp-for="SoQdCapDo" class="form-label"></label><input asp-for="SoQdCapDo" class="form-control" /></div>
     <div class="col-md-3"><label asp-for="NgayQdCapDo" class="form-label"></label><input asp-for="NgayQdCapDo" type="date" class="form-control" /></div>
     <hr class="my-1" />
+    <div class="col-12 small text-muted">HCT.01.02 / HCT.01.03: đánh dấu nếu hệ thống cung cấp dịch vụ khám chữa bệnh từ xa hoặc là công cụ hỗ trợ quyết định lâm sàng dùng trí tuệ nhân tạo.</div>
+    <div class="col-md-3 align-self-end"><div class="form-check"><input asp-for="LaTelehealth" class="form-check-input" /><label asp-for="LaTelehealth" class="form-check-label"></label></div></div>
+    <div class="col-md-3 align-self-end"><div class="form-check"><input asp-for="LaCongCuAi" class="form-check-input" /><label asp-for="LaCongCuAi" class="form-check-label"></label></div></div>
+    <div class="col-md-3"><label asp-for="LoaiCongCuAi" class="form-label"></label><select asp-for="LoaiCongCuAi" asp-items="@EnumExtensions.ToSelectList<LoaiCongCuAi>()" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-3"><label asp-for="NgayXemXetAi" class="form-label"></label><input asp-for="NgayXemXetAi" type="date" class="form-control" /></div>
+    <hr class="my-1" />
     <div class="col-md-6"><label asp-for="ChuSoHuuKhoaPhongId" class="form-label"></label><select asp-for="ChuSoHuuKhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">—</option></select></div>
     <div class="col-md-6"><label asp-for="ChuSoHuu" class="form-label"></label><input asp-for="ChuSoHuu" class="form-control" /></div>
     <div class="col-md-6"><label asp-for="PhuTrachChinh" class="form-label"></label><select asp-for="PhuTrachChinh" asp-items="ViewBag.DsCntt" class="form-select"><option value="">—</option></select></div>

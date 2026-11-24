@@ -1,0 +1,19 @@
+@model RuiRo
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm rủi ro CNTT" : "Sửa rủi ro " + Model.Ma; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:900px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="3" placeholder="Do … nên có thể xảy ra … dẫn đến …"></textarea></div>
+    <div class="col-md-4"><label asp-for="Nhom" class="form-label"></label><select asp-for="Nhom" asp-items="@EnumExtensions.ToSelectList<NhomRuiRo>()" class="form-select"></select></div>
+    <div class="col-md-4"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-4"><label asp-for="NguoiChiuTrachNhiem" class="form-label"></label><select asp-for="NguoiChiuTrachNhiem" asp-items="ViewBag.DsNguoi" class="form-select"></select></div>
+    <div class="col-12"><label asp-for="KiemSoatHienCo" class="form-label"></label><textarea asp-for="KiemSoatHienCo" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-3"><label asp-for="KhaNang" class="form-label"></label><input asp-for="KhaNang" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="HauQua" class="form-label"></label><input asp-for="HauQua" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="KhaNangTonDu" class="form-label"></label><input asp-for="KhaNangTonDu" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="HauQuaTonDu" class="form-label"></label><input asp-for="HauQuaTonDu" type="number" min="1" max="5" class="form-control" /></div>
+    @if (Model.Id != 0) { <div class="col-12"><label class="form-label" for="ld">Lý do thay đổi điểm (bắt buộc nếu đổi điểm)</label><input id="ld" name="lyDoDiem" class="form-control" /></div> }
+    <div class="col-12 form-text">Khả năng và hậu quả từ 1 đến 5; điểm = khả năng × hậu quả. Điểm sau biện pháp (tồn dư) không được cao hơn điểm ban đầu. Mọi thay đổi điểm được lưu lịch sử.</div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,20 @@
+@model List<BaoCaoLanhDao>
+@{ ViewData["Title"] = "Báo cáo quý cho Lãnh đạo"; var homNay = (DateOnly)ViewBag.HomNay; var quyTruoc = BaoCaoLanhDao.TenKy(homNay.AddMonths(-3)); bool coQuyTruoc = Model.Any(b => b.Ky == quyTruoc && b.DaGui); }
+<div class="page-head"><h1>Báo cáo quý cho Lãnh đạo</h1><span class="text-muted small">GLD.04.01 ME2 – ít nhất hằng quý, bằng văn bản, nêu mọi sự cố hệ thống/quy trình · FR-JC-04</span><div class="actions"><a asp-controller="Jci" asp-action="ChiSo" class="btn btn-sm btn-outline-secondary">Bộ chỉ số</a></div></div>
+@if (!coQuyTruoc) { <div class="alert alert-warning py-2 small">Chưa gửi báo cáo quý <b>@quyTruoc</b> (quý vừa kết thúc).</div> }
+@if (User.LaCNTT())
+{
+    <div class="card mb-3"><div class="card-body"><form asp-action="Tao" method="post" class="row g-2 align-items-end">
+        <div class="col-auto"><label class="form-label small mb-0" for="nam">Năm</label><input id="nam" name="nam" type="number" value="@homNay.AddMonths(-3).Year" class="form-control form-control-sm" style="width:100px" /></div>
+        <div class="col-auto"><label class="form-label small mb-0" for="quy">Quý</label><select id="quy" name="quy" class="form-select form-select-sm" style="width:90px">@for (var q = 1; q <= 4; q++) { <option value="@q" selected="@(q == (homNay.AddMonths(-3).Month - 1) / 3 + 1)">@q</option> }</select></div>
+        <div class="col-auto"><button class="btn btn-sm btn-primary">Lập báo cáo từ dữ liệu hệ thống</button></div></form></div></div>
+}
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Kỳ</th><th>Khoảng thời gian</th><th>Trạng thái</th><th>Gửi</th><th>Lãnh đạo xem</th></tr></thead><tbody>
+@foreach (var b in Model)
+{
+    <tr><td class="fw-semibold"><a asp-action="Details" asp-route-id="@b.Id">@b.Ky</a></td><td class="small">@b.TuNgay.ToString("dd/MM/yyyy") – @b.DenNgay.ToString("dd/MM/yyyy")</td>
+        <td>@if (b.DaXem) { <span class="badge bg-success">Đã xem</span> } else if (b.DaGui) { <span class="badge bg-info">Đã gửi</span> } else { <span class="badge bg-secondary">Nháp</span> }</td>
+        <td class="small">@(b.DaGui ? $"{b.NguoiGui} {b.NgayGui:dd/MM/yyyy}" : "—")</td><td class="small">@(b.DaXem ? $"{b.NguoiXem} {b.NgayXem:dd/MM/yyyy}" : "—")</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">Chưa có báo cáo nào.</td></tr> }
+</tbody></table></div></div>

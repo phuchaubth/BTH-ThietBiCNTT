@@ -1,0 +1,39 @@
+@model List<RuiRo>
+@{
+    ViewData["Title"] = "Sổ rủi ro CNTT"; var nhom = ViewData["nhom"] as NhomRuiRo?; var muc = ViewData["muc"] as MucRuiRo?; var tt = ViewData["trangThai"] as TrangThaiRuiRo?; var chiMo = (bool)ViewData["chiMo"]!; var sau = (bool)ViewData["sau"]!;
+    var heat = (int[,])ViewBag.Heat; var homNay = (DateOnly)ViewBag.HomNay; int? namCb = ViewBag.CanhBaoNam; int? kn = ViewData["kn"] as int?; int? hq = ViewData["hq"] as int?;
+    string Mau(int a, int b) => RuiRo.MucTheoDiem(a * b) switch { MucRuiRo.Thap => "#d1e7dd", MucRuiRo.TrungBinh => "#fff3cd", MucRuiRo.Cao => "#fde0c5", _ => "#f8d7da" };
+}
+<div class="page-head"><h1>Sổ rủi ro CNTT</h1><span class="text-muted small">FMS.02.00 · MOI.01.02 ME1 · QPS.04.01 – ma trận 5×5</span>
+    <div class="actions"><a asp-controller="DotRuiRo" asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar-check"></i> Đợt đánh giá hằng năm</a>@if (User.LaCNTT()) { <a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm rủi ro</a> }</div></div>
+@if (namCb is { } nc) { <div class="alert alert-danger py-2 small"><b>BR-RR-04:</b> chưa có đợt đánh giá rủi ro năm @nc đã chốt — <a asp-controller="DotRuiRo" asp-action="Index">tạo / hoàn tất đợt</a> trước 31/12.</div> }
+<div class="row g-3 mb-3"><div class="col-lg-5"><div class="card"><div class="card-header d-flex">Bản đồ nhiệt <span class="ms-auto small fw-normal"><a asp-action="Index" asp-route-sau="false" class="@(!sau ? "fw-bold" : "")">trước biện pháp</a> · <a asp-action="Index" asp-route-sau="true" class="@(sau ? "fw-bold" : "")">sau biện pháp</a></span></div><div class="card-body">
+    <table class="mb-1" style="border-collapse:separate;border-spacing:3px"><tbody>
+    @for (var b = 5; b >= 1; b--)
+    {
+        <tr><td class="small text-muted pe-2 text-end">HQ @b</td>
+        @for (var a = 1; a <= 5; a++)
+        {
+            <td style="width:58px;height:42px;text-align:center;background:@Mau(a, b);border-radius:4px;@(kn == a && hq == b ? "outline:2px solid #0d6efd" : "")"><a asp-action="Index" asp-route-sau="@sau" asp-route-kn="@a" asp-route-hq="@b" class="text-decoration-none text-dark d-block fw-semibold">@(heat[a, b] == 0 ? "·" : heat[a, b].ToString())</a></td>
+        }</tr>
+    }
+    <tr><td></td>@for (var a = 1; a <= 5; a++) { <td class="small text-muted text-center">KN @a</td> }</tr></tbody></table>
+    <div class="small text-muted">KN = khả năng xảy ra, HQ = hậu quả. Bấm một ô để lọc. Thấp 1–4 · Trung bình 5–9 · Cao 10–16 · Rất cao ≥ 17.</div></div></div></div>
+<div class="col-lg-7"><form method="get" class="row g-2">
+    <input type="hidden" name="sau" value="@sau.ToString().ToLower()" />
+    <div class="col-md-6"><select name="nhom" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList(nhom)" aria-label="Nhóm"><option value="">— Mọi nhóm —</option></select></div>
+    <div class="col-md-6"><select name="muc" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList(muc)" aria-label="Mức"><option value="">— Mọi mức —</option></select></div>
+    <div class="col-md-6"><select name="trangThai" class="form-select form-select-sm" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Đang mở —</option></select></div>
+    <div class="col-md-6"><select name="heThong" class="form-select form-select-sm" asp-items="ViewBag.DsHeThong" aria-label="Hệ thống"><option value="">— Mọi hệ thống —</option></select></div>
+    <div class="col-12"><div class="form-check d-inline-block me-3"><input class="form-check-input" type="checkbox" name="chiMo" value="true" id="cm" @(chiMo ? "checked" : "") /><label class="form-check-label small" for="cm">Chưa đóng/kiểm soát</label></div><button class="btn btn-sm btn-outline-secondary">Lọc</button> <a asp-action="Index" class="btn btn-sm btn-link">Bỏ lọc</a></div></form></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Mã</th><th>Rủi ro</th><th>Nhóm</th><th class="text-center">Điểm</th><th class="text-center">Tồn dư</th><th>Phụ trách</th><th>Trạng thái</th><th>Xem xét lại</th></tr></thead><tbody>
+@foreach (var r in Model)
+{
+    <tr><td class="fw-semibold"><a asp-action="Details" asp-route-id="@r.Id">@r.Ma</a></td><td class="small">@r.MoTa<div class="text-muted">@r.HeThong?.Ma</div></td><td class="small">@r.Nhom.Ten()</td>
+        <td class="text-center"><span class="badge text-dark" style="background:@Mau(r.KhaNang, r.HauQua)">@r.Diem · @r.Muc.Ten()</span></td>
+        <td class="text-center small">@if (r.DiemTonDu is { } t) { <span class="badge text-dark" style="background:@Mau(r.KhaNangTonDu!.Value, r.HauQuaTonDu!.Value)">@t · @r.MucTonDu!.Value.Ten()</span> }</td>
+        <td class="small">@r.NguoiChiuTrachNhiem</td><td>@Html.Raw(Badge.Html(r.TrangThai))</td>
+        <td class="small">@r.NgayXemXetLai?.ToString("dd/MM/yyyy") @if (r.DangMo && r.NgayXemXetLai is { } x && x < homNay) { <span class="badge bg-danger">Quá hạn</span> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Không có rủi ro.</td></tr> }
+</tbody></table></div></div>

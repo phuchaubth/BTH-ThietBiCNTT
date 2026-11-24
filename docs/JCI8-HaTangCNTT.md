@@ -8,7 +8,7 @@
 | Phạm vi | **Chỉ hạ tầng CNTT**: hệ thống thông tin, máy chủ, lưu trữ, mạng, thiết bị đầu cuối, tiện ích phục vụ CNTT (UPS, điều hoà phòng máy chủ). Không bao gồm thiết bị y tế. |
 | Loại tài liệu | Đặc tả yêu cầu phần mềm bổ sung (SRS – Phụ lục GĐ3) |
 | Căn cứ tiêu chuẩn | *JCI Accreditation Standards for Hospitals, 8th Edition* (hiệu lực **01/01/2025**): chương **HCT – Health Care Technology** (mới), MOI, FMS, GLD, QPS, SQE; *Standards Interpretation FAQs* (cập nhật 04/2025) |
-| Phiên bản | 0.7 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường các chương HCT, MOI, FMS, GLD, QPS, SQE theo toàn văn bản JCI 8) |
+| Phiên bản | 0.8 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường các chương HCT, MOI, FMS, GLD, QPS, SQE theo toàn văn bản JCI 8) |
 | Ngày lập | 24/11/2026 |
 | Đơn vị chủ trì | Phòng Công nghệ thông tin |
 | Đơn vị phối hợp | Phòng Quản lý chất lượng (đầu mối JCI), Phòng Hành chính quản trị (điện, điều hoà) |
@@ -18,6 +18,7 @@
 | Phiên bản | Ngày | Người thực hiện | Nội dung thay đổi |
 |---|---|---|---|
 | 0.1 | 24/11/2026 | Phòng CNTT | Khởi tạo dự thảo: phân tích khoảng trống so với JCI 8, đặc tả 8 phân hệ mới |
+| 0.8 | 24/11/2026 | Phòng CNTT | **Hoàn thành GĐ3.2**: cập nhật mục 10.1b (hiện trạng), đánh dấu FR đã triển khai và hạn chế còn lại |
 | 0.7 | 24/11/2026 | Phòng CNTT | **Chỉnh phân công: UPS do Phòng CNTT quản lý và thử hằng quý; nguồn điện lưới/máy phát điện dự phòng của bệnh viện do Phòng HCQT quản lý và thử.** Cập nhật FR-HTT-15, FR-HTT-16, phân quyền, câu hỏi 12 |
 | 0.6 | 24/11/2026 | Phòng CNTT | **Quyết định: nguồn điện dự phòng phòng máy chủ (UPS, máy phát) do Phòng Hành chính quản trị (HCQT) quản lý; thử nguồn hằng quý do HCQT thực hiện, Phòng CNTT nhận kết quả và giám sát đúng hạn.** Cập nhật FR-HTT-15, FR-HTT-16, phân quyền; giải quyết câu hỏi 12 |
 | 0.5 | 24/11/2026 | Phòng CNTT | Đối chiếu theo **toàn văn sách tiêu chuẩn JCI 8** (có Intent và ME): chương **FMS** đã hoàn tất. Phát hiện chính: Intent FMS.08.00 xác định **hệ thống thông tin và liên lạc là một hệ thống tiện ích** → Phòng CNTT phải có chương trình quản lý tiện ích bằng văn bản, danh mục thành phần kèm sơ đồ phân bố, chu kỳ kiểm tra/bảo trì (ME 1–4); nguồn điện thay thế phải **thử ít nhất mỗi quý** (FMS.08.01 ME3); rủi ro tiện ích thuộc đợt đánh giá rủi ro hằng năm của bệnh viện (FMS.02.00); bảo trì ảnh hưởng chăm sóc phải đánh giá rủi ro trước theo danh mục tối thiểu và giám sát nhà thầu (FMS.10.00). Thêm FR-HTT-15, FR-HTT-16, FR-TD-10, bảng 2.1.7; giải quyết câu hỏi 4 và 10 |
@@ -851,6 +852,17 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 | HD (CAPA) | FR-HD-01..05; nguồn: tạo trực tiếp, sự kiện downtime, diễn tập, thử phục hồi | Chưa có nút tạo từ kiểm tra bất thường và sao lưu lỗi (nguồn đã khai báo trong mô hình) |
 | FMS (dữ liệu mẫu) | Hai phiếu mẫu hằng quý: "Thử UPS phòng máy chủ" (khoa thực hiện CNTT) và "Thử máy phát điện dự phòng" (khoa thực hiện HCQT, chu kỳ 90 ngày); mục chữa cháy, nhãn nút ngắt khẩn cấp trong phiếu phòng máy chủ; UPS phòng máy chủ thuộc Phòng CNTT | FR-HTT-15, FR-HTT-16 đầy đủ (báo cáo tiện ích, báo cáo thành phần thiếu kế hoạch bảo trì) thuộc GĐ3.2 |
 | Chung | Job nền: sinh lịch diễn tập/thử phục hồi, nhắc & leo thang quá hạn, thông báo downtime có kế hoạch, cảnh báo sao lưu, nhắc rà soát kế hoạch; dòng bản tin hằng ngày; 44+ unit test, kịch bản e2e `tests/e2e/hatang.py` | Chu kỳ sao lưu tính theo **phút** (để đáp ứng RPO 15 phút) |
+
+### 10.1b. Hiện trạng triển khai GĐ3.2 (cập nhật 24/11/2026)
+
+| Phân hệ | Đã làm | Chưa làm / ghi chú |
+|---|---|---|
+| HTT | FR-HTT-08, 09, 12, 13, 15, 16: tài liệu chính sách/chương trình có phiên bản và duyệt 2 cấp (`/TaiLieu`), kênh truyền dữ liệu y tế kèm kiểm tra yêu cầu ME (`/KenhDuLieu`), cờ telehealth và công cụ AI kèm vòng đời (lựa chọn → triển khai → giám sát → xem xét định kỳ), người giám sát CNTT y tế (`/GiamSatCntt`), bảng tiện ích và thử nguồn dự phòng (`/TienIch`) | FR-HTT-04, 14 thuộc GĐ3.3 |
+| AN | FR-AN-01..06, 08, 09: báo sự cố ATTT cho mọi người dùng, phân mức, cờ dữ liệu cá nhân, các bước ứng phó, báo cơ quan chức năng (hạn theo tham số, mặc định tắt), rút kinh nghiệm, điều kiện đóng; thử chương trình ứng phó tấn công mạng hằng năm (HCT.01.05) dùng chung phân hệ diễn tập | FR-AN-07 thuộc GĐ3.3; hạn báo cáo pháp lý cần nhập sau khi pháp chế xác nhận |
+| RR | FR-RR-01, 02, 04..06, 08: sổ rủi ro, ma trận 5×5, lịch sử điểm, phương án xử lý, chấp nhận mức Cao trở lên cần Lãnh đạo duyệt, đợt đánh giá hằng năm chốt không sửa, báo cáo gửi Lãnh đạo/cơ quan quản trị | FR-RR-03, 07, 09 thuộc GĐ3.3 |
+| JC | FR-JC-01..04, 06, 08: danh mục tiêu chuẩn, bằng chứng tự động theo mức, bộ chỉ số, tracer theo hệ thống, báo cáo quý cho Lãnh đạo có xác nhận đã xem | FR-JC-05, 07, 09 còn một phần (tiêu chuẩn phụ thuộc phân hệ GĐ3.3 hiển thị "Chưa tự động") |
+| DT | FR-DT-09: buổi đào tạo, danh sách tham dự, báo cáo độ phủ theo khoa, xuất Excel | — |
+| Chung | Job nền nhắc rà soát tài liệu, đánh giá rủi ro, xem xét AI, thử ứng phó, thử nguồn dự phòng, báo cáo quý; 102 unit test; kịch bản e2e `tests/e2e/hatang32.py` | Dữ liệu mẫu đã có để minh hoạ; đổi tham số `Jci.NguoiDuyetCntt` khỏi `admin` khi triển khai thật |
 
 ### 10.2. Tiêu chí nghiệm thu GĐ3.1
 

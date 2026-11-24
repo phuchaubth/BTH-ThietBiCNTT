@@ -1,0 +1,15 @@
+@model TaiLieuQuyDinh
+@{ ViewData["Title"] = Model.Id == 0 ? "Soạn tài liệu" : $"Sửa {Model.Ma} v{Model.PhienBan}"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:960px"><div class="card-body">
+<form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="PhienBan" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiTaiLieu>()" class="form-select"></select></div>
+    <div class="col-md-6"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">— toàn bệnh viện —</option></select></div>
+    <div class="col-12"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-12"><label asp-for="NoiDung" class="form-label"></label><textarea asp-for="NoiDung" class="form-control" rows="16"></textarea>
+        <div class="form-text">Soạn nội dung chính; đính kèm bản gốc (PDF) sau khi lưu. Phê duyệt hai cấp: Trưởng phòng CNTT → Lãnh đạo.</div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu bản nháp</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

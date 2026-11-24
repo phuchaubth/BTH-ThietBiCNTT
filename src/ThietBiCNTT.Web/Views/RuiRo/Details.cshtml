@@ -1,0 +1,46 @@
+@model RuiRo
+@{
+    ViewData["Title"] = Model.Ma; var cntt = User.LaCNTT(); var hds = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var homNay = DateOnly.FromDateTime(DateTime.Today);
+    string Mau(MucRuiRo m) => m switch { MucRuiRo.Thap => "success", MucRuiRo.TrungBinh => "warning text-dark", MucRuiRo.Cao => "orange text-dark", _ => "danger" };
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Sổ rủi ro</a> › @Model.Ma</div>
+<div class="page-head"><h1>@Model.Ma · @Model.Nhom.Ten()</h1> @Html.Raw(Badge.Html(Model.TrangThai)) <span class="badge @(Model.Muc == MucRuiRo.Cao ? "text-dark" : "") bg-@(Mau(Model.Muc))" style="@(Model.Muc == MucRuiRo.Cao ? "background:#fd9843" : "")">@Model.Diem điểm · @Model.Muc.Ten()</span>
+    @if (Model.DiemTonDu is { } t) { <span class="badge bg-light text-dark border">Tồn dư @t · @Model.MucTonDu!.Value.Ten()</span> }
+    @if (cntt) { <div class="actions"><a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa / chấm điểm</a></div> }</div>
+<div class="row g-3"><div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-12"><dt>Mô tả</dt><dd style="white-space:pre-line">@Model.MoTa</dd></div>
+        <div class="col-12"><dt>Biện pháp kiểm soát hiện có</dt><dd style="white-space:pre-line">@Model.KiemSoatHienCo</dd></div>
+        <div class="col-sm-4"><dt>Khả năng × hậu quả</dt><dd>@Model.KhaNang × @Model.HauQua = @Model.Diem</dd></div>
+        <div class="col-sm-4"><dt>Hệ thống</dt><dd>@if (Model.HeThong is not null) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@Model.HeThongId">@Model.HeThong.Ma</a> }</dd></div>
+        <div class="col-sm-4"><dt>Phụ trách</dt><dd>@Model.NguoiChiuTrachNhiem</dd></div>
+        <div class="col-sm-4"><dt>Phương án xử lý</dt><dd>@(Model.PhuongAn?.Ten() ?? "—")</dd></div>
+        <div class="col-sm-4"><dt>Xem xét lại</dt><dd class="@(Model.DangMo && Model.NgayXemXetLai < homNay ? "overdue" : "")">@Model.NgayXemXetLai?.ToString("dd/MM/yyyy")</dd></div>
+        @if (Model.PhuongAn == PhuongAnRuiRo.ChapNhan) { <div class="col-12"><dt>Chấp nhận rủi ro</dt><dd>@Model.LyDoChapNhan @if (Model.CanLanhDaoDuyetChapNhan) { <span class="ms-2">@if (Model.NguoiDuyetChapNhan is not null) { <span class="badge bg-success">Lãnh đạo duyệt: @Model.NguoiDuyetChapNhan @Model.NgayDuyetChapNhan?.ToString("dd/MM/yyyy")</span> } else { <span class="badge bg-warning text-dark">Chờ Lãnh đạo duyệt</span> }</span> }</dd></div> }
+    </dl></div></div>
+    @if (cntt || User.IsInRole(VaiTro.LanhDao))
+    {
+        <div class="card mb-3"><div class="card-header">Xử lý rủi ro <span class="small fw-normal text-muted">FR-RR-04</span></div><div class="card-body">
+        @if (cntt)
+        {
+            <form asp-action="PhuongAn" asp-route-id="@Model.Id" method="post" class="row g-2 mb-3">
+                <div class="col-md-3"><label class="form-label small mb-0" for="pa">Phương án</label><select id="pa" name="phuongAn" asp-items="@EnumExtensions.ToSelectList<PhuongAnRuiRo>(Model.PhuongAn)" class="form-select form-select-sm"></select></div>
+                <div class="col-md-3"><label class="form-label small mb-0" for="nx">Xem xét lại</label><input id="nx" name="ngayXemXetLai" type="date" value="@Model.NgayXemXetLai?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                <div class="col-md-6"><label class="form-label small mb-0" for="ln">Lý do chấp nhận (nếu chấp nhận)</label><input id="ln" name="lyDoChapNhan" value="@Model.LyDoChapNhan" class="form-control form-control-sm" /></div>
+                <div class="col-12"><button class="btn btn-sm btn-outline-primary">Lưu phương án</button></div></form>
+            <form asp-action="TrangThai" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 align-items-end"><div><label class="form-label small mb-0" for="tt">Trạng thái</label><select id="tt" name="trangThai" asp-items="@EnumExtensions.ToSelectList<TrangThaiRuiRo>(Model.TrangThai)" class="form-select form-select-sm"></select></div><button class="btn btn-sm btn-outline-primary">Chuyển</button>
+                <span class="small text-muted">Đã kiểm soát: cần phương án; giảm thiểu cần các hành động đã hoàn thành; chấp nhận mức Cao trở lên cần Lãnh đạo duyệt.</span></form>
+        }
+        @if (User.IsInRole(VaiTro.LanhDao) && Model.CanLanhDaoDuyetChapNhan && Model.NguoiDuyetChapNhan is null) { <form asp-action="DuyetChapNhan" asp-route-id="@Model.Id" method="post" class="mt-3"><button class="btn btn-success">Lãnh đạo: phê duyệt chấp nhận rủi ro</button></form> }
+        </div></div>
+    }
+    <div class="card mb-3"><div class="card-header">Lịch sử điểm (BR-RR-03)</div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Ngày</th><th>KN × HQ</th><th>Điểm</th><th>Lý do</th><th>Người</th></tr></thead><tbody>
+        @foreach (var l in Model.LichSus.OrderByDescending(l => l.NgayDanhGia)) { <tr><td class="small">@l.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")</td><td>@l.KhaNang × @l.HauQua</td><td>@l.Diem</td><td class="small">@l.LyDo</td><td class="small">@l.NguoiDanhGia</td></tr> }</tbody></table></div></div>
+</div>
+<div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Hành động khắc phục (@hds.Count)</div><div class="list-group list-group-flush small">
+        @foreach (var h in hds) { <a class="list-group-item list-group-item-action" asp-controller="HanhDong" asp-action="Details" asp-route-id="@h.Id"><b>@h.Ma</b> · @h.MoTa <span class="text-muted">@h.TrangThai.Ten()</span></a> }
+        @if (hds.Count == 0) { <div class="list-group-item text-muted">Chưa có.</div> }</div>
+        @if (cntt) { <form asp-action="TaoHanhDong" asp-route-id="@Model.Id" method="post" class="card-footer bg-white"><textarea name="moTa" class="form-control form-control-sm mb-1" rows="2" placeholder="Biện pháp giảm thiểu" required></textarea><div class="d-flex gap-1"><select name="nguoiChiuTrachNhiem" asp-items="ViewBag.DsNguoi" class="form-select form-select-sm"></select><input name="han" type="date" class="form-control form-control-sm" aria-label="Hạn" /></div><button class="btn btn-sm btn-outline-primary mt-1">Tạo hành động</button></form> }</div>
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "RuiRo", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt))
+</div></div>

@@ -1,0 +1,37 @@
+@model HeThongThongTin
+@{
+    ViewData["Title"] = "Truy vết " + Model.Ma; var homNay = (DateOnly)ViewBag.HomNay; int rto = ViewBag.Rto; int rpo = ViewBag.Rpo;
+    var kh = (List<KeHoachDowntime>)ViewBag.KeHoach; var dtao = (List<BuoiDaoTao>)ViewBag.DaoTao; var dt = (List<DotDienTap>)ViewBag.DienTap; var sk = (List<SuKienDowntime>)ViewBag.SuKien; var tv = (List<TacVuSaoLuu>)ViewBag.TacVu;
+    var ph = (List<LanThuPhucHoi>)ViewBag.PhucHoi; var rr = (List<RuiRo>)ViewBag.RuiRo; var an = (List<SuCoAnNinh>)ViewBag.SuCoAn; var hd = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var tl = (List<TaiLieuQuyDinh>)ViewBag.TaiLieu; var gs = ViewBag.GiamSat as NguoiGiamSatCntt; var pt = (List<PhuThuocHeThong>)ViewBag.PhuThuoc;
+}
+<div class="small text-muted mb-1"><a asp-action="TieuChuan">Tiêu chuẩn JCI</a> › Truy vết</div>
+<div class="page-head"><h1>Truy vết · <a asp-controller="HeThong" asp-action="Details" asp-route-id="@Model.Id">@Model.Ma</a> @Model.Ten</h1> @Html.Raw(Badge.Html(Model.MucTrongYeu))<span class="text-muted small">FR-JC-06 – một trang cho phỏng vấn truy vết của đoàn đánh giá</span><div class="actions"><button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> In</button></div></div>
+<div class="row g-3">
+<div class="col-lg-6"><div class="card mb-3"><div class="card-header">1. Quản trị & hồ sơ <span class="small fw-normal text-muted">HCT.01.00, MOI.01.00, GLD.06.00</span></div><div class="card-body small">
+    <div>Người giám sát CNTT y tế: @(gs is null ? "chưa chỉ định" : $"{gs.HoTen} ({gs.SoVanBan})")</div><div>Chủ sở hữu nghiệp vụ: @Model.ChuSoHuu · phụ trách kỹ thuật: @Model.PhuTrachChinh / @Model.PhuTrachDuPhong</div>
+    <div>RTO @rto phút · RPO @rpo phút · nhà cung cấp @Model.NhaCungCap?.Ten · hợp đồng @Model.HopDong?.SoHopDong</div><div>Khoa phụ thuộc: @string.Join(", ", Model.KhoaPhongs.Select(k => k.KhoaPhong?.Ten))</div>
+    <div>Phụ thuộc hạ tầng: @string.Join(", ", pt.Select(p => p.TaiSan?.MaTaiSan ?? p.HeThongPhuThuoc?.Ma)) </div>
+    <div>Tài liệu hiệu lực: @foreach (var t in tl) { <a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@t.Id" class="me-2">@t.Loai.Ten() v@(t.PhienBan)</a> }@if (tl.Count == 0) { <span class="text-muted">không có</span> }</div></div></div>
+<div class="card mb-3"><div class="card-header">2. Kế hoạch downtime <span class="small fw-normal text-muted">HCT.01.04 ME1–ME4</span></div><div class="list-group list-group-flush small">
+    @foreach (var k in kh) { <a class="list-group-item list-group-item-action" asp-controller="KeHoachDowntime" asp-action="Details" asp-route-id="@k.Id">v@(k.PhienBan) @Html.Raw(Badge.Html(k.TrangThai)) hiệu lực @k.NgayHieuLuc?.ToString("dd/MM/yyyy"), duyệt @k.NguoiDuyetCntt / @k.NguoiDuyetLanhDao @if (k.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">cần rà soát</span> }</a> }
+    @if (kh.Count == 0) { <div class="list-group-item text-danger">Chưa có kế hoạch.</div> }</div></div>
+<div class="card mb-3"><div class="card-header">3. Đào tạo <span class="small fw-normal text-muted">HCT.01.04 ME6, MOI.01.04</span></div><div class="list-group list-group-flush small">
+    @foreach (var b in dtao) { <a class="list-group-item list-group-item-action" asp-controller="DaoTao" asp-action="Details" asp-route-id="@b.Id">@b.Ngay.ToString("dd/MM/yyyy") · @b.ChuDe <span class="text-muted">@b.KhoaPhong?.Ten · @b.ThamDus.Count người</span></a> }
+    @if (dtao.Count == 0) { <div class="list-group-item text-danger">Chưa có buổi đào tạo.</div> }</div></div>
+<div class="card mb-3"><div class="card-header">4. Diễn tập (thử nghiệm) <span class="small fw-normal text-muted">HCT.01.04 ME1</span></div><div class="list-group list-group-flush small">
+    @foreach (var d in dt) { <a class="list-group-item list-group-item-action" asp-controller="DienTap" asp-action="Details" asp-route-id="@d.Id">hạn @d.HanThucHien.ToString("dd/MM/yyyy") · @(d.DaChot ? d.KetLuan!.Value.Ten() + " " + d.NgayChot!.Value.ToString("dd/MM/yyyy") : "chưa chốt")</a> }
+    @if (dt.Count == 0) { <div class="list-group-item text-danger">Chưa có diễn tập.</div> }</div></div></div>
+<div class="col-lg-6"><div class="card mb-3"><div class="card-header">5. Sự kiện downtime <span class="small fw-normal text-muted">QPS.03.04</span></div><div class="list-group list-group-flush small">
+    @foreach (var s in sk) { <a class="list-group-item list-group-item-action" asp-controller="SuKienDowntime" asp-action="Details" asp-route-id="@s.Id">@s.Ma @s.Loai.Ten() · @HaTangHelpers.ThoiLuongText(s.ThoiLuong(DateTime.Now)) @if (s.VuotRto(DateTime.Now)) { <span class="badge bg-danger">vượt RTO</span> } · @s.TrangThai.Ten()</a> }
+    @if (sk.Count == 0) { <div class="list-group-item text-muted">Chưa có sự kiện.</div> }</div></div>
+<div class="card mb-3"><div class="card-header">6. Sao lưu & thử phục hồi <span class="small fw-normal text-muted">MOI.01.02, HCT.01.04 ME5</span></div><div class="list-group list-group-flush small">
+    @foreach (var t in tv) { <a class="list-group-item list-group-item-action" asp-controller="SaoLuu" asp-action="TacVu" asp-route-id="@t.Id">@t.Ten · mỗi @HaTangHelpers.ChuKyText(t.ChuKyPhut) · 3-2-1 @(t.Dat321 ? "đạt" : "chưa")</a> }
+    @foreach (var l in ph) { <a class="list-group-item list-group-item-action" asp-controller="SaoLuu" asp-action="PhucHoi" asp-route-id="@l.Id">Thử phục hồi hạn @l.HanThucHien.ToString("dd/MM/yyyy") · @(l.DaChot ? (l.Dat == true ? "Đạt" : "Không đạt") + $" · RTO {l.RtoDatPhut:0.#} / RPO {l.RpoDatPhut:0.#} phút" : "chưa chốt")</a> }
+    @if (tv.Count == 0 && ph.Count == 0) { <div class="list-group-item text-danger">Chưa khai báo sao lưu / thử phục hồi.</div> }</div></div>
+<div class="card mb-3"><div class="card-header">7. Rủi ro & sự cố an ninh <span class="small fw-normal text-muted">FMS.02.00, HCT.01.05</span></div><div class="list-group list-group-flush small">
+    @foreach (var r in rr) { <a class="list-group-item list-group-item-action" asp-controller="RuiRo" asp-action="Details" asp-route-id="@r.Id">@r.Ma · @r.Diem điểm @r.Muc.Ten() · @r.TrangThai.Ten()</a> }
+    @if (User.XemAn(ThamSo)) { foreach (var a in an) { <a class="list-group-item list-group-item-action" asp-controller="AnNinh" asp-action="Details" asp-route-id="@a.Id">@a.Ma · @a.Loai.Ten() · @a.TrangThai.Ten()</a> } }
+    @if (rr.Count == 0 && an.Count == 0) { <div class="list-group-item text-muted">Không có.</div> }</div></div>
+<div class="card mb-3"><div class="card-header">8. Hành động khắc phục <span class="small fw-normal text-muted">QPS.04.00</span></div><div class="list-group list-group-flush small">
+    @foreach (var h in hd) { <a class="list-group-item list-group-item-action" asp-controller="HanhDong" asp-action="Details" asp-route-id="@h.Id">@h.Ma · @h.MoTa <span class="text-muted">@h.TrangThai.Ten() · hạn @h.Han.ToString("dd/MM/yyyy")</span></a> }
+    @if (hd.Count == 0) { <div class="list-group-item text-muted">Không có.</div> }</div></div></div></div>

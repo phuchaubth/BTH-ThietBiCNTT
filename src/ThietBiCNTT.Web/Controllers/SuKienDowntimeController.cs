@@ -23,6 +23,8 @@ public class SuKienVm
     public bool AnhHuongAnToan { get; set; }
     public List<int> HeThongIds { get; set; } = [];
     public int? PhieuSuaChuaId { get; set; }
+    /// <summary>Sự cố an ninh mạng gây ra downtime (FR-AN-05).</summary>
+    public int? SuCoAnNinhId { get; set; }
 }
 
 /// <summary>Phân hệ 4.2 – Sự kiện downtime (HCT.01.04): FR-DT-04..08.</summary>
@@ -52,9 +54,10 @@ public class SuKienDowntimeController(AppDbContext db, HaTangService haTang, SoP
     }
 
     [Authorize(Roles = VaiTro.NhomCNTT)]
-    public async Task<IActionResult> Create(LoaiDowntime loai = LoaiDowntime.DotXuat, int? phieuId = null, int? heThongId = null)
+    public async Task<IActionResult> Create(LoaiDowntime loai = LoaiDowntime.DotXuat, int? phieuId = null, int? heThongId = null, int? suCoId = null)
     {
-        var vm = new SuKienVm { Loai = loai, PhieuSuaChuaId = phieuId };
+        var vm = new SuKienVm { Loai = loai, PhieuSuaChuaId = phieuId, SuCoAnNinhId = suCoId };
+        if (suCoId is { } sid && await db.SuCoAnNinhs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == sid) is { } sc) { vm.MoTa = $"Từ sự cố an ninh mạng {sc.Ma}: {sc.MoTa}"; vm.AnhHuongAnToan = sc.NghiemTrongTroLen; heThongId ??= sc.HeThongId; }
         if (loai == LoaiDowntime.DotXuat) vm.BatDau = DateTime.Now; else { vm.DuKienBatDau = DateTime.Today.AddDays(3).AddHours(22); vm.DuKienKetThuc = vm.DuKienBatDau.Value.AddHours(2); }
         if (heThongId is not null) vm.HeThongIds.Add(heThongId.Value);
         if (phieuId is { } pid)
@@ -114,6 +117,7 @@ public class SuKienDowntimeController(AppDbContext db, HaTangService haTang, SoP
         });
         db.SuKienDowntimes.Add(s);
         await db.LuuMoiAsync(soPhieu, "DT", so => s.Ma = so);
+        if (vm.SuCoAnNinhId is { } scId && await db.SuCoAnNinhs.FirstOrDefaultAsync(x => x.Id == scId) is { } suCo) suCo.SuKienDowntimeId = s.Id;
         if (s.PhieuSuaChuaId is { } pId)
             db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = pId, ThoiGian = now, NguoiViet = User.Identity!.Name!, NoiDung = $"[Downtime] Đã mở sự kiện {s.Ma} cho hệ thống bị ảnh hưởng." });
         // Thông báo

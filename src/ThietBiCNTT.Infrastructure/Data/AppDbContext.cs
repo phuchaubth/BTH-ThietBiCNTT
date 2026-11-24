@@ -58,6 +58,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<KetQuaSaoLuuLan> KetQuaSaoLuuLans => Set<KetQuaSaoLuuLan>();
     public DbSet<LanThuPhucHoi> LanThuPhucHois => Set<LanThuPhucHoi>();
     public DbSet<HanhDongKhacPhuc> HanhDongKhacPhucs => Set<HanhDongKhacPhuc>();
+    // GĐ3.2
+    public DbSet<TaiLieuQuyDinh> TaiLieuQuyDinhs => Set<TaiLieuQuyDinh>();
+    public DbSet<NguoiGiamSatCntt> NguoiGiamSatCntts => Set<NguoiGiamSatCntt>();
+    public DbSet<KenhTruyenDuLieu> KenhTruyenDuLieus => Set<KenhTruyenDuLieu>();
+    public DbSet<BuocVongDoi> BuocVongDois => Set<BuocVongDoi>();
+    public DbSet<SuCoAnNinh> SuCoAnNinhs => Set<SuCoAnNinh>();
+    public DbSet<BuocUngPho> BuocUngPhos => Set<BuocUngPho>();
+    public DbSet<RuiRo> RuiRos => Set<RuiRo>();
+    public DbSet<LichSuDiemRuiRo> LichSuDiemRuiRos => Set<LichSuDiemRuiRo>();
+    public DbSet<DotDanhGiaRuiRo> DotDanhGiaRuiRos => Set<DotDanhGiaRuiRo>();
+    public DbSet<BuoiDaoTao> BuoiDaoTaos => Set<BuoiDaoTao>();
+    public DbSet<ThamDuDaoTao> ThamDuDaoTaos => Set<ThamDuDaoTao>();
+    public DbSet<TieuChuanJci> TieuChuanJcis => Set<TieuChuanJci>();
+    public DbSet<DanhGiaTieuChuanJci> DanhGiaTieuChuanJcis => Set<DanhGiaTieuChuanJci>();
+    public DbSet<BaoCaoLanhDao> BaoCaoLanhDaos => Set<BaoCaoLanhDao>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -192,6 +207,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         b.Entity<KetQuaSaoLuuLan>(e => { e.HasIndex(x => new { x.TacVuSaoLuuId, x.ThoiDiem }); e.Property(x => x.DungLuongGb).HasPrecision(18, 2); });
         b.Entity<LanThuPhucHoi>().HasIndex(x => new { x.HeThongId, x.DaChot });
         b.Entity<HanhDongKhacPhuc>(e => { e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => new { x.TrangThai, x.Han }); e.HasIndex(x => new { x.Nguon, x.NguonId }); });
+        // GĐ3.2
+        b.Entity<TaiLieuQuyDinh>(e => { e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => new { x.Loai, x.TrangThai }); });
+        b.Entity<BuocVongDoi>().HasIndex(x => new { x.HeThongId, x.Buoc });
+        b.Entity<SuCoAnNinh>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => new { x.TrangThai, x.MucDo });
+            e.HasMany(x => x.Buocs).WithOne().HasForeignKey(x => x.SuCoAnNinhId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<RuiRo>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => new { x.TrangThai, x.Nhom });
+            e.HasMany(x => x.LichSus).WithOne().HasForeignKey(x => x.RuiRoId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<DotDanhGiaRuiRo>().HasIndex(x => x.Nam);
+        b.Entity<BuoiDaoTao>(e => { e.HasIndex(x => x.Ngay); e.HasMany(x => x.ThamDus).WithOne(x => x.BuoiDaoTao).HasForeignKey(x => x.BuoiDaoTaoId).OnDelete(DeleteBehavior.Cascade); });
+        b.Entity<TieuChuanJci>().HasIndex(x => x.Ma).IsUnique();
+        b.Entity<BaoCaoLanhDao>().HasIndex(x => x.Ky);
         b.Entity<ThamSoHeThong>().Property(x => x.ToiThieu).HasPrecision(18, 2);
         b.Entity<ThamSoHeThong>().Property(x => x.ToiDa).HasPrecision(18, 2);
     }

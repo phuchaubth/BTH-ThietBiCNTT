@@ -1,0 +1,37 @@
+@model DotDanhGiaRuiRo
+@{
+    ViewData["Title"] = $"Đánh giá rủi ro {Model.Nam}"; var ruis = (List<RuiRo>)ViewBag.Ruis; var cntt = User.LaCNTT(); var chua = ruis.Count(r => r.LichSus.All(l => l.DotDanhGiaRuiRoId != Model.Id));
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Đợt đánh giá rủi ro</a> › @Model.Nam</div>
+<div class="page-head"><h1>Đánh giá rủi ro CNTT năm @Model.Nam</h1> @if (Model.DaChot) { <span class="badge bg-success">Đã chốt</span> } else { <span class="badge bg-secondary">Đang thực hiện</span> }
+    @if (Model.BaoCao is not null) { <div class="actions"><a asp-action="InBaoCao" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-printer"></i> In báo cáo</a></div> }</div>
+<div class="alert alert-light border small">Chủ trì: <b>@(Model.ChuTri ?? "chưa có người giám sát CNTT y tế được chỉ định")</b> (HCT.01.00) · Thành phần: @Model.ThanhPhan.
+    Đợt chốt khi mọi rủi ro đang mở đã được <b>chấm lại</b> trong năm; báo cáo gồm rủi ro an ninh mạng (MOI.01.02 ME1) và phần hệ thống tiện ích chuyển đầu mối FMS (FMS.02.00 ME1).</div>
+@if (!Model.DaChot)
+{
+    <div class="card mb-3"><div class="card-header d-flex">Rủi ro cần chấm lại (@chua / @ruis.Count chưa chấm) @if (cntt) { <form asp-action="Chot" asp-route-id="@Model.Id" method="post" class="ms-auto" onsubmit="return confirm('Chốt đợt và lập báo cáo? Sau khi chốt không sửa được.')"><button class="btn btn-sm btn-primary" disabled="@(chua > 0)">Chốt đợt & lập báo cáo</button></form> }</div>
+    <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Mã</th><th>Rủi ro</th><th>Điểm hiện tại</th>@if (cntt) { <th>Chấm lại (KN, HQ, tồn dư KN, HQ, lý do)</th> }</tr></thead><tbody>
+    @foreach (var r in ruis)
+    {
+        var xong = r.LichSus.Any(l => l.DotDanhGiaRuiRoId == Model.Id);
+        <tr class="@(xong ? "table-success" : "")"><td><a asp-controller="RuiRo" asp-action="Details" asp-route-id="@r.Id">@r.Ma</a></td><td class="small">@r.MoTa<div class="text-muted">@r.Nhom.Ten()</div></td><td>@r.KhaNang × @r.HauQua = @r.Diem · @r.Muc.Ten()</td>
+            @if (cntt) { <td><form asp-action="ChamLai" asp-route-id="@Model.Id" method="post" class="d-flex gap-1"><input type="hidden" name="ruiRoId" value="@r.Id" />
+                <input name="khaNang" type="number" min="1" max="5" value="@r.KhaNang" class="form-control form-control-sm" style="width:55px" aria-label="Khả năng" /><input name="hauQua" type="number" min="1" max="5" value="@r.HauQua" class="form-control form-control-sm" style="width:55px" aria-label="Hậu quả" />
+                <input name="khaNangTonDu" type="number" min="1" max="5" value="@r.KhaNangTonDu" class="form-control form-control-sm" style="width:55px" aria-label="KN tồn dư" /><input name="hauQuaTonDu" type="number" min="1" max="5" value="@r.HauQuaTonDu" class="form-control form-control-sm" style="width:55px" aria-label="HQ tồn dư" />
+                <input name="lyDo" class="form-control form-control-sm" placeholder="Lý do (nếu đổi)" /><button class="btn btn-sm @(xong ? "btn-outline-success" : "btn-outline-primary") text-nowrap">@(xong ? "Chấm lại" : "Xác nhận")</button></form></td> }</tr>
+    }
+    @if (ruis.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Chưa có rủi ro nào trong sổ — thêm rủi ro trước khi chốt.</td></tr> }
+    </tbody></table></div></div>
+}
+else
+{
+    <div class="card mb-3"><div class="card-header">Phê duyệt & gửi cơ quan quản trị <span class="small fw-normal text-muted">FMS.02.00 ME4, GLD.04.01</span></div><div class="card-body small">
+        <div>Chốt bởi @Model.NguoiChot ngày @Model.NgayChot?.ToString("dd/MM/yyyy").</div>
+        <div>Lãnh đạo phê duyệt: @if (Model.NguoiDuyet is not null) { <b>@Model.NguoiDuyet @Model.NgayDuyet?.ToString("dd/MM/yyyy")</b> } else { <span class="text-warning">chưa duyệt</span> @if (User.IsInRole(VaiTro.LanhDao)) { <form asp-action="Duyet" asp-route-id="@Model.Id" method="post" class="d-inline ms-2"><button class="btn btn-sm btn-success">Phê duyệt</button></form> } }</div>
+        <div>Gửi cơ quan quản trị: @if (Model.NgayGuiCoQuanQuanTri is not null) { <b>@Model.NguoiGuiCoQuanQuanTri @Model.NgayGuiCoQuanQuanTri?.ToString("dd/MM/yyyy")</b> } else { <span class="text-warning">chưa gửi</span> }</div>
+        <div>Hành động của cơ quan quản trị: @(Model.HanhDongCuaCoQuanQuanTri ?? "—")</div>
+        @if (Model.NguoiDuyet is not null && (cntt || User.IsInRole(VaiTro.LanhDao))) { <form asp-action="GuiCoQuan" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 mt-2"><input name="hanhDong" class="form-control form-control-sm" placeholder="Hành động / chỉ đạo của cơ quan quản trị (nếu có)" /><button class="btn btn-sm btn-outline-primary text-nowrap">@(Model.NgayGuiCoQuanQuanTri is null ? "Ghi nhận đã gửi" : "Cập nhật")</button></form> }
+    </div></div>
+    <div class="card"><div class="card-header">Báo cáo</div><div class="card-body"><pre style="white-space:pre-wrap;font-family:inherit;font-size:.85rem" class="mb-0">@Model.BaoCao</pre></div></div>
+}
+<div class="mt-3">@await Html.PartialAsync("_DinhKem", (DoiTuong: "DotDanhGiaRuiRo", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt))</div>

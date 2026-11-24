@@ -22,7 +22,10 @@ public enum LoaiThongBao
     [Display(Name = "Downtime hệ thống thông tin")] Downtime,
     [Display(Name = "Sao lưu")] SaoLuu,
     [Display(Name = "Diễn tập / thử phục hồi")] DienTap,
-    [Display(Name = "Hành động khắc phục")] HanhDong
+    [Display(Name = "Hành động khắc phục")] HanhDong,
+    [Display(Name = "Sự cố an ninh mạng")] AnNinhMang,
+    [Display(Name = "Rủi ro CNTT")] RuiRo,
+    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao
 }
 
 public enum MucDoThongBao { ThongTin = 1, CanhBao, KhanCap }

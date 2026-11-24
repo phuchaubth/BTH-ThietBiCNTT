@@ -24,6 +24,12 @@
 - Sao lưu: tác vụ, quy tắc 3-2-1, đối chiếu lịch với kết quả (ma trận 30 ngày), cảnh báo thiếu/lỗi
 - Hành động khắc phục (CAPA) dùng chung: kiểm chứng hiệu quả bởi người khác, gia hạn có duyệt, xuất Excel
 
+**Giai đoạn 3.2 – Chính sách, an ninh mạng, rủi ro và bằng chứng JCI** (HCT.01.00–05, MOI.01.02, GLD, QPS, FMS.08):
+- Chính sách/chương trình CNTT có phiên bản, duyệt 2 cấp, nhắc rà soát; kênh truyền dữ liệu y tế, telehealth, công cụ AI, người giám sát CNTT y tế
+- Sự cố an ninh mạng: người dùng báo, phân mức, bước ứng phó, báo cơ quan chức năng, rút kinh nghiệm; thử chương trình ứng phó hằng năm
+- Sổ rủi ro CNTT (ma trận 5×5, lịch sử điểm, chấp nhận rủi ro cần Lãnh đạo duyệt), đợt đánh giá hằng năm, đào tạo, tiện ích và thử nguồn dự phòng
+- Tiêu chuẩn JCI 8 với bằng chứng tự động, bộ chỉ số, tracer theo hệ thống, báo cáo quý cho Lãnh đạo
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -42,6 +48,7 @@
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
 # các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, thongbao.py (cần mock.py)
+python3 tests/e2e/hatang32.py                 # GĐ3.2 (chạy trên CSDL demo mới)
 python3 tests/e2e/hatang.py                   # hạ tầng CNTT theo JCI 8 (GĐ3.1) — chạy trên CSDL demo mới
 ```
 

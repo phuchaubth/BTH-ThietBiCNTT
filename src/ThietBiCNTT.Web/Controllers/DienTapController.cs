@@ -29,20 +29,32 @@ public class DienTapController(AppDbContext db, ThamSoService thamSo, HanhDongSe
     }
 
     [Authorize(Roles = VaiTro.NhomCNTT)]
-    public async Task<IActionResult> Create(int? heThongId)
+    public async Task<IActionResult> Create(int? heThongId, LoaiThuNghiem loai = LoaiThuNghiem.Downtime)
     {
+        ViewBag.Loai = loai;
+        ViewBag.DsChuongTrinh = new SelectList(await db.TaiLieuQuyDinhs.Where(t => t.Loai == LoaiTaiLieu.ChuongTrinhUngPhoMang && t.TrangThai == TrangThaiKeHoach.HieuLuc).Select(t => new { t.Id, Ten = t.Ten + " v" + t.PhienBan }).ToListAsync(), "Id", "Ten");
         ViewBag.DsHeThong = new SelectList(await db.HeThongThongTins.Where(h => h.TrangThai != TrangThaiHeThong.NgungSuDung).OrderBy(h => h.Ma)
             .Select(h => new { h.Id, Ten = h.Ma + " – " + h.Ten }).ToListAsync(), "Id", "Ten", heThongId);
         return View(new DotDienTap { HeThongId = heThongId ?? 0, HanThucHien = DateOnly.FromDateTime(DateTime.Today).AddDays(30) });
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
-    public async Task<IActionResult> Create(int heThongId, DateOnly hanThucHien, string? lyDo)
+    public async Task<IActionResult> Create(int? heThongId, DateOnly hanThucHien, string? lyDo, LoaiThuNghiem loai = LoaiThuNghiem.Downtime, int? taiLieuId = null)
     {
-        if (!await db.HeThongThongTins.AnyAsync(h => h.Id == heThongId)) return NotFound();
+        if (loai == LoaiThuNghiem.UngPhoTanCong)
+        {
+            // HCT.01.05 ME1: thử chương trình ứng phó tấn công mạng — gắn với tài liệu chương trình, không gắn hệ thống
+            var ct = await db.TaiLieuQuyDinhs.FirstOrDefaultAsync(t => t.Id == taiLieuId && t.Loai == LoaiTaiLieu.ChuongTrinhUngPhoMang);
+            if (ct is null) { TempData["err"] = "Chọn chương trình ứng phó tấn công mạng đang hiệu lực."; return RedirectToAction(nameof(Create), new { loai }); }
+            if (await db.DotDienTaps.AnyAsync(d => d.LoaiThuNghiem == LoaiThuNghiem.UngPhoTanCong && !d.DaChot)) { TempData["err"] = "Đã có đợt thử chương trình ứng phó chưa chốt."; return RedirectToAction(nameof(Index)); }
+            var dm = new DotDienTap { LoaiThuNghiem = loai, TaiLieuId = ct.Id, HanThucHien = hanThucHien, LyDo = string.IsNullOrWhiteSpace(lyDo) ? "Thử chương trình ứng phó theo yêu cầu" : lyDo.Trim() };
+            db.DotDienTaps.Add(dm); await db.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = dm.Id });
+        }
+        if (heThongId is null || !await db.HeThongThongTins.AnyAsync(h => h.Id == heThongId)) return NotFound();
         if (await db.DotDienTaps.AnyAsync(d => d.HeThongId == heThongId && !d.DaChot)) { TempData["err"] = "Hệ thống đã có đợt diễn tập chưa chốt."; return RedirectToAction(nameof(Index)); }
-        var kh = await db.KeHoachDowntimes.AsNoTracking().Where(k => k.HeThongId == heThongId && k.TrangThai == TrangThaiKeHoach.HieuLuc).OrderByDescending(k => k.PhienBan).FirstOrDefaultAsync();
-        var d = new DotDienTap { HeThongId = heThongId, KeHoachDowntimeId = kh?.Id, HanThucHien = hanThucHien, LyDo = string.IsNullOrWhiteSpace(lyDo) ? "Diễn tập theo yêu cầu" : lyDo.Trim() };
+        var kh = await db.KeHoachDowntimes.AsNoTracking().Where(k => k.HeThongId == heThongId.Value && k.TrangThai == TrangThaiKeHoach.HieuLuc).OrderByDescending(k => k.PhienBan).FirstOrDefaultAsync();
+        var d = new DotDienTap { HeThongId = heThongId.Value, KeHoachDowntimeId = kh?.Id, HanThucHien = hanThucHien, LyDo = string.IsNullOrWhiteSpace(lyDo) ? "Diễn tập theo yêu cầu" : lyDo.Trim() };
         db.DotDienTaps.Add(d);
         await db.SaveChangesAsync();
         return RedirectToAction(nameof(Details), new { id = d.Id });
@@ -50,11 +62,11 @@ public class DienTapController(AppDbContext db, ThamSoService thamSo, HanhDongSe
 
     public async Task<IActionResult> Details(int id)
     {
-        var d = await db.DotDienTaps.AsNoTracking().Include(x => x.HeThong).Include(x => x.KeHoachDowntime).Include(x => x.ThayBangSuKien).FirstOrDefaultAsync(x => x.Id == id);
+        var d = await db.DotDienTaps.AsNoTracking().Include(x => x.HeThong).Include(x => x.TaiLieu).Include(x => x.KeHoachDowntime).Include(x => x.ThayBangSuKien).FirstOrDefaultAsync(x => x.Id == id);
         if (d is null) return NotFound();
         ViewBag.Tep = await tep.DanhSachAsync("DotDienTap", id.ToString());
         ViewBag.HanhDong = await db.HanhDongKhacPhucs.AsNoTracking().Where(h => h.Nguon == NguonHanhDong.DienTap && h.NguonId == id).OrderBy(h => h.Han).ToListAsync();
-        ViewBag.SuKienThay = await db.SuKienDowntimes.AsNoTracking()
+        ViewBag.SuKienThay = d.HeThongId is null ? new List<SuKienDowntime>() : await db.SuKienDowntimes.AsNoTracking()
             .Where(s => s.HeThongs.Any(h => h.HeThongId == d.HeThongId) && s.TrangThai == TrangThaiSuKien.DaDong && s.NgayRutKinhNghiem != null)
             .OrderByDescending(s => s.BatDau).Take(20).ToListAsync();
         ViewBag.DuocDuyetCntt = User.LaDuyetCntt(thamSo);
@@ -83,13 +95,14 @@ public class DienTapController(AppDbContext db, ThamSoService thamSo, HanhDongSe
         var now = DateTime.Now;
         var khongDat = d.Chot(ketLuan, User.Identity!.Name!, now);
         var msg = "Đã chốt biên bản diễn tập — không sửa được nữa (chỉ thêm phụ lục).";
-        var kh = await db.KeHoachDowntimes.Where(k => k.HeThongId == d.HeThongId && k.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync();
+        var ten = d.HeThong?.Ma ?? "chương trình ứng phó tấn công mạng";
+        var kh = d.HeThongId is null ? [] : await db.KeHoachDowntimes.Where(k => k.HeThongId == d.HeThongId && k.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync();
         if (ketLuan != KetLuanDienTap.Dat) foreach (var k in kh) k.DanhDauCanRaSoat($"Diễn tập {d.HanThucHien:dd/MM/yyyy}: {ketLuan.Ten()} — {d.PhatHien}");
         if (khongDat)
         {
-            var nguoi = d.HeThong!.PhuTrachChinh ?? User.Identity!.Name!;
-            var h = await hanhDong.TaoAsync(NguonHanhDong.DienTap, d.Id, $"Khắc phục phát hiện diễn tập downtime {d.HeThong.Ma}: {d.PhatHien}", d.HeThongId, nguoi, null, LoaiHanhDong.KhacPhuc, MucDoUuTien.Cao, User.Identity!.Name!);
-            db.DotDienTaps.Add(new DotDienTap { HeThongId = d.HeThongId, KeHoachDowntimeId = d.KeHoachDowntimeId, NguoiTao = User.Identity!.Name,
+            var nguoi = d.HeThong?.PhuTrachChinh ?? User.Identity!.Name!;
+            var h = await hanhDong.TaoAsync(NguonHanhDong.DienTap, d.Id, $"Khắc phục phát hiện thử nghiệm {ten}: {d.PhatHien}", d.HeThongId, nguoi, null, LoaiHanhDong.KhacPhuc, MucDoUuTien.Cao, User.Identity!.Name!);
+            db.DotDienTaps.Add(new DotDienTap { HeThongId = d.HeThongId, LoaiThuNghiem = d.LoaiThuNghiem, TaiLieuId = d.TaiLieuId, KeHoachDowntimeId = d.KeHoachDowntimeId, NguoiTao = User.Identity!.Name,
                 HanThucHien = DateOnly.FromDateTime(now).AddDays(thamSo.SoNguyen(TS.JciDienTapLaiNgay)), LyDo = $"Diễn tập lại sau kết quả Không đạt ({d.HanThucHien:dd/MM/yyyy})" });
             msg += $" Kết luận Không đạt: đã tạo hành động {h.Ma} và lên lịch diễn tập lại trong {thamSo.SoNguyen(TS.JciDienTapLaiNgay)} ngày.";
         }

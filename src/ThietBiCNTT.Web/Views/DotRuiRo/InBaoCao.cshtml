@@ -1,0 +1,6 @@
+@model DotDanhGiaRuiRo
+@{ ViewData["Title"] = $"Báo cáo đánh giá rủi ro CNTT {Model.Nam}"; Layout = "_Print"; }
+@await Html.PartialAsync("_HeaderBenhVien")
+<h3>BÁO CÁO ĐÁNH GIÁ RỦI RO CÔNG NGHỆ THÔNG TIN<br /><small>Năm @Model.Nam</small></h3>
+<pre style="white-space:pre-wrap;font-family:inherit;font-size:12pt">@Model.BaoCao</pre>
+<div class="ky"><div><b>Người giám sát CNTT y tế</b><br /><i>(ký, ghi rõ họ tên)</i><br /><br /><br />@Model.ChuTri</div><div><b>Lãnh đạo phê duyệt</b><br /><i>(ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiDuyet</div></div>

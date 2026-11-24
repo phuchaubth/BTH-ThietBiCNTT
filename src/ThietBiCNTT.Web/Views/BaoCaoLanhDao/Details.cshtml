@@ -1,0 +1,30 @@
+@model BaoCaoLanhDao
+@{
+    ViewData["Title"] = "Báo cáo quý " + Model.Ky; var s = (SnapBaoCao)ViewBag.Snap; var hds = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var cntt = User.LaCNTT(); var duocGui = User.LaDuyetCntt(ThamSo);
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Báo cáo quý</a> › @Model.Ky</div>
+<div class="page-head"><h1>Báo cáo hạ tầng CNTT quý @Model.Ky</h1> @if (Model.DaXem) { <span class="badge bg-success">Lãnh đạo đã xem</span> } else if (Model.DaGui) { <span class="badge bg-info">Đã gửi</span> } else { <span class="badge bg-secondary">Nháp</span> }
+    <div class="actions"><a asp-action="In" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-printer"></i> In báo cáo</a></div></div>
+<div class="row g-3"><div class="col-lg-8">
+    @await Html.PartialAsync("_NoiDungBaoCao", (Model, s))
+    @if (!Model.DaGui && cntt)
+    {
+        <div class="card mb-3 border-primary"><div class="card-header">Nhận xét và gửi Lãnh đạo</div><div class="card-body">
+        <form asp-action="Gui" asp-route-id="@Model.Id" method="post">
+            <label class="form-label small mb-0" for="nx">Nhận xét của Trưởng phòng CNTT</label><textarea id="nx" name="nhanXet" class="form-control form-control-sm mb-2" rows="4" required>@Model.NhanXet</textarea>
+            <label class="form-label small mb-0" for="sc">Số sự cố nghiêm trọng và việc đã thông báo người bệnh/gia đình (GLD.04.01 ME2)</label><textarea id="sc" name="suCoNghiemTrong" class="form-control form-control-sm mb-2" rows="2" placeholder="Hệ thống ghi nhận @s.SuCoAnNghiemTrong sự cố an ninh nghiêm trọng, @s.SuKienAnToanNguoiBenh downtime ảnh hưởng an toàn người bệnh. Đã thông báo người bệnh/gia đình: …">@Model.SuCoNghiemTrong</textarea>
+            <button class="btn btn-primary" disabled="@(!duocGui)">Gửi Lãnh đạo</button> @if (!duocGui) { <span class="small text-muted">Chỉ Trưởng phòng CNTT (người duyệt) gửi báo cáo.</span> }</form></div></div>
+    }
+    @if (Model.DaGui && !Model.DaXem && User.IsInRole(VaiTro.LanhDao))
+    {
+        <div class="card mb-3 border-success"><div class="card-header">Lãnh đạo xác nhận đã xem</div><div class="card-body"><form asp-action="XacNhan" asp-route-id="@Model.Id" method="post"><textarea name="yKien" class="form-control form-control-sm mb-2" rows="3" placeholder="Ý kiến chỉ đạo (nếu có)"></textarea><button class="btn btn-success">Xác nhận đã xem</button></form></div></div>
+    }
+    @if (Model.DaXem && !string.IsNullOrWhiteSpace(Model.YKienChiDao))
+    {
+        <div class="card mb-3"><div class="card-header">Ý kiến chỉ đạo của @Model.NguoiXem (@Model.NgayXem?.ToString("dd/MM/yyyy"))</div><div class="card-body" style="white-space:pre-line">@Model.YKienChiDao</div>
+            @if (cntt) { <form asp-action="TaoHanhDong" asp-route-id="@Model.Id" method="post" class="card-footer bg-white row g-2"><div class="col-md-6"><input name="moTa" class="form-control form-control-sm" placeholder="Chuyển ý kiến chỉ đạo thành hành động" required /></div><div class="col-md-3"><select name="nguoiChiuTrachNhiem" asp-items="ViewBag.DsNguoi" class="form-select form-select-sm"></select></div><div class="col-md-2"><input name="han" type="date" class="form-control form-control-sm" aria-label="Hạn" /></div><div class="col-md-1"><button class="btn btn-sm btn-outline-primary w-100">Tạo</button></div></form> }</div>
+    }
+</div><div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Hành động từ chỉ đạo (@hds.Count)</div><div class="list-group list-group-flush small">@foreach (var h in hds) { <a class="list-group-item list-group-item-action" asp-controller="HanhDong" asp-action="Details" asp-route-id="@h.Id"><b>@h.Ma</b> · @h.MoTa <span class="text-muted">@h.TrangThai.Ten()</span></a> }@if (hds.Count == 0) { <div class="list-group-item text-muted">Chưa có.</div> }</div></div>
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "BaoCaoLanhDao", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt && !Model.DaGui))
+</div></div>

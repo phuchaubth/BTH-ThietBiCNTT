@@ -1,0 +1,21 @@
+@model KenhTruyenDuLieu
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm kênh truyền dữ liệu" : "Sửa kênh " + Model.Ten; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:900px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiKenh>()" class="form-select"></select></div>
+    <div class="col-md-6"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="PhamViDung" class="form-label"></label><input asp-for="PhamViDung" class="form-control" /></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><div class="fw-semibold small mb-1">Checklist (chỉ các mục theo loại kênh được đánh giá)</div><div class="row g-1 small">
+        @foreach (var f in new[] { "MaHoa", "DangNhapRieng", "DanhBaNguoiDuocPhep", "BienNhanGuiDoc", "DauThoiGian", "BaoVeTruyCap", "ThuHoiKhiThoiViec", "XoaTuXa", "NhatKyThaoTac", "DongYNguoiBenh" })
+        {
+            <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="@f" value="true" id="c@(f)" @(((bool)typeof(KenhTruyenDuLieu).GetProperty(f)!.GetValue(Model)!) ? "checked" : "") />
+                <label class="form-check-label" for="c@(f)">@(((System.ComponentModel.DataAnnotations.DisplayAttribute)typeof(KenhTruyenDuLieu).GetProperty(f)!.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)[0]).Name)</label></div></div>
+        }</div>
+        <div class="form-text">Nhắn tin bảo mật: đăng nhập mã hoá riêng từng người, danh bạ người được phép, biên nhận gửi/đọc, dấu ngày giờ, chống truy cập trái phép. Thiết bị di động: hướng dẫn văn bản, thu hồi khi thôi việc, xoá từ xa. Cổng người bệnh: mã hoá, đăng nhập bảo mật, nhật ký thao tác, đồng ý của người bệnh.</div></div>
+    <div class="col-12"><div class="form-check"><input asp-for="DangSuDung" class="form-check-input" /><label asp-for="DangSuDung" class="form-check-label"></label></div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

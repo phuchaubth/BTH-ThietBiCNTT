@@ -106,6 +106,17 @@ public class HaTangService(AppDbContext db, ThamSoService thamSo)
                 }
             }
         }
+        // HCT.01.05 ME1: chương trình ứng phó tấn công mạng phải được thử ít nhất mỗi năm
+        var thang = thamSo.SoNguyen(TS.JciThuUngPhoMangThang);
+        foreach (var chuongTrinh in await db.TaiLieuQuyDinhs.Where(t => t.Loai == LoaiTaiLieu.ChuongTrinhUngPhoMang && t.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync(ct))
+        {
+            if (await db.DotDienTaps.AnyAsync(d => d.LoaiThuNghiem == LoaiThuNghiem.UngPhoTanCong && !d.DaChot, ct)) continue;
+            var cuoi = await db.DotDienTaps.Where(d => d.LoaiThuNghiem == LoaiThuNghiem.UngPhoTanCong && d.DaChot).OrderByDescending(d => d.NgayChot).Select(d => d.NgayThucHien ?? d.NgayChot).FirstOrDefaultAsync(ct);
+            var han = (cuoi is { } c ? DateOnly.FromDateTime(c) : chuongTrinh.NgayHieuLuc ?? homNay).AddMonths(thang);
+            if (han.AddDays(-nhacDt) > homNay) continue;
+            db.DotDienTaps.Add(new DotDienTap { LoaiThuNghiem = LoaiThuNghiem.UngPhoTanCong, TaiLieuId = chuongTrinh.Id, HanThucHien = han, NguoiTao = "system", LyDo = $"Thử chương trình ứng phó tấn công mạng định kỳ {thang} tháng" });
+            dem++;
+        }
         if (dem > 0) await db.SaveChangesAsync(ct);
         return dem;
     }
@@ -139,6 +150,9 @@ public class HanhDongService(AppDbContext db, SoPhieuService soPhieu, ThongBaoSe
         (NguonHanhDong.ThuPhucHoi, { } i) => $"/SaoLuu/PhucHoi/{i}",
         (NguonHanhDong.KiemTra, { } i) => $"/KiemTra/Lan/{i}",
         (NguonHanhDong.SaoLuu, { } i) => $"/SaoLuu/TacVu/{i}",
+        (NguonHanhDong.SuCoAnNinh, { } i) => $"/AnNinh/Details/{i}",
+        (NguonHanhDong.RuiRo, { } i) => $"/RuiRo/Details/{i}",
+        (NguonHanhDong.BaoCaoLanhDao, { } i) => $"/BaoCaoLanhDao/Details/{i}",
         _ => ""
     };
 }
@@ -159,7 +173,82 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
         await RaSoatKeHoachAsync(homNay, ct);
         await SaoLuuAsync(now, ct);
         await HanhDongAsync(homNay, ct);
+        await GD32Async(now, homNay, ct);
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Chống thông báo lặp: chỉ gửi nếu trong <paramref name="ngay"/> ngày qua chưa có thông báo cùng tiêu đề.</summary>
+    private async Task<bool> ChuaThongBaoAsync(string tieuDe, int ngay, CancellationToken ct)
+    {
+        var tu = DateTime.Now.AddDays(-ngay);
+        return !await db.ThongBaos.AnyAsync(t => t.TieuDe == tieuDe && t.ThoiGian >= tu, ct) && !db.ThongBaos.Local.Any(t => t.TieuDe == tieuDe && t.ThoiGian >= tu);
+    }
+
+    /// <summary>GĐ3.2: nhắc rà soát tài liệu, xem xét công cụ AI, thử nguồn dự phòng, báo cáo cơ quan chức năng, báo cáo quý, rủi ro.</summary>
+    private async Task GD32Async(DateTime now, DateOnly homNay, CancellationToken ct)
+    {
+        var cntt = await tb.CanBoCNTTAsync();
+        var duyet = thamSo.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+        var attt = thamSo.Chuoi(TS.JciNhomAnToanThongTin).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+        // 1. Tài liệu đến hạn rà soát (MOI.02.01, FMS.01.01 ME2)
+        foreach (var t in await db.TaiLieuQuyDinhs.Where(x => x.TrangThai == TrangThaiKeHoach.HieuLuc && !x.DaNhacRaSoat).ToListAsync(ct))
+        {
+            if (!t.DenHanRaSoat(homNay)) continue;
+            t.DaNhacRaSoat = true;
+            await tb.GuiAsync(duyet.Concat(cntt).Distinct(), LoaiThongBao.HeThong, $"Đến hạn rà soát {t.Loai.TenHienThi()}: {t.Ten} v{t.PhienBan}", $"Hạn rà soát {t.NgayRaSoat:dd/MM/yyyy}.", $"/TaiLieu/Details/{t.Id}", MucDoThongBao.CanhBao);
+        }
+        // 2. Công cụ AI đến hạn xem xét (HCT.01.03)
+        foreach (var h in await db.HeThongThongTins.Where(x => x.LaCongCuAi && x.TrangThai == TrangThaiHeThong.VanHanh && x.NgayXemXetAi != null && x.NgayXemXetAi <= homNay).ToListAsync(ct))
+        {
+            var td = $"Đến hạn xem xét công cụ AI {h.Ma}";
+            if (await ChuaThongBaoAsync(td, 7, ct)) await tb.GuiAsync(await PhuTrachAsync(h), LoaiThongBao.HeThong, td, "Giám sát mức sử dụng, sai lệch, cập nhật và khía cạnh đạo đức; ghi bước Giám sát / Cải tiến.", $"/HeThong/Details/{h.Id}", MucDoThongBao.CanhBao);
+        }
+        // 3. Thử nguồn điện dự phòng quá hạn (FMS.08.01 ME3): nhắc phòng thực hiện, quá 7 ngày thông báo thêm Phòng CNTT
+        var thang = thamSo.SoNguyen(TS.JciThuNguonDuPhongThang);
+        foreach (var m in await db.MauKiemTras.Include(x => x.KhoaPhong).Where(x => x.LaThuNguonDuPhong && x.DangApDung).ToListAsync(ct))
+        {
+            var cuoi = await db.LanKiemTras.Where(l => l.MauKiemTraId == m.Id).MaxAsync(l => (DateTime?)l.ThoiGian, ct);
+            var han = (cuoi ?? m.NgayTao).AddHours(Math.Min(m.ChuKyGio, thang * 31 * 24));
+            if (han >= now) continue;
+            var td = $"Quá hạn thử nguồn điện dự phòng: {m.Ten}";
+            if (!await ChuaThongBaoAsync(td, 7, ct)) continue;
+            var nhan = new List<string?>(await tb.TruongKhoaAsync(m.KhoaPhongId));
+            if (now - han > TimeSpan.FromDays(7) || m.KhoaPhongId is null) nhan.AddRange(cntt);
+            await tb.GuiAsync(nhan, LoaiThongBao.KiemTraBatThuong, td, $"Hạn thử {han:dd/MM/yyyy}. FMS.08.01 ME3: thử nguồn thay thế ít nhất mỗi quý và lưu kết quả.", "/TienIch", MucDoThongBao.CanhBao);
+        }
+        // 4. Sự cố an ninh mạng: sắp đến / quá hạn báo cáo cơ quan chức năng (FR-AN-04)
+        var gio = thamSo.SoNguyen(TS.JciHanBaoCaoSuCoGio);
+        if (gio > 0)
+            foreach (var s in await db.SuCoAnNinhs.Where(x => x.TrangThai != TrangThaiSuCoAn.DaDong && !x.DaBaoCaoCoQuan && !x.DaNhacBaoCao && x.LyDoKhongBaoCao == null).ToListAsync(ct))
+                if (s.HanBaoCao(gio) is { } hn && hn - now <= TimeSpan.FromHours(Math.Min(6, gio)))
+                {
+                    s.DaNhacBaoCao = true;
+                    await tb.GuiAsync(attt.Concat(duyet).Distinct(), LoaiThongBao.AnNinhMang, $"{(hn < now ? "[Quá hạn] " : "")}Báo cáo cơ quan chức năng sự cố {s.Ma}", $"Hạn {hn:HH:mm dd/MM/yyyy}.", $"/AnNinh/Details/{s.Id}", MucDoThongBao.KhanCap);
+                }
+        // 5. Báo cáo quý cho Lãnh đạo (GLD.04.01 ME2)
+        var nhacNgay = thamSo.SoNguyen(TS.JciBaoCaoQuyNhacNgay);
+        if (nhacNgay > 0)
+        {
+            var quyTruoc = BaoCaoLanhDao.TenKy(homNay.AddMonths(-3)); var (_, hetQuy) = BaoCaoLanhDao.KhoangQuy(int.Parse(quyTruoc[..4]), int.Parse(quyTruoc[^1..]));
+            if (homNay > hetQuy.AddDays(nhacNgay) && !await db.BaoCaoLanhDaos.AnyAsync(b => b.Ky == quyTruoc && b.NgayGui != null, ct))
+            {
+                var td = $"Chưa gửi báo cáo hạ tầng CNTT quý {quyTruoc} cho Lãnh đạo";
+                if (await ChuaThongBaoAsync(td, 7, ct)) await tb.GuiAsync(duyet.Concat(cntt).Distinct(), LoaiThongBao.BaoCaoLanhDao, td, "GLD.04.01 ME2: báo cáo bằng văn bản ít nhất hằng quý.", "/BaoCaoLanhDao", MucDoThongBao.CanhBao);
+            }
+            var cho = await db.BaoCaoLanhDaos.Where(b => b.NgayGui != null && b.NgayXem == null && b.NgayGui < now.AddDays(-nhacNgay)).ToListAsync(ct);
+            foreach (var b in cho) if (await ChuaThongBaoAsync($"Báo cáo quý {b.Ky} chờ Lãnh đạo xác nhận đã xem", 7, ct)) { b.SoLanNhac++; await tb.GuiVaiTroAsync(VaiTro.LanhDao, LoaiThongBao.BaoCaoLanhDao, $"Báo cáo quý {b.Ky} chờ Lãnh đạo xác nhận đã xem", null, $"/BaoCaoLanhDao/Details/{b.Id}", MucDoThongBao.CanhBao); }
+        }
+        // 6. Rủi ro: quá hạn xem xét lại; BR-RR-04 từ 01/11 chưa có đợt đánh giá năm nay
+        foreach (var r in await db.RuiRos.Where(x => (x.TrangThai == TrangThaiRuiRo.Mo || x.TrangThai == TrangThaiRuiRo.DangXuLy || x.TrangThai == TrangThaiRuiRo.DaKiemSoat) && x.NgayXemXetLai != null && x.NgayXemXetLai < homNay).ToListAsync(ct))
+        {
+            var td = $"Rủi ro {r.Ma} quá hạn xem xét lại";
+            if (await ChuaThongBaoAsync(td, 14, ct)) await tb.GuiAsync([r.NguoiChiuTrachNhiem], LoaiThongBao.RuiRo, td, r.MoTa.Length > 100 ? r.MoTa[..100] + "…" : r.MoTa, $"/RuiRo/Details/{r.Id}", MucDoThongBao.CanhBao);
+        }
+        if (homNay.Month >= 11 && !await db.DotDanhGiaRuiRos.AnyAsync(d => d.Nam == homNay.Year && d.DaChot, ct))
+        {
+            var td = $"Chưa hoàn tất đánh giá rủi ro CNTT năm {homNay.Year}";
+            if (await ChuaThongBaoAsync(td, 14, ct)) await tb.GuiAsync(duyet.Concat(cntt).Distinct(), LoaiThongBao.RuiRo, td, "BR-RR-04 · FMS.02.00: cần chốt trước 31/12.", "/DotRuiRo", MucDoThongBao.CanhBao);
+        }
     }
 
     private async Task<List<string>> PhuTrachAsync(HeThongThongTin? h) =>
@@ -215,7 +304,7 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
             if (!d.DaNhacTruoc)
             {
                 d.DaNhacTruoc = true;
-                await tb.GuiAsync(await PhuTrachAsync(d.HeThong), LoaiThongBao.DienTap, $"Đến kỳ diễn tập downtime {d.HeThong?.Ten} (hạn {d.HanThucHien:dd/MM/yyyy})", d.LyDo, $"/DienTap/Details/{d.Id}");
+                await tb.GuiAsync(await PhuTrachAsync(d.HeThong), LoaiThongBao.DienTap, $"Đến kỳ {(d.LoaiThuNghiem == LoaiThuNghiem.Downtime ? "diễn tập downtime" : "thử chương trình ứng phó tấn công mạng")} {d.HeThong?.Ten} (hạn {d.HanThucHien:dd/MM/yyyy})", d.LyDo, $"/DienTap/Details/{d.Id}");
             }
             var cap = Cap(d.HanThucHien);
             if (cap <= d.CapNhacQuaHan) continue;
@@ -223,7 +312,7 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
             if (cap >= 2) nhan.AddRange(NguoiNhanCap2());
             if (cap >= 3) nhan.AddRange(await LanhDaoAsync());
             d.CapNhacQuaHan = cap;
-            await tb.GuiAsync(nhan, LoaiThongBao.DienTap, $"[Quá hạn{(cap > 1 ? $" – cấp {cap}" : "")}] Diễn tập downtime {d.HeThong?.Ten} (hạn {d.HanThucHien:dd/MM/yyyy})",
+            await tb.GuiAsync(nhan, LoaiThongBao.DienTap, $"[Quá hạn{(cap > 1 ? $" – cấp {cap}" : "")}] {(d.LoaiThuNghiem == LoaiThuNghiem.Downtime ? "Diễn tập downtime" : "Thử chương trình ứng phó tấn công mạng")} {d.HeThong?.Ten} (hạn {d.HanThucHien:dd/MM/yyyy})",
                 "Kế hoạch downtime chưa được diễn tập đúng hạn.", $"/DienTap/Details/{d.Id}", cap >= 2 ? MucDoThongBao.KhanCap : MucDoThongBao.CanhBao);
         }
         foreach (var l in await db.LanThuPhucHois.Include(x => x.HeThong).Where(x => !x.DaChot).ToListAsync(ct))
@@ -330,6 +419,16 @@ public static class HaTangTongHop
         if (rs > 0) dong.Add($"• {rs} kế hoạch downtime đến hạn rà soát");
         var sl = await db.TacVuSaoLuus.CountAsync(t => t.DangApDung && t.SoLanLoiDaCanhBao > 0, ct);
         if (sl > 0) dong.Add($"• {sl} tác vụ sao lưu đang lỗi / không rõ kết quả");
+        var anMoi = await db.SuCoAnNinhs.CountAsync(s => s.TrangThai == TrangThaiSuCoAn.Moi, ct);
+        if (anMoi > 0) dong.Add($"• {anMoi} sự cố an ninh mạng mới chưa phân mức");
+        var anMo = await db.SuCoAnNinhs.CountAsync(s => s.TrangThai != TrangThaiSuCoAn.DaDong && s.TrangThai != TrangThaiSuCoAn.Moi, ct);
+        if (anMo > 0) dong.Add($"• {anMo} sự cố an ninh mạng đang xử lý");
+        var tlHan = await db.TaiLieuQuyDinhs.CountAsync(t => t.TrangThai == TrangThaiKeHoach.HieuLuc && t.NgayRaSoat <= d, ct);
+        if (tlHan > 0) dong.Add($"• {tlHan} chính sách / chương trình đến hạn rà soát");
+        var aiHan = await db.HeThongThongTins.CountAsync(h => h.LaCongCuAi && h.TrangThai == TrangThaiHeThong.VanHanh && h.NgayXemXetAi <= d, ct);
+        if (aiHan > 0) dong.Add($"• {aiHan} công cụ AI hỗ trợ quyết định đến hạn xem xét");
+        var rrQuaHan = await db.RuiRos.CountAsync(r => (r.TrangThai == TrangThaiRuiRo.Mo || r.TrangThai == TrangThaiRuiRo.DangXuLy) && r.NgayXemXetLai < d, ct);
+        if (rrQuaHan > 0) dong.Add($"• {rrQuaHan} rủi ro CNTT quá hạn xem xét lại");
         var hd = await db.HanhDongKhacPhucs.CountAsync(h => (h.TrangThai == TrangThaiHanhDong.Mo || h.TrangThai == TrangThaiHanhDong.DangLam) && h.Han < d, ct);
         if (hd > 0) dong.Add($"• {hd} hành động khắc phục quá hạn");
         // BR-HTT-02: hệ thống trọng yếu thiếu kế hoạch downtime hiệu lực / chưa khai báo sao lưu

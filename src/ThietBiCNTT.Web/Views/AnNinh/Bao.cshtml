@@ -1,0 +1,9 @@
+@{ ViewData["Title"] = "Báo sự cố an toàn thông tin"; }
+<div class="page-head"><h1>Báo sự cố an toàn thông tin</h1></div>
+<div class="alert alert-light border small">Báo ngay nếu nghi ngờ: nhận email/tin nhắn lạ yêu cầu mật khẩu hoặc mở tệp, máy hiện thông báo đòi tiền hoặc dữ liệu bị mã hoá, mất thiết bị, người lạ truy cập hệ thống, thông tin người bệnh bị lộ. <b>Không tự xử lý, không chuyển tiếp email nghi ngờ.</b> Bạn chỉ xem được trạng thái tiếp nhận của báo cáo mình gửi.</div>
+<div class="card" style="max-width:720px"><div class="card-body"><form asp-action="Bao" method="post" class="row g-3">
+    <div class="col-12"><label class="form-label" for="mt">Mô tả điều bạn thấy</label><textarea id="mt" name="moTa" class="form-control" rows="5" required></textarea></div>
+    <div class="col-md-6"><label class="form-label" for="mts">Mã thiết bị (nếu có)</label><input id="mts" name="maTaiSan" class="form-control" placeholder="PC-0001" /></div>
+    <div class="col-md-6"><label class="form-label" for="lo">Bạn nghĩ đó là</label><select id="lo" name="loai" asp-items="@EnumExtensions.ToSelectList<LoaiSuCoAn>(LoaiSuCoAn.Khac)" class="form-select"></select></div>
+    <div class="col-12"><button class="btn btn-danger"><i class="bi bi-shield-exclamation"></i> Gửi báo cáo</button> <a asp-action="CuaToi" class="btn btn-link">Xem báo cáo của tôi</a></div>
+</form></div></div>

@@ -1,0 +1,15 @@
+@model List<BuoiDaoTao>
+@{ ViewData["Title"] = "Đào tạo"; var loai = ViewData["loai"] as LoaiDaoTao?; var tu = ViewData["tu"] as DateOnly?; var den = ViewData["den"] as DateOnly?; }
+<div class="page-head"><h1>Đào tạo</h1><span class="text-muted small">MOI.01.04 · SQE.01.07 · HCT.01.02 ME4 – downtime, hệ thống thông tin, an toàn thông tin và an ninh mạng</span>
+    <div class="actions"><a asp-action="BaoCao" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bar-chart"></i> Độ phủ & gợi ý</a>
+    <a asp-action="XuatNhanVien" asp-route-tu="@tu?.ToString("yyyy-MM-dd")" asp-route-den="@den?.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-excel"></i> Xuất theo nhân viên</a>
+    @if (User.LaCNTT()) { <a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Ghi nhận buổi đào tạo</a> }</div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="loai" class="form-select form-select-sm" style="width:260px" asp-items="@EnumExtensions.ToSelectList(loai)" aria-label="Nội dung"><option value="">— Mọi nội dung —</option></select>
+    <select name="khoa" class="form-select form-select-sm" style="width:230px" asp-items="ViewBag.DsKhoa" aria-label="Khoa"><option value="">— Mọi khoa/phòng —</option></select>
+    <input type="date" name="tu" value="@tu?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" aria-label="Từ ngày" /><input type="date" name="den" value="@den?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" aria-label="Đến ngày" />
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Ngày</th><th>Chủ đề</th><th>Nội dung</th><th>Hệ thống</th><th>Khoa</th><th>Người giảng</th><th class="text-end">Tham dự</th></tr></thead><tbody>
+@foreach (var b in Model) { <tr><td class="small">@b.Ngay.ToString("dd/MM/yyyy")</td><td><a asp-action="Details" asp-route-id="@b.Id" class="fw-semibold">@b.ChuDe</a></td><td class="small">@b.Loai.Ten()</td><td class="small">@b.HeThong?.Ma</td><td class="small">@b.KhoaPhong?.Ten</td><td class="small">@b.NguoiGiang</td><td class="text-end">@b.ThamDus.Count</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có buổi đào tạo nào.</td></tr> }
+</tbody></table></div></div>

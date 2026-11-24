@@ -92,6 +92,15 @@ public static class TS
     public const string JciHanhDongNhacTruocNgay = "Jci.HanhDongNhacTruocNgay";
     public const string JciHanhDongMacDinhNgay = "Jci.HanhDongHanMacDinhNgay";
     public const string JciNguoiDuyetCntt = "Jci.NguoiDuyetCntt";
+    // GĐ3.2
+    public const string JciRaSoatTaiLieuThang = "Jci.RaSoatTaiLieuThang";
+    public const string JciThuUngPhoMangThang = "Jci.ThuUngPhoMangThang";
+    public const string JciNhomAnToanThongTin = "Jci.NhomAnToanThongTin";
+    public const string JciHanBaoCaoSuCoGio = "Jci.HanBaoCaoSuCoGio";
+    public const string JciDaoTaoTrongThang = "Jci.DaoTaoTrongThang";
+    public const string JciThuNguonDuPhongThang = "Jci.ThuNguonDuPhongThang";
+    public const string JciXemXetAiThang = "Jci.XemXetCongCuAiThang";
+    public const string JciBaoCaoQuyNhacNgay = "Jci.BaoCaoQuyNhacSauNgay";
 }
 
 public static class ThamSoMacDinh
@@ -179,6 +188,15 @@ public static class ThamSoMacDinh
         T(235, "JCI 8 – Sao lưu", TS.JciPhucHoiLaiNgay, "Thử phục hồi lại khi Không đạt trong", KieuThamSo.SoNguyen, "30", "ngày", 1, 365, "FR-SL-07."),
         T(236, "JCI 8 – Sao lưu", TS.JciSaoLuuChoGio, "Khoảng chờ kết quả sao lưu sau giờ dự kiến", KieuThamSo.SoNguyen, "3", "giờ", 1, 72, "FR-SL-04: quá khoảng này chưa có kết quả → 'Không rõ' và cảnh báo."),
         T(237, "JCI 8 – Sao lưu", TS.JciSaoLuuLoiTaoPhieu, "Tự tạo phiếu sửa chữa khi lỗi liên tiếp (hệ thống Tối quan trọng)", KieuThamSo.SoNguyen, "2", "lần", 0, 20, "FR-SL-04. 0 = tắt."),
+
+        T(250, "JCI 8 – Tài liệu & chương trình", TS.JciRaSoatTaiLieuThang, "Rà soát lại chính sách / chương trình / hướng dẫn sau", KieuThamSo.SoNguyen, "12", "tháng", 1, 60, "MOI.02.01, FMS.01.01 ME2: rà soát ít nhất hằng năm. Đến hạn hệ thống nhắc người phụ trách."),
+        T(251, "JCI 8 – Tài liệu & chương trình", TS.JciThuUngPhoMangThang, "Thử chương trình ứng phó tấn công mạng sau mỗi", KieuThamSo.SoNguyen, "12", "tháng", 1, 24, "HCT.01.05 ME1: thử nghiệm ít nhất mỗi năm."),
+        T(252, "JCI 8 – Tài liệu & chương trình", TS.JciXemXetAiThang, "Xem xét lại công cụ AI hỗ trợ quyết định sau mỗi", KieuThamSo.SoNguyen, "12", "tháng", 1, 36, "HCT.01.03: giám sát và cải tiến liên tục."),
+        T(253, "JCI 8 – Tài liệu & chương trình", TS.JciDaoTaoTrongThang, "Đào tạo còn giá trị trong", KieuThamSo.SoNguyen, "12", "tháng", 1, 60, "MOI.01.04 ME3: đào tạo an ninh mạng hằng năm. Dùng tính tỷ lệ khoa/nhân viên đã được đào tạo."),
+        T(254, "JCI 8 – Tài liệu & chương trình", TS.JciThuNguonDuPhongThang, "Chu kỳ tối đa thử nguồn điện dự phòng", KieuThamSo.SoNguyen, "3", "tháng", 1, 12, "FMS.08.01 ME3: ít nhất mỗi quý. Phiếu mẫu có chu kỳ dài hơn sẽ bị cảnh báo."),
+        T(255, "JCI 8 – An ninh mạng", TS.JciNhomAnToanThongTin, "Tài khoản được xử lý sự cố an ninh mạng", KieuThamSo.VanBan, "admin", moTa: "FR-AN-06: chỉ nhóm này và Lãnh đạo xem chi tiết sự cố an ninh mạng. Tên đăng nhập, cách nhau bởi dấu phẩy."),
+        T(256, "JCI 8 – An ninh mạng", TS.JciHanBaoCaoSuCoGio, "Hạn báo cáo sự cố nghiêm trọng liên quan dữ liệu cá nhân cho cơ quan chức năng", KieuThamSo.SoNguyen, "0", "giờ", 0, 720, "0 = không áp dụng. Phòng CNTT nhập theo văn bản hiện hành về ứng cứu sự cố và bảo vệ dữ liệu cá nhân."),
+        T(257, "JCI 8 – Báo cáo lãnh đạo", TS.JciBaoCaoQuyNhacNgay, "Nhắc lập báo cáo quý sau khi quý kết thúc", KieuThamSo.SoNguyen, "7", "ngày", 0, 60, "GLD.04.01 ME2: báo cáo bằng văn bản ít nhất hằng quý. 0 = không nhắc."),
 
         T(240, "JCI 8 – Hành động khắc phục", TS.JciHanhDongMacDinhNgay, "Hạn mặc định của hành động khắc phục", KieuThamSo.SoNguyen, "30", "ngày", 1, 365),
         T(241, "JCI 8 – Hành động khắc phục", TS.JciHanhDongNhacTruocNgay, "Nhắc trước hạn", KieuThamSo.SoNguyen, "3", "ngày", 0, 60, "FR-HD-03. Quá hạn: leo thang người nhận cấp 2 sau 7 ngày, Lãnh đạo sau 30 ngày (theo BR-DT-06)."),

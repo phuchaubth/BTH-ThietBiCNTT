@@ -1,0 +1,20 @@
+@model List<TaiLieuQuyDinh>
+@{
+    ViewData["Title"] = "Chính sách & chương trình"; var loai = ViewData["loai"] as LoaiTaiLieu?; var tt = ViewData["trangThai"] as TrangThaiKeHoach?; var homNay = (DateOnly)ViewBag.HomNay; var thieu = (List<LoaiTaiLieu>)ViewBag.ThieuLoai;
+}
+<div class="page-head"><h1>Chính sách, chương trình, hướng dẫn</h1><span class="text-muted small">MOI.02.00–02.01 · HCT.01.01–01.05 · FMS.08.00 · có phiên bản, duyệt hai cấp, rà soát hằng năm</span>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Soạn tài liệu</a></div> }</div>
+@if (User.XemToanVien() && thieu.Count > 0) { <div class="alert alert-warning py-2 small"><b>Chưa có bản hiệu lực:</b> @string.Join("; ", thieu.Select(x => x.Ten()))</div> }
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="loai" class="form-select form-select-sm" style="width:340px" asp-items="@EnumExtensions.ToSelectList(loai)" aria-label="Loại"><option value="">— Mọi loại —</option></select>
+    @if (User.XemToanVien()) { <select name="trangThai" class="form-select form-select-sm" style="width:190px" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Chưa hết hiệu lực —</option></select> }
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Mã</th><th>Tài liệu</th><th>Loại</th><th>Phiên bản</th><th>Trạng thái</th><th>Hiệu lực</th><th>Rà soát</th></tr></thead><tbody>
+@foreach (var t in Model)
+{
+    <tr><td class="small">@t.Ma</td><td><a asp-action="Details" asp-route-id="@t.Id" class="fw-semibold">@t.Ten</a>@if (t.HeThong is not null) { <div class="small text-muted">@t.HeThong.Ma</div> }</td><td class="small">@t.Loai.Ten()</td><td>v@(t.PhienBan)</td><td>@Html.Raw(Badge.Html(t.TrangThai))</td>
+        <td class="small">@t.NgayHieuLuc?.ToString("dd/MM/yyyy")</td><td class="small">@t.NgayRaSoat?.ToString("dd/MM/yyyy") @if (t.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">Đến hạn</span> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có tài liệu.</td></tr> }
+</tbody></table></div></div>

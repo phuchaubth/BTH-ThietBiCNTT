@@ -19,6 +19,9 @@ public class SoPhieuService(AppDbContext db)
             "KK" => db.DotKiemKes.Select(x => x.Ma),
             "DT" => db.SuKienDowntimes.Select(x => x.Ma),
             "HD" => db.HanhDongKhacPhucs.Select(x => x.Ma),
+            "VB" => db.TaiLieuQuyDinhs.Select(x => x.Ma),
+            "AN" => db.SuCoAnNinhs.Select(x => x.Ma),
+            "RR" => db.RuiRos.Select(x => x.Ma),
             _ => throw new ArgumentException("Tiền tố không hợp lệ", nameof(tienTo))
         };
         var last = await q.Where(s => s.StartsWith(prefix)).OrderByDescending(s => s).FirstOrDefaultAsync();

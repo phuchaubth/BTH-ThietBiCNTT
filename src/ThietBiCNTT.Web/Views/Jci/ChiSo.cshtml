@@ -1,0 +1,13 @@
+@model List<ChiSoJci>
+@{ ViewData["Title"] = "Bộ chỉ số hạ tầng CNTT"; int nam = (int)ViewData["nam"]!; int quy = (int)ViewData["quy"]!; var tu = (DateOnly)ViewBag.Tu; var den = (DateOnly)ViewBag.Den; }
+<div class="page-head"><h1>Bộ chỉ số hạ tầng CNTT</h1><span class="text-muted small">FR-JC-03 – GLD.04.01, QPS.03.00–04.00</span><div class="actions"><a asp-action="TieuChuan" class="btn btn-sm btn-outline-secondary">Tiêu chuẩn JCI</a></div></div>
+<form method="get" class="d-flex gap-2 mb-3 align-items-end"><div><label class="form-label small mb-0" for="nam">Năm</label><input id="nam" name="nam" type="number" value="@nam" class="form-control form-control-sm" style="width:100px" /></div>
+    <div><label class="form-label small mb-0" for="quy">Quý</label><select id="quy" name="quy" class="form-select form-select-sm" style="width:90px">@for (var q = 1; q <= 4; q++) { <option value="@q" selected="@(q == quy)">@q</option> }</select></div><button class="btn btn-sm btn-outline-secondary">Xem</button>
+    <span class="small text-muted ms-2">@tu.ToString("dd/MM/yyyy") – @den.ToString("dd/MM/yyyy")</span></form>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Chỉ số</th><th>Tiêu chuẩn</th><th class="text-end">Kết quả</th><th>Mục tiêu</th><th></th><th>Ghi chú</th></tr></thead><tbody>
+@foreach (var c in Model)
+{
+    <tr><td>@c.Ten</td><td class="small text-muted">@c.Nhom</td><td class="text-end fw-semibold @(c.Dat == false ? "text-danger" : "")">@c.GiaTri</td><td class="small">@c.MucTieu</td>
+        <td>@if (c.Dat == true) { <i class="bi bi-check-circle-fill text-success"></i> } else if (c.Dat == false) { <i class="bi bi-x-circle-fill text-danger"></i> }</td><td class="small text-muted">@c.GhiChu</td></tr>
+}
+</tbody></table></div></div>

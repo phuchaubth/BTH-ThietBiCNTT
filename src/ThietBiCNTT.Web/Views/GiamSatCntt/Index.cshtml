@@ -1,0 +1,12 @@
+@model List<NguoiGiamSatCntt>
+@{ ViewData["Title"] = "Người giám sát CNTT y tế"; var homNay = (DateOnly)ViewBag.HomNay; var hien = Model.FirstOrDefault(x => x.HieuLuc(homNay)); }
+<div class="page-head"><h1>Người giám sát CNTT y tế</h1><span class="text-muted small">HCT.01.00 – lãnh đạo chỉ định người đủ năng lực giám sát công nghệ thông tin và quy trình</span>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-person-plus"></i> Ghi nhận chỉ định mới</a></div> }</div>
+@if (hien is null) { <div class="alert alert-danger py-2"><i class="bi bi-exclamation-octagon"></i> <b>Chưa có người được chỉ định còn hiệu lực</b> (HCT.01.00 ME2).</div> }
+else { <div class="card mb-3 border-success"><div class="card-body"><div class="small text-muted">Đang hiệu lực</div><div class="fs-5 fw-semibold">@hien.HoTen <span class="fs-6 text-muted">@hien.ChucDanh</span></div>
+    <div class="small">Văn bản @hien.SoVanBan ngày @hien.NgayVanBan.ToString("dd/MM/yyyy") · từ @hien.NgayBatDau.ToString("dd/MM/yyyy") · người thay thế: @(hien.NguoiThayThe ?? "—")</div><div class="small mt-1">@hien.TrinhDo</div></div></div> }
+<div class="card"><div class="card-header">Lịch sử chỉ định</div><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Họ tên</th><th>Chức danh</th><th>Văn bản</th><th>Hiệu lực</th><th></th></tr></thead><tbody>
+@foreach (var x in Model) { <tr class="@(x.HieuLuc(homNay) ? "" : "text-muted")"><td><a asp-action="Details" asp-route-id="@x.Id">@x.HoTen</a></td><td class="small">@x.ChucDanh</td><td class="small">@x.SoVanBan – @x.NgayVanBan.ToString("dd/MM/yyyy")</td>
+    <td class="small">@x.NgayBatDau.ToString("dd/MM/yyyy") – @(x.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "nay")</td><td>@if (x.HieuLuc(homNay)) { <span class="badge bg-success">Hiệu lực</span> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa có chỉ định nào.</td></tr> }
+</tbody></table></div></div>

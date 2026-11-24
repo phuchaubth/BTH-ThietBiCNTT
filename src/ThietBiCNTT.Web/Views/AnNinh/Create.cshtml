@@ -1,0 +1,15 @@
+@model SuCoAnNinh
+@{ ViewData["Title"] = "Ghi nhận sự cố an ninh mạng"; }
+<div class="page-head"><h1>Ghi nhận sự cố an ninh mạng</h1></div>
+<div class="card" style="max-width:860px"><div class="card-body"><form asp-action="Create" method="post" class="row g-3">
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="Nguon" class="form-label"></label><select asp-for="Nguon" asp-items="@EnumExtensions.ToSelectList<NguonSuCoAn>()" class="form-select"></select></div>
+    <div class="col-md-6"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiSuCoAn>()" class="form-select"></select></div>
+    <div class="col-md-6"><label asp-for="PhatHien" class="form-label"></label><input asp-for="PhatHien" type="datetime-local" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label class="form-label" for="mts">Mã tài sản bị ảnh hưởng</label><input id="mts" name="maTaiSan" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="NguoiPhuTrach" class="form-label"></label><select asp-for="NguoiPhuTrach" asp-items="ViewBag.DsNguoi" class="form-select"></select></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="4"></textarea></div>
+    <div class="col-12"><button class="btn btn-danger"><i class="bi bi-save"></i> Ghi nhận</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

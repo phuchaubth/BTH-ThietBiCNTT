@@ -1,17 +1,17 @@
 @model DotDienTap
 @{
-    var h = Model.HeThong!; ViewData["Title"] = $"Diễn tập downtime {h.Ma}"; var cntt = User.LaCNTT(); var homNay = (DateOnly)ViewBag.HomNay;
+    var h = Model.HeThong; var ten = h?.Ma ?? "chương trình ứng phó tấn công mạng"; ViewData["Title"] = $"Diễn tập – {ten}"; var cntt = User.LaCNTT(); var homNay = (DateOnly)ViewBag.HomNay;
     var suKiens = (List<SuKienDowntime>)ViewBag.SuKienThay; var hanhDongs = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var duocDuyet = (bool)ViewBag.DuocDuyetCntt;
     var sua = cntt && !Model.DaChot;
 }
-<div class="small text-muted mb-1"><a asp-action="Index">Diễn tập downtime</a> › @h.Ma</div>
-<div class="page-head"><h1>Diễn tập downtime · <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id">@h.Ma</a></h1>
+<div class="small text-muted mb-1"><a asp-action="Index">Diễn tập downtime</a> › @ten</div>
+<div class="page-head"><h1>@(Model.LoaiThuNghiem == LoaiThuNghiem.Downtime ? "Diễn tập downtime" : "Thử ứng phó tấn công mạng") · @if (h is not null) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id">@h.Ma</a> } else if (Model.TaiLieu is not null) { <a asp-controller="TaiLieu" asp-action="Details" asp-route-id="@Model.TaiLieuId">@Model.TaiLieu.Ten v@(Model.TaiLieu.PhienBan)</a> }</h1>
     @if (Model.DaChot) { @Html.Raw(Badge.Html(Model.KetLuan!.Value)) <span class="badge bg-dark">Đã chốt</span> } else { <span class="badge bg-secondary">Chưa chốt</span> @if (Model.QuaHan(homNay)) { <span class="badge bg-danger">Quá hạn</span> } }
-    @if (cntt) { <div class="actions"><a asp-controller="HanhDong" asp-action="Create" asp-route-nguon="DienTap" asp-route-nguonId="@Model.Id" asp-route-heThongId="@h.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-list-check"></i> Tạo hành động khắc phục</a></div> }</div>
+    @if (cntt) { <div class="actions"><a asp-controller="HanhDong" asp-action="Create" asp-route-nguon="DienTap" asp-route-nguonId="@Model.Id" asp-route-heThongId="@h?.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-list-check"></i> Tạo hành động khắc phục</a></div> }</div>
 <div class="row g-3"><div class="col-lg-8">
     <div class="card mb-3"><div class="card-body small"><dl class="row info mb-0">
         <div class="col-sm-4"><dt>Hạn thực hiện</dt><dd>@Model.HanThucHien.ToString("dd/MM/yyyy")</dd></div>
-        <div class="col-sm-4"><dt>Kế hoạch áp dụng</dt><dd>@if (Model.KeHoachDowntime is not null) { <a asp-controller="KeHoachDowntime" asp-action="Details" asp-route-id="@Model.KeHoachDowntimeId">v@(Model.KeHoachDowntime.PhienBan)</a> } else { <span class="text-danger">chưa có kế hoạch hiệu lực</span> }</dd></div>
+        <div class="col-sm-4"><dt>@(h is null ? "Chương trình áp dụng" : "Kế hoạch áp dụng")</dt><dd>@if (h is null) { <span>@Model.TaiLieu?.Ten v@(Model.TaiLieu?.PhienBan)</span> } else if (Model.KeHoachDowntime is not null) { <a asp-controller="KeHoachDowntime" asp-action="Details" asp-route-id="@Model.KeHoachDowntimeId">v@(Model.KeHoachDowntime.PhienBan)</a> } else { <span class="text-danger">chưa có kế hoạch hiệu lực</span> }</dd></div>
         <div class="col-sm-4"><dt>Lý do tạo đợt</dt><dd>@Model.LyDo</dd></div>
         @if (Model.ThayBangSuKien is not null) { <div class="col-12"><dt>Thay bằng downtime thực tế</dt><dd><a asp-controller="SuKienDowntime" asp-action="Details" asp-route-id="@Model.ThayBangSuKienId">@Model.ThayBangSuKien.Ma</a> (FR-DT-12)</dd></div> }
     </dl></div></div>
@@ -43,7 +43,7 @@
                 <div><label class="form-label small mb-0" for="kl">Kết luận</label><select id="kl" name="ketLuan" asp-items="@EnumExtensions.ToSelectList<KetLuanDienTap>()" class="form-select form-select-sm"></select></div>
                 <button class="btn btn-sm btn-primary">Chốt biên bản</button></form>
             <div class="form-text">Kết luận khác "Đạt" cần ghi phát hiện/khuyến nghị. "Không đạt" tự tạo hành động khắc phục và lên lịch diễn tập lại trong @ThamSo.SoNguyen(TS.JciDienTapLaiNgay) ngày.</div>
-            @if (suKiens.Count > 0 && duocDuyet)
+            @if (h is not null && suKiens.Count > 0 && duocDuyet)
             {
                 <hr /><form asp-action="ThayBang" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 align-items-end"><div><label class="form-label small mb-0" for="sk">Hoặc ghi nhận một downtime thực tế đã rút kinh nghiệm thay cho đợt này (FR-DT-12)</label>
                     <select id="sk" name="suKienId" class="form-select form-select-sm">@foreach (var s in suKiens) { <option value="@s.Id">@s.Ma — @s.BatDau?.ToString("dd/MM/yyyy") — @s.MoTa.Substring(0, Math.Min(50, s.MoTa.Length))</option> }</select></div><button class="btn btn-sm btn-outline-primary">Xác nhận thay thế</button></form>

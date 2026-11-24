@@ -1,0 +1,17 @@
+@model List<DongPhuDaoTao>
+@{ ViewData["Title"] = "Độ phủ đào tạo"; int thang = ViewBag.Thang; var goiY = (List<GoiYDaoTao>)ViewBag.GoiY; var attt = (List<(int Id, DateTime Ngay, string ChuDe, int Co)>)ViewBag.ATTT; var da = Model.Count(x => x.LanCuoi is not null); }
+<div class="page-head"><h1>Độ phủ đào tạo</h1><span class="text-muted small">Khoa phụ thuộc hệ thống Tối quan trọng/Cao được đào tạo downtime trong @thang tháng gần nhất</span><div class="actions"><a asp-action="Index" class="btn btn-sm btn-outline-secondary">Danh sách buổi đào tạo</a></div></div>
+<div class="row g-3 mb-3"><div class="col-md-4"><div class="card kpi"><div class="label">Cặp hệ thống–khoa đã được đào tạo</div><div class="value @(Model.Count > 0 && da < Model.Count ? "text-danger" : "")">@da / @Model.Count</div><div class="sub">@(Model.Count == 0 ? "—" : (da * 100.0 / Model.Count).ToString("0") + "%") (mục tiêu ≥ 90%)</div></div></div>
+<div class="col-md-8"><div class="card kpi"><div class="label">Đào tạo an toàn thông tin / an ninh mạng (MOI.01.04 ME3)</div>
+    @if (attt.Count == 0) { <div class="value text-danger">Chưa có</div><div class="sub">Chưa có buổi nào trong @thang tháng gần nhất</div> } else { <div class="value">@attt.Count buổi</div><div class="sub">gần nhất @attt[0].Ngay.ToString("dd/MM/yyyy") · @attt.Sum(x => x.Co) lượt người</div> }</div></div></div>
+@if (goiY.Count > 0)
+{
+    <div class="card mb-3 border-warning"><div class="card-header">Nhu cầu đào tạo xác định từ dữ liệu <span class="small fw-normal text-muted">SQE.01.07 ME3</span></div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Căn cứ</th><th>Đối tượng</th><th>Đề xuất</th>@if (User.LaCNTT()) { <th></th> }</tr></thead><tbody>
+    @foreach (var g in goiY) { <tr><td class="small">@g.LyDo</td><td class="small">@g.DoiTuong</td><td class="small">@g.DeXuat</td>@if (User.LaCNTT()) { <td class="text-end"><a asp-action="Form" asp-route-loai="@g.Loai" asp-route-heThongId="@g.HeThongId" asp-route-khoaId="@g.KhoaId" class="btn btn-sm btn-outline-primary py-0">Lên kế hoạch</a></td> }</tr> }</tbody></table></div></div>
+}
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Hệ thống</th><th>Khoa/phòng phụ thuộc</th><th>Đào tạo gần nhất</th><th class="text-end">Số người</th><th></th></tr></thead><tbody>
+@foreach (var x in Model) { <tr class="@(x.LanCuoi is null ? "table-danger" : "")"><td><a asp-controller="HeThong" asp-action="Details" asp-route-id="@x.HeThong.Id">@x.HeThong.Ma</a> @Html.Raw(Badge.Html(x.HeThong.MucTrongYeu))</td><td>@x.Khoa.Ten</td><td class="small">@(x.LanCuoi?.ToString("dd/MM/yyyy") ?? "chưa đào tạo")</td><td class="text-end">@x.SoNguoi</td>
+    <td class="text-end">@if (x.LanCuoi is null && User.LaCNTT()) { <a asp-action="Form" asp-route-loai="Downtime" asp-route-heThongId="@x.HeThong.Id" asp-route-khoaId="@x.Khoa.Id" class="btn btn-sm btn-outline-primary py-0">Lên kế hoạch</a> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa khai báo khoa phụ thuộc hệ thống trọng yếu.</td></tr> }
+</tbody></table></div></div>
+<div class="small text-muted mt-2">Hệ thống chưa có danh sách nhân viên của từng khoa nên tính độ phủ theo khoa và số người tham dự; xuất danh sách theo từng nhân viên để Phòng Tổ chức cán bộ lưu hồ sơ nhân sự (SQE.01.07 ME7).</div>

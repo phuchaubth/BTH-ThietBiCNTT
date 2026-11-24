@@ -1,0 +1,7 @@
+@model List<(string Ma, DateTime PhatHien, TrangThaiSuCoAn TrangThai, string MoTa)>
+@{ ViewData["Title"] = "Báo cáo sự cố của tôi"; }
+<div class="page-head"><h1>Báo cáo sự cố của tôi</h1><div class="actions"><a asp-action="Bao" class="btn btn-sm btn-danger"><i class="bi bi-shield-exclamation"></i> Báo sự cố mới</a></div></div>
+<div class="card"><div class="table-responsive"><table class="table mb-0 align-middle"><thead><tr><th>Mã</th><th>Thời điểm</th><th>Nội dung bạn báo</th><th>Trạng thái tiếp nhận</th></tr></thead><tbody>
+@foreach (var s in Model) { <tr><td class="fw-semibold">@s.Ma</td><td class="small">@s.PhatHien.ToString("HH:mm dd/MM/yyyy")</td><td class="small">@s.MoTa</td><td>@Html.Raw(Badge.Html(s.TrangThai))</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-4">Bạn chưa gửi báo cáo nào.</td></tr> }
+</tbody></table></div></div>

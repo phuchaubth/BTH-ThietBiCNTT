@@ -1,0 +1,6 @@
+@model BaoCaoLanhDao
+@{ ViewData["Title"] = "Báo cáo quý " + Model.Ky; Layout = "_Print"; var s = (SnapBaoCao)ViewBag.Snap; }
+@await Html.PartialAsync("_HeaderBenhVien")
+<h3>BÁO CÁO CHẤT LƯỢNG VÀ AN TOÀN – HẠ TẦNG CÔNG NGHỆ THÔNG TIN<br /><small>Quý @Model.Ky (@Model.TuNgay.ToString("dd/MM/yyyy") – @Model.DenNgay.ToString("dd/MM/yyyy"))</small></h3>
+<div style="font-size:11pt">@await Html.PartialAsync("_NoiDungBaoCao", (Model, s))</div>
+<div class="ky"><div><b>Trưởng phòng CNTT</b><br /><i>(ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiGui</div><div><b>Lãnh đạo xác nhận</b><br /><i>(ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiXem</div></div>

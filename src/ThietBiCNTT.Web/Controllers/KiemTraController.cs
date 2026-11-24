@@ -61,7 +61,7 @@ public class KiemTraController(AppDbContext db, KiemTraService svc, TepService t
         if (input.Id == 0) { m = new MauKiemTra(); db.MauKiemTras.Add(m); }
         else m = await db.MauKiemTras.Include(x => x.Mucs).FirstAsync(x => x.Id == input.Id);
         m.Ten = input.Ten.Trim(); m.MoTa = input.MoTa; m.LoaiThietBiId = input.LoaiThietBiId; m.TaiSanId = input.TaiSanId;
-        m.KhoaPhongId = input.KhoaPhongId; m.ViTri = input.ViTri; m.ChuKyGio = input.ChuKyGio; m.TuTaoPhieu = input.TuTaoPhieu; m.DangApDung = input.DangApDung;
+        m.KhoaPhongId = input.KhoaPhongId; m.ViTri = input.ViTri; m.ChuKyGio = input.ChuKyGio; m.TuTaoPhieu = input.TuTaoPhieu; m.DangApDung = input.DangApDung; m.LaThuNguonDuPhong = input.LaThuNguonDuPhong;
         // Đồng bộ mục: cập nhật mục cũ theo Id, thêm mục mới, xoá mục bị bỏ (kết quả cũ vẫn giữ nội dung mục đã lưu)
         var giu = mucs.Where(x => x.Id != 0).Select(x => x.Id).ToHashSet();
         foreach (var cu in m.Mucs.Where(x => !giu.Contains(x.Id)).ToList()) m.Mucs.Remove(cu);

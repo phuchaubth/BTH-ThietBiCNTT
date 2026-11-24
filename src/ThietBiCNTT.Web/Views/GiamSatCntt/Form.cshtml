@@ -1,0 +1,19 @@
+@model NguoiGiamSatCntt
+@{ ViewData["Title"] = Model.Id == 0 ? "Ghi nhận chỉ định người giám sát CNTT y tế" : "Sửa hồ sơ " + Model.HoTen; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:820px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="HoTen" class="form-label"></label><input asp-for="HoTen" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="ChucDanh" class="form-label"></label><input asp-for="ChucDanh" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="SoVanBan" class="form-label"></label><input asp-for="SoVanBan" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayVanBan" class="form-label"></label><input asp-for="NgayVanBan" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="TaiKhoan" class="form-label"></label><input asp-for="TaiKhoan" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayBatDau" class="form-label"></label><input asp-for="NgayBatDau" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayKetThuc" class="form-label"></label><input asp-for="NgayKetThuc" type="date" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="NguoiThayThe" class="form-label"></label><input asp-for="NguoiThayThe" class="form-control" /></div>
+    <div class="col-12"><label asp-for="TrinhDo" class="form-label"></label><textarea asp-for="TrinhDo" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12 form-text">Chỉ định người mới sẽ tự kết thúc hiệu lực của bản ghi cũ vào ngày trước đó để giữ lịch sử. Đính kèm văn bản chỉ định sau khi lưu.</div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

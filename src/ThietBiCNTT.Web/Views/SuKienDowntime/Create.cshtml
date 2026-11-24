@@ -7,7 +7,7 @@
 @if (phieu is not null) { <div class="alert alert-info py-2 small">Từ phiếu <a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@phieu.Id">@phieu.SoPhieu</a>. Các hệ thống phụ thuộc vào thiết bị của phiếu đã được chọn sẵn.</div> }
 <div class="card" style="max-width:900px"><div class="card-body">
 <form asp-action="Create" method="post" class="row g-3">
-    <input type="hidden" asp-for="Loai" /><input type="hidden" asp-for="PhieuSuaChuaId" />
+    <input type="hidden" asp-for="Loai" /><input type="hidden" asp-for="PhieuSuaChuaId" /><input type="hidden" asp-for="SuCoAnNinhId" />
     <div asp-validation-summary="All" class="text-danger small col-12"></div>
     <div class="col-12"><label class="form-label">Hệ thống bị ảnh hưởng</label>
         <div class="border rounded p-2" style="max-height:230px;overflow:auto">

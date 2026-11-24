@@ -9,13 +9,14 @@ using ThietBiCNTT.Web.Infrastructure;
 namespace ThietBiCNTT.Web.Controllers;
 
 /// <summary>Tệp đính kèm: tải lên, xem, xoá — kiểm tra quyền theo đối tượng gắn kèm.</summary>
-public class TepController(AppDbContext db, TepService tep) : Controller
+public class TepController(AppDbContext db, TepService tep, ThamSoService thamSo) : Controller
 {
-    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "TaiSan", "LanKiemTra", "HeThong", "KeHoachDowntime", "SuKienDowntime", "DotDienTap", "LanThuPhucHoi", "HanhDongKhacPhuc"];
+    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "TaiSan", "LanKiemTra", "HeThong", "KeHoachDowntime", "SuKienDowntime", "DotDienTap", "LanThuPhucHoi", "HanhDongKhacPhuc", "TaiLieuQuyDinh", "NguoiGiamSatCntt", "SuCoAnNinh", "RuiRo", "DotDanhGiaRuiRo", "BuoiDaoTao", "BaoCaoLanhDao"];
 
     /// <summary>Người dùng có được xem đối tượng không (cùng quy tắc phạm vi khoa của từng phân hệ).</summary>
     private async Task<bool> DuocXemAsync(string doiTuong, string id)
     {
+        if (doiTuong == "SuCoAnNinh") return User.XemAn(thamSo); // FR-AN-06
         if (User.XemToanVien()) return true;
         var k = User.KhoaPhongId();
         return doiTuong switch

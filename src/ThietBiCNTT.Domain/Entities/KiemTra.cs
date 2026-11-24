@@ -30,6 +30,8 @@ public class MauKiemTra : BaseEntity
     [Range(1, 8760), Display(Name = "Chu kỳ (giờ)")] public int ChuKyGio { get; set; } = 24;
     [Display(Name = "Bất thường tự tạo phiếu sửa chữa")] public bool TuTaoPhieu { get; set; } = true;
     [Display(Name = "Đang áp dụng")] public bool DangApDung { get; set; } = true;
+    /// <summary>FMS.08.01 ME3: phiếu thử nguồn điện dự phòng (UPS, máy phát) — chu kỳ tối đa theo tham số, hiện trong báo cáo tiện ích.</summary>
+    [Display(Name = "Là phiếu thử nguồn điện dự phòng (FMS.08.01)")] public bool LaThuNguonDuPhong { get; set; }
     public List<MucKiemTra> Mucs { get; set; } = [];
 
     public bool KhongGanTaiSan => TaiSanId is null && LoaiThietBiId is null;

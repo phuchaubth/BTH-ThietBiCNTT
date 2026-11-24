@@ -1,0 +1,17 @@
+@model BuoiDaoTao
+@{ ViewData["Title"] = Model.ChuDe; var cntt = User.LaCNTT(); }
+<div class="small text-muted mb-1"><a asp-action="Index">Đào tạo</a> › @Model.ChuDe</div>
+<div class="page-head"><h1>@Model.ChuDe</h1><span class="badge bg-light text-dark border">@Model.Loai.Ten()</span>@if (cntt) { <div class="actions"><a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a></div> }</div>
+<div class="row g-3"><div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body"><dl class="row info mb-0"><div class="col-sm-4"><dt>Ngày</dt><dd>@Model.Ngay.ToString("HH:mm dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Hệ thống</dt><dd>@Model.HeThong?.Ma</dd></div><div class="col-sm-4"><dt>Khoa</dt><dd>@Model.KhoaPhong?.Ten</dd></div>
+        <div class="col-sm-4"><dt>Người giảng</dt><dd>@Model.NguoiGiang</dd></div><div class="col-12"><dt>Nội dung</dt><dd style="white-space:pre-line">@Model.NoiDung</dd></div></dl></div></div>
+    <div class="card mb-3"><div class="card-header">Người tham dự (@Model.ThamDus.Count)</div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Họ tên</th><th>Mã NV</th><th>Khoa/phòng</th><th>Chức danh</th><th>Đánh giá</th>@if (cntt) { <th></th> }</tr></thead><tbody>
+        @foreach (var t in Model.ThamDus.OrderBy(t => t.HoTen)) { <tr><td>@t.HoTen</td><td class="small">@t.MaNhanVien</td><td class="small">@t.KhoaPhong?.Ten</td><td class="small">@t.ChucDanh</td><td class="small">@(t.DatDanhGia is { } d ? (d ? "Đạt" : "Không đạt") : "")</td>
+            @if (cntt) { <td class="text-end"><form asp-action="GoNguoi" asp-route-id="@Model.Id" method="post"><input type="hidden" name="thamDuId" value="@t.Id" /><button class="btn btn-sm btn-link text-danger p-0">Gỡ</button></form></td> }</tr> }
+        @if (Model.ThamDus.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Chưa có người tham dự.</td></tr> }</tbody></table></div>
+        @if (cntt)
+        {
+            <form asp-action="ThemNguoi" asp-route-id="@Model.Id" method="post" class="card-footer bg-white"><label class="form-label small" for="ds">Dán danh sách (mỗi dòng: <code>Họ tên; Mã nhân viên; Mã khoa; Chức danh; Đạt/Không đạt</code> — chỉ họ tên là bắt buộc; bỏ trống khoa = khoa của buổi)</label>
+                <textarea id="ds" name="danhSach" class="form-control form-control-sm mb-2" rows="4" placeholder="Phạm Thu Hà; NV0123; CC; Điều dưỡng; Đạt" required></textarea><button class="btn btn-sm btn-outline-primary">Thêm người tham dự</button></form>
+        }</div>
+</div><div class="col-lg-4">@await Html.PartialAsync("_DinhKem", (DoiTuong: "BuoiDaoTao", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt))</div></div>

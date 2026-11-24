@@ -1,0 +1,19 @@
+@model List<SuCoAnNinh>
+@{ ViewData["Title"] = "Sự cố an ninh mạng"; var tt = ViewData["trangThai"] as TrangThaiSuCoAn?; var md = ViewData["mucDo"] as MucDoAn?; var chuaDong = (bool)ViewData["chuaDong"]!; bool xu = ViewBag.Xu; int gio = ViewBag.Gio; }
+<div class="page-head"><h1>Sự cố an ninh mạng</h1><span class="text-muted small">HCT.01.05 · MOI.01.02 – chỉ nhóm an toàn thông tin và Lãnh đạo xem chi tiết</span>
+    @if (xu) { <div class="actions"><a asp-action="Create" class="btn btn-sm btn-danger"><i class="bi bi-plus-lg"></i> Ghi nhận sự cố</a></div> }</div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="trangThai" class="form-select form-select-sm" style="width:190px" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <select name="mucDo" class="form-select form-select-sm" style="width:190px" asp-items="@EnumExtensions.ToSelectList(md)" aria-label="Mức độ"><option value="">— Mọi mức độ —</option></select>
+    <div class="form-check align-self-center"><input class="form-check-input" type="checkbox" name="chuaDong" value="true" id="cd" @(chuaDong ? "checked" : "") /><label class="form-check-label small" for="cd">Chưa đóng</label></div><button class="btn btn-sm btn-outline-secondary">Lọc</button></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Mã</th><th>Phát hiện</th><th>Loại</th><th>Mức độ</th><th>Hệ thống</th><th>Phụ trách</th><th>Trạng thái</th><th>Báo cáo CQCN</th></tr></thead><tbody>
+@foreach (var s in Model)
+{
+    var han = s.HanBaoCao(gio);
+    <tr class="@(s.MucDo == MucDoAn.RatNghiemTrong && s.TrangThai != TrangThaiSuCoAn.DaDong ? "table-danger" : "")"><td class="fw-semibold"><a asp-action="Details" asp-route-id="@s.Id">@s.Ma</a></td><td class="small">@s.PhatHien.ToString("HH:mm dd/MM/yyyy")</td><td class="small">@s.Loai.Ten()</td>
+        <td>@if (s.DaPhanLoai) { <span class="badge bg-@(s.MucDo == MucDoAn.ThongThuong ? "secondary" : s.MucDo == MucDoAn.NghiemTrong ? "warning text-dark" : "danger")">@s.MucDo.Ten()</span> } else { <span class="badge bg-light text-dark border">Chưa phân mức</span> }</td>
+        <td class="small">@s.HeThong?.Ma</td><td class="small">@s.NguoiPhuTrach</td><td>@Html.Raw(Badge.Html(s.TrangThai))</td>
+        <td class="small">@if (s.DaBaoCaoCoQuan) { <span class="text-success">Đã báo</span> } else if (han is { } h) { <span class="@(h < DateTime.Now ? "overdue" : "")">hạn @h.ToString("HH:mm dd/MM")</span> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Không có sự cố.</td></tr> }
+</tbody></table></div></div>

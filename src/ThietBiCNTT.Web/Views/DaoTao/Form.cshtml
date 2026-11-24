@@ -1,0 +1,15 @@
+@model BuoiDaoTao
+@{ ViewData["Title"] = Model.Id == 0 ? "Ghi nhận buổi đào tạo" : "Sửa buổi đào tạo"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:860px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="ChuDe" class="form-label"></label><input asp-for="ChuDe" class="form-control" placeholder="Quy trình downtime HIS cho điều dưỡng" /></div>
+    <div class="col-md-3"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiDaoTao>()" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="Ngay" class="form-label"></label><input asp-for="Ngay" type="datetime-local" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">— chung —</option></select></div>
+    <div class="col-md-4"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">— nhiều khoa / toàn viện —</option></select></div>
+    <div class="col-md-4"><label asp-for="NguoiGiang" class="form-label"></label><input asp-for="NguoiGiang" class="form-control" /></div>
+    <div class="col-12"><label asp-for="NoiDung" class="form-label"></label><textarea asp-for="NoiDung" class="form-control" rows="4" placeholder="Với an toàn thông tin: thiết bị, quyền truy cập, mật khẩu, lừa đảo/kỹ thuật xã hội, mối đe doạ mạng, cách báo sự cố"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -39,9 +39,21 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
         var coSl = (await db.TacVuSaoLuus.Where(k => ids.Contains(k.HeThongId) && k.DangApDung).Select(k => k.HeThongId).ToListAsync()).ToHashSet();
         var soKhoa = await db.HeThongKhoaPhongs.Where(k => ids.Contains(k.HeThongId)).GroupBy(k => k.HeThongId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N);
         var soPt = await db.PhuThuocHeThongs.Where(k => ids.Contains(k.HeThongId)).GroupBy(k => k.HeThongId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N);
+        // HCT.01.02/01.03 (BR-HTT-06): telehealth cần hướng dẫn bảo vệ dữ liệu; công cụ AI cần hướng dẫn giám sát và hoàn tất bước Lựa chọn, Triển khai
+        var hdTl = await db.TaiLieuQuyDinhs.AsNoTracking().Where(t => t.TrangThai == TrangThaiKeHoach.HieuLuc && (t.Loai == LoaiTaiLieu.HuongDanTelehealth || t.Loai == LoaiTaiLieu.HuongDanAi)).Select(t => new { t.Loai, t.HeThongId }).ToListAsync();
+        bool CoHd(LoaiTaiLieu l, int hid) => hdTl.Any(x => x.Loai == l && (x.HeThongId == null || x.HeThongId == hid));
+        var buocXong = (await db.BuocVongDois.AsNoTracking().Where(b => ids.Contains(b.HeThongId)).Select(b => new { b.HeThongId, b.Buoc }).ToListAsync()).GroupBy(b => b.HeThongId).ToDictionary(g => g.Key, g => g.Select(x => x.Buoc).ToHashSet());
         var dong = ds.Select(h =>
         {
             var cb = h.HoSoThieu().Select(x => "Thiếu " + x).ToList();
+            if (h.LaTelehealth && !CoHd(LoaiTaiLieu.HuongDanTelehealth, h.Id)) cb.Add("Telehealth chưa có hướng dẫn bảo vệ dữ liệu hiệu lực");
+            if (h.LaCongCuAi)
+            {
+                if (!CoHd(LoaiTaiLieu.HuongDanAi, h.Id)) cb.Add("Công cụ AI chưa có hướng dẫn giám sát hiệu lực");
+                var bx = buocXong.GetValueOrDefault(h.Id) ?? [];
+                if (!bx.Contains(BuocVongDoiAi.LuaChon) || !bx.Contains(BuocVongDoiAi.TrienKhai)) cb.Add("Công cụ AI chưa ghi bước Lựa chọn / Triển khai");
+                if (h.NgayXemXetAi is { } xx && xx <= DateOnly.FromDateTime(DateTime.Today)) cb.Add("Công cụ AI đến hạn xem xét lại");
+            }
             if (h.TrangThai == TrangThaiHeThong.VanHanh && h.LaTrongYeu)
             {
                 if (!coKh.Contains(h.Id)) cb.Add("Chưa có kế hoạch downtime hiệu lực");
@@ -84,6 +96,10 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
         ViewBag.HanhDong = await db.HanhDongKhacPhucs.AsNoTracking().Where(x => x.HeThongId == id && x.TrangThai != TrangThaiHanhDong.DaDong).OrderBy(x => x.Han).ToListAsync();
         ViewBag.Rto = thamSo.Rto(h); ViewBag.Rpo = thamSo.Rpo(h); ViewBag.MucTieu = thamSo.MucTieu(h.MucTrongYeu);
         ViewBag.Tep = await tep.DanhSachAsync("HeThong", id.ToString());
+        ViewBag.Buocs = await db.BuocVongDois.AsNoTracking().Where(b => b.HeThongId == id).OrderBy(b => b.Buoc).ThenBy(b => b.Ngay).ToListAsync();
+        var hds = await db.TaiLieuQuyDinhs.AsNoTracking().Where(t => t.TrangThai == TrangThaiKeHoach.HieuLuc && (t.Loai == LoaiTaiLieu.HuongDanTelehealth || t.Loai == LoaiTaiLieu.HuongDanAi) && (t.HeThongId == null || t.HeThongId == id)).ToListAsync();
+        ViewBag.HdTelehealth = hds.FirstOrDefault(t => t.Loai == LoaiTaiLieu.HuongDanTelehealth); ViewBag.HdAi = hds.FirstOrDefault(t => t.Loai == LoaiTaiLieu.HuongDanAi);
+        ViewBag.Kenhs = await db.KenhTruyenDuLieus.AsNoTracking().Where(k => k.HeThongId == id && k.DangSuDung).OrderBy(k => k.Ten).ToListAsync();
         ViewBag.DsKhoa = new SelectList(await db.KhoaPhongs.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
         ViewBag.DsHeThong = new SelectList(await db.HeThongThongTins.Where(x => x.Id != id && x.TrangThai != TrangThaiHeThong.NgungSuDung).OrderBy(x => x.Ma).Select(x => new { x.Id, Ten = x.Ma + " – " + x.Ten }).ToListAsync(), "Id", "Ten");
         return View(h);
@@ -97,6 +113,20 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
         ViewBag.DsCntt = new SelectList((await users.GetUsersInRoleAsync(VaiTro.CanBoCNTT)).Concat(await users.GetUsersInRoleAsync(VaiTro.QuanTri))
             .Where(u => u.DangHoatDong).DistinctBy(u => u.Id).Select(u => new { u.UserName, Ten = $"{u.HoTen} ({u.UserName})" }), "UserName", "Ten");
         ViewBag.MacDinh = Enum.GetValues<MucTrongYeu>().ToDictionary(m => m, thamSo.MucTieu);
+    }
+
+    /// <summary>HCT.01.03: ghi một bước vòng đời công cụ AI (lựa chọn → triển khai → giám sát → cải tiến).</summary>
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> GhiBuocAi(int id, BuocVongDoiAi buoc, string nguoiPhuTrach, DateOnly ngay, string? noiDung, string? ketLuan)
+    {
+        var h = await db.HeThongThongTins.FirstOrDefaultAsync(x => x.Id == id && x.LaCongCuAi);
+        if (h is null) return NotFound();
+        if (string.IsNullOrWhiteSpace(nguoiPhuTrach) || string.IsNullOrWhiteSpace(noiDung)) { TempData["err"] = "Nhập người phụ trách chuyên môn và nội dung bước."; return RedirectToAction(nameof(Details), new { id }); }
+        db.BuocVongDois.Add(new BuocVongDoi { HeThongId = id, Buoc = buoc, NguoiPhuTrach = nguoiPhuTrach.Trim(), Ngay = ngay, NoiDung = noiDung.Trim(), KetLuan = ketLuan?.Trim() });
+        if (buoc is BuocVongDoiAi.GiamSat or BuocVongDoiAi.CaiTien) h.NgayXemXetAi = DateOnly.FromDateTime(DateTime.Today).AddMonths(thamSo.SoNguyen(TS.JciXemXetAiThang));
+        await db.SaveChangesAsync();
+        TempData["ok"] = $"Đã ghi bước \"{buoc.Ten()}\".";
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     /// <summary>FR-DT-13: phụ thuộc hạ tầng thay đổi → kế hoạch downtime hiệu lực cần rà soát.</summary>
@@ -118,6 +148,8 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
     public async Task<IActionResult> Form(HeThongThongTin input)
     {
         input.Ma = (input.Ma ?? "").Trim().ToUpperInvariant();
+        if (!input.LaCongCuAi) { input.LoaiCongCuAi = null; input.NgayXemXetAi = null; }
+        else input.NgayXemXetAi ??= DateOnly.FromDateTime(DateTime.Today).AddMonths(thamSo.SoNguyen(TS.JciXemXetAiThang));
         if (await db.HeThongThongTins.AnyAsync(x => x.Ma == input.Ma && x.Id != input.Id)) ModelState.AddModelError(nameof(input.Ma), "Mã hệ thống đã tồn tại.");
         if (!ModelState.IsValid) { await NapDanhMucAsync(input); return View(input); }
         if (input.Id == 0) db.HeThongThongTins.Add(input);
