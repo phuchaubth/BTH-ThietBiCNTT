@@ -16,6 +16,10 @@
 - Hợp đồng (gắn tài sản), bản quyền phần mềm (cấp phát, chặn vượt số lượng), theo dõi gửi hãng
 - Báo cáo SLA / MTTR / MTBF / dừng máy / chi phí / năng suất KTV, xuất Excel nhiều sheet
 
+**Giai đoạn 3:**
+- Kho vật tư: nhiều kho, phiếu nhập / xuất / chuyển, thẻ kho, giá bình quân gia quyền, kiểm kê kho có duyệt
+- Mua sắm: đề xuất (duyệt Trưởng phòng CNTT → P. Vật tư → Lãnh đạo theo ngưỡng giá trị; tự lập từ vật tư dưới định mức) → đơn mua hàng (in đơn, xác nhận đặt theo ngưỡng, cảnh báo quá hạn giao) → nhận hàng từng phần (vật tư tự nhập kho, thiết bị tự tạo hồ sơ tài sản kèm serial, bảo hành)
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -32,7 +36,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

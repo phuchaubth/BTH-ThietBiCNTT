@@ -28,6 +28,7 @@
     @if (Model.LoaiCongViec == LoaiCongViec.BaoTriDinhKy) { <span class="badge bg-light text-dark border">Bảo trì định kỳ</span> }
     <div class="actions">
         <a asp-action="InPhieu" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In phiếu</a>
+        @if (cntt && tt == TrangThaiPhieuSuaChua.ChoLinhKien) { <a asp-controller="MuaSam" asp-action="LapDeXuat" asp-route-phieuSuaChuaId="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-cart-plus"></i> Đề xuất mua linh kiện</a> }
         @if (cntt && tt is TrangThaiPhieuSuaChua.DaTiepNhan or TrangThaiPhieuSuaChua.DangXuLy or TrangThaiPhieuSuaChua.GuiHang)
         {
             <form asp-action="TamDung" asp-route-id="@Model.Id" method="post" class="d-inline"><input type="hidden" name="lyDo" value="ChoLinhKien" /><button class="btn btn-sm btn-outline-secondary">Chờ linh kiện</button></form>

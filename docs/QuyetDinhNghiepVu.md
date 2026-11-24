@@ -53,6 +53,10 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Tài sản | `TaiSan.TuoiThoMacDinhNam` | Tuổi thọ mặc định khi tạo loại thiết bị | Số nguyên | 5 năm |
 | Tài sản | `HopDong.CanhBaoTruocNgay` | Cảnh báo hợp đồng / bản quyền sắp hết hạn trước | Số nguyên | 60 ngày |
 | Kho vật tư | `Kho.ChoXuatAm` | Cho phép xuất kho vượt tồn | Bật/Tắt | false |
+| Mua sắm | `MuaSam.NguoiDuyetCNTT` | Người duyệt cấp 1 (Trưởng phòng CNTT) — tên đăng nhập, cách nhau dấu phẩy | Văn bản | admin |
+| Mua sắm | `MuaSam.NguoiDuyetVatTu` | Người duyệt cấp 2 (Phòng Vật tư - TTB); trống = bỏ qua cấp | Văn bản | (trống) |
+| Mua sắm | `MuaSam.NguongDuyetLanhDao` | Ngưỡng giá trị đề xuất / đơn hàng cần Lãnh đạo | Số nguyên | 50000000 đ |
+| Mua sắm | `MuaSam.TuDongDeXuatTonThap` | Tự lập đề xuất nháp khi vật tư dưới định mức (hằng ngày) | Bật/Tắt | true |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |
 | Bảo mật | `BaoMat.PhienCNTTGio` | Thời gian giữ phiên (CNTT, KTV, Lãnh đạo) | Số nguyên | 8 giờ |

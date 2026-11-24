@@ -43,6 +43,11 @@ public static class TS
     public const string HopDongCanhBaoNgay = "HopDong.CanhBaoTruocNgay";
     // Kho
     public const string KhoChoXuatAm = "Kho.ChoXuatAm";
+    // Mua sắm
+    public const string MuaSamNguoiDuyetCNTT = "MuaSam.NguoiDuyetCNTT";
+    public const string MuaSamNguoiDuyetVatTu = "MuaSam.NguoiDuyetVatTu";
+    public const string MuaSamNguongLanhDao = "MuaSam.NguongDuyetLanhDao";
+    public const string MuaSamTuDongDeXuat = "MuaSam.TuDongDeXuatTonThap";
     // Thanh lý
     public const string ThanhLyBatBuocThaoOCung = "ThanhLy.BatBuocThaoOCung";
     // Thông báo & cảnh báo
@@ -104,6 +109,11 @@ public static class ThamSoMacDinh
         T(72, "Tài sản", TS.TuoiThoMacDinhNam, "Tuổi thọ mặc định khi tạo loại thiết bị", KieuThamSo.SoNguyen, "5", "năm", 1, 50),
 
         T(80, "Kho vật tư", TS.KhoChoXuatAm, "Cho phép xuất kho vượt tồn", KieuThamSo.BatTat, "false"),
+
+        T(84, "Mua sắm", TS.MuaSamNguoiDuyetCNTT, "Người duyệt cấp 1 (Trưởng phòng CNTT)", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập, cách nhau bởi dấu phẩy. Cũng là người xác nhận đặt hàng dưới ngưỡng Lãnh đạo."),
+        T(85, "Mua sắm", TS.MuaSamNguoiDuyetVatTu, "Người duyệt cấp 2 (Phòng Vật tư - TTB)", KieuThamSo.VanBan, "", moTa: "Để trống = bỏ qua cấp này."),
+        T(86, "Mua sắm", TS.MuaSamNguongLanhDao, "Ngưỡng giá trị cần Lãnh đạo duyệt", KieuThamSo.SoNguyen, "50000000", "đ", 0, null, "Đề xuất / đơn hàng có tổng giá trị ≥ ngưỡng phải qua Lãnh đạo (vai trò Lãnh đạo)."),
+        T(87, "Mua sắm", TS.MuaSamTuDongDeXuat, "Tự lập đề xuất nháp khi vật tư dưới định mức", KieuThamSo.BatTat, "true", moTa: "Hằng ngày (cùng giờ bản tin tổng hợp). Số lượng gợi ý = tồn tối đa − tồn hiện tại − đang đặt."),
 
         T(90, "Thanh lý", TS.ThanhLyBatBuocThaoOCung, "Bắt buộc tháo ổ cứng trước khi hoàn tất", KieuThamSo.BatTat, "true", moTa: "Áp dụng cho loại thiết bị có lưu trữ dữ liệu (QĐ-03)."),
 

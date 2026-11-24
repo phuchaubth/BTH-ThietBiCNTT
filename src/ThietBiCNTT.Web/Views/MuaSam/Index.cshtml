@@ -1,0 +1,31 @@
+@model List<DeXuatMuaSam>
+@{ ViewData["Title"] = "Đề xuất mua sắm"; var page = (int)ViewData["page"]!; var choToi = (bool)ViewData["choToi"]!; }
+<div class="page-head"><h1>Mua sắm</h1>
+    <div class="actions">
+        @if (User.LaCNTT())
+        {
+            <form asp-action="TuDong" method="post" class="d-inline"><button class="btn btn-sm btn-outline-secondary" title="Lập đề xuất nháp cho vật tư dưới định mức"><i class="bi bi-magic"></i> Đề xuất từ tồn thấp</button></form>
+            <a asp-action="LapDeXuat" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Lập đề xuất</a>
+        }
+    </div>
+</div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <select name="trangThai" class="form-select form-select-sm" style="width:220px" asp-items="@EnumExtensions.ToSelectList((TrangThaiDeXuat?)ViewData["trangThai"])" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="choToi" value="true" id="choToi" @(choToi ? "checked" : "") /><label class="form-check-label small" for="choToi">Chờ tôi duyệt</label></div>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Số</th><th>Ngày</th><th>Nội dung</th><th>Căn cứ</th><th class="text-end">Số dòng</th><th class="text-end">Dự toán</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var x in Model)
+    {
+        <tr><td class="fw-semibold"><a asp-action="DeXuat" asp-route-id="@x.Id">@x.SoPhieu</a>@if (x.TuDong) { <span class="badge bg-light text-muted border ms-1" title="Hệ thống tự lập">tự động</span> }</td>
+            <td class="small">@x.NgayTao.ToString("dd/MM/yy")<div class="text-muted">@x.NguoiTao</div></td>
+            <td>@x.TieuDe</td><td class="small">@x.CanCu.Ten()</td><td class="text-end">@x.Dongs.Count</td><td class="text-end">@x.TongDuToan.ToString("N0")</td>
+            <td>@Html.Raw(Badge.Html(x.TrangThai))@if (x.TrangThai == TrangThaiDeXuat.ChoDuyet) { <div class="small text-muted">@DeXuatMuaSam.TenCap(x.CapHienTai)</div> }</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có đề xuất.</td></tr> }
+    </tbody>
+</table></div></div>
+<div class="mt-2"><a class="btn btn-sm btn-outline-secondary @(page <= 1 ? "disabled" : "")" href="?page=@(page - 1)&choToi=@choToi">« Mới hơn</a> <a class="btn btn-sm btn-outline-secondary @(Model.Count < 50 ? "disabled" : "")" href="?page=@(page + 1)&choToi=@choToi">Cũ hơn »</a></div>

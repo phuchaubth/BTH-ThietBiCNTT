@@ -1,0 +1,66 @@
+@model DeXuatMuaSam
+@{
+    ViewData["Title"] = Model.SoPhieu; var duocDuyet = (bool)ViewBag.DuocDuyet; var nguoiDuyet = (List<string>)ViewBag.NguoiDuyet;
+    var donHangs = (List<DonMuaHang>)ViewBag.DonHangs; var nguong = (decimal)ViewBag.Nguong; var cntt = User.LaCNTT();
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Mua sắm</a> › @Model.SoPhieu</div>
+<div class="page-head"><h1>Đề xuất @Model.SoPhieu</h1> @Html.Raw(Badge.Html(Model.TrangThai))
+    <div class="actions">
+        @if (cntt && Model.TrangThai is TrangThaiDeXuat.Nhap or TrangThaiDeXuat.TuChoi)
+        {
+            <a asp-action="LapDeXuat" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a>
+            <form asp-action="GuiDuyet" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Gửi duyệt</button></form>
+        }
+        @if (cntt && Model.ChoLapDon) { <a asp-action="LapDon" asp-route-deXuatId="@Model.Id" class="btn btn-sm btn-success"><i class="bi bi-cart-plus"></i> Lập đơn hàng</a> }
+        @if (cntt && Model.TrangThai is not (TrangThaiDeXuat.DaHuy or TrangThaiDeXuat.DaDatDu) && Model.Dongs.All(d => d.SoLuongDaDat == 0))
+        {
+            <form asp-action="HuyDeXuat" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Huỷ đề xuất này?')"><button class="btn btn-sm btn-outline-danger">Huỷ</button></form>
+        }
+    </div>
+</div>
+<div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+    <div class="col-md-6"><dt>Nội dung</dt><dd>@Model.TieuDe</dd></div>
+    <div class="col-md-3"><dt>Căn cứ</dt><dd>@Model.CanCu.Ten() @if (Model.PhieuSuaChua is not null) { <a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@Model.PhieuSuaChuaId">@Model.PhieuSuaChua.SoPhieu</a> }</dd></div>
+    <div class="col-md-3"><dt>Người lập · ngày</dt><dd>@Model.NguoiTao · @Model.NgayTao.ToString("dd/MM/yyyy")</dd></div>
+    @if (!string.IsNullOrEmpty(Model.LyDo)) { <div class="col-12"><dt>Lý do / thuyết minh</dt><dd style="white-space:pre-line">@Model.LyDo</dd></div> }
+    <div class="col-md-6"><dt>Quy trình duyệt</dt><dd>
+        @if (Model.CapCuoi == 0) { <span class="text-muted">Chưa gửi duyệt · Dự toán ≥ @nguong.ToString("N0") đ cần Lãnh đạo duyệt</span> }
+        else { @string.Join(" → ", Model.CacCap().Select(DeXuatMuaSam.TenCap)) }</dd></div>
+    @if (Model.TrangThai == TrangThaiDeXuat.ChoDuyet) { <div class="col-md-6"><dt>Đang chờ</dt><dd>@DeXuatMuaSam.TenCap(Model.CapHienTai) <span class="text-muted small">(@string.Join(", ", nguoiDuyet))</span></dd></div> }
+</dl></div></div>
+<div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+    <thead><tr><th>Hàng hoá</th><th>ĐVT</th><th class="text-end">Số lượng</th><th class="text-end">Đơn giá dự kiến</th><th class="text-end">Thành tiền</th><th class="text-end">Đã đặt</th><th>Ghi chú</th></tr></thead>
+    <tbody>@foreach (var d in Model.Dongs) {
+        <tr><td>@if (d.Loai == LoaiHangMua.VatTu) { <a asp-controller="Kho" asp-action="TheKho" asp-route-vatTuId="@d.VatTuId">@d.VatTu?.Ma</a> @d.VatTu?.Ten } else { <span class="badge bg-light text-dark border">Thiết bị</span> @d.LoaiThietBi?.Ten<div class="small">@d.MoTa</div> }</td>
+            <td>@d.DonViTinh</td><td class="text-end">@d.SoLuong.ToString("0.##")</td><td class="text-end">@d.DonGiaDuKien.ToString("N0")</td><td class="text-end">@d.ThanhTien.ToString("N0")</td>
+            <td class="text-end @(d.SoLuongDaDat >= d.SoLuong ? "text-success" : "")">@d.SoLuongDaDat.ToString("0.##")</td><td class="small">@d.GhiChu</td></tr> }
+    </tbody>
+    <tfoot><tr><td colspan="4" class="text-end">Tổng dự toán</td><td class="text-end fw-semibold">@Model.TongDuToan.ToString("N0") đ</td><td colspan="2"></td></tr></tfoot>
+</table></div></div>
+<div class="row g-3">
+    <div class="col-lg-7"><div class="card h-100"><div class="card-header">Lịch sử duyệt</div><ul class="list-group list-group-flush">
+        @foreach (var b in Model.BuocDuyets.OrderBy(b => b.ThoiGian))
+        {
+            <li class="list-group-item small"><i class="bi @(b.DongY ? "bi-check-circle text-success" : "bi-x-circle text-danger")"></i>
+                <b>@DeXuatMuaSam.TenCap(b.Cap)</b> · @(b.TenNguoiDuyet ?? b.NguoiDuyet) · @b.ThoiGian.ToString("dd/MM/yyyy HH:mm") @(b.DongY ? "đồng ý" : "từ chối")
+                @if (!string.IsNullOrEmpty(b.YKien)) { <div class="text-muted">“@b.YKien”</div> }</li>
+        }
+        @if (Model.BuocDuyets.Count == 0) { <li class="list-group-item small text-muted">Chưa có.</li> }
+    </ul>
+    @if (duocDuyet)
+    {
+        <div class="card-body border-top">
+            <form asp-action="Duyet" asp-route-id="@Model.Id" method="post">
+                <label class="form-label" for="yKien">Ý kiến (@DeXuatMuaSam.TenCap(Model.CapHienTai))</label>
+                <textarea name="yKien" id="yKien" class="form-control mb-2" rows="2" placeholder="Bắt buộc khi từ chối"></textarea>
+                <button name="dongY" value="true" class="btn btn-success"><i class="bi bi-check2"></i> Duyệt</button>
+                <button name="dongY" value="false" class="btn btn-outline-danger">Từ chối</button>
+            </form>
+        </div>
+    }
+    </div></div>
+    <div class="col-lg-5"><div class="card h-100"><div class="card-header">Đơn hàng đã lập</div><ul class="list-group list-group-flush">
+        @foreach (var d in donHangs) { <li class="list-group-item small"><a asp-action="DonHang" asp-route-id="@d.Id">@d.SoPhieu</a> · @Html.Raw(Badge.Html(d.TrangThai))</li> }
+        @if (donHangs.Count == 0) { <li class="list-group-item small text-muted">Chưa có.</li> }
+    </ul></div></div>
+</div>

@@ -1,0 +1,55 @@
+@model DonMuaHang
+@{ ViewData["Title"] = "Lập đơn mua hàng"; var dongs = (List<DongDeXuat>)ViewBag.Dongs; var i = 0; }
+<div class="small text-muted mb-1"><a asp-action="DonHangs">Đơn mua hàng</a> › Lập đơn</div>
+<div class="page-head"><h1>Lập đơn mua hàng</h1></div>
+@if (dongs.Count == 0)
+{
+    <div class="alert alert-info">Không có dòng đề xuất nào đã duyệt mà chưa đặt hàng. <a asp-action="Index">Xem đề xuất</a></div>
+}
+else
+{
+<form asp-action="LapDon" method="post">
+    <div class="card mb-3"><div class="card-body row g-3">
+        <div class="col-md-4"><label asp-for="NhaCungCapId" class="form-label"></label><select asp-for="NhaCungCapId" asp-items="ViewBag.DsNcc" class="form-select" required><option value="">— Chọn —</option></select></div>
+        <div class="col-md-4"><label asp-for="HopDongId" class="form-label"></label><select asp-for="HopDongId" asp-items="ViewBag.DsHopDong" class="form-select"><option value="">—</option></select></div>
+        <div class="col-md-4"><label asp-for="CanCu" class="form-label"></label><input asp-for="CanCu" class="form-control" /></div>
+        <div class="col-md-3"><label asp-for="HanGiao" class="form-label"></label><input asp-for="HanGiao" type="date" class="form-control" /></div>
+        <div class="col-md-3"><label asp-for="ThueSuat" class="form-label"></label><input asp-for="ThueSuat" type="number" step="any" min="0" max="100" class="form-control" id="thue" /></div>
+        <div class="col-md-3"><label asp-for="BaoHanhThang" class="form-label"></label><input asp-for="BaoHanhThang" type="number" min="0" max="120" class="form-control" /></div>
+        <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    </div></div>
+    <div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+        <thead><tr><th></th><th>Đề xuất</th><th>Hàng hoá</th><th class="text-end">Còn chưa đặt</th><th>Số lượng đặt</th><th>Đơn giá (chưa thuế)</th><th class="text-end">Thành tiền</th></tr></thead>
+        <tbody id="dong">
+        @foreach (var d in dongs)
+        {
+            <tr><td><input type="hidden" name="dong[@i].Id" value="@d.Id" /><input class="form-check-input chon" type="checkbox" name="dong[@i].Chon" value="true" checked aria-label="Chọn" /></td>
+                <td class="small"><a asp-action="DeXuat" asp-route-id="@d.DeXuatMuaSamId">@d.DeXuatMuaSam?.SoPhieu</a></td>
+                <td>@d.TenHang</td><td class="text-end">@d.ConLai.ToString("0.##") @d.DonViTinh</td>
+                <td><input name="dong[@i].SoLuong" type="number" step="any" min="0" max="@d.ConLai.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" value="@d.ConLai.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm sl" style="width:100px" aria-label="Số lượng" /></td>
+                <td><input name="dong[@i].DonGia" type="number" step="1" min="0" value="@d.DonGiaDuKien.ToString("0")" class="form-control form-control-sm gia" style="width:130px" aria-label="Đơn giá" /></td>
+                <td class="text-end tt"></td></tr>
+            i++;
+        }
+        </tbody>
+        <tfoot>
+            <tr><td colspan="6" class="text-end">Tiền hàng</td><td class="text-end" id="tien"></td></tr>
+            <tr><td colspan="6" class="text-end">Thuế GTGT</td><td class="text-end" id="tienThue"></td></tr>
+            <tr><td colspan="6" class="text-end fw-semibold">Tổng cộng</td><td class="text-end fw-semibold" id="tong"></td></tr>
+        </tfoot>
+    </table></div></div>
+    <button class="btn btn-primary"><i class="bi bi-save"></i> Lập đơn (nháp)</button> <a asp-action="DonHangs" class="btn btn-link">Huỷ</a>
+</form>
+}
+@section Scripts {
+<script>
+(function () {
+    const tb = document.getElementById('dong'); if (!tb) return; const fmt = new Intl.NumberFormat('vi-VN'), thue = document.getElementById('thue');
+    const tinh = () => { let t = 0; [...tb.rows].forEach(r => { const v = r.querySelector('.chon').checked ? (+r.querySelector('.sl').value || 0) * (+r.querySelector('.gia').value || 0) : 0;
+        r.querySelector('.tt').textContent = fmt.format(v); t += v; });
+        const th = Math.round(t * (+thue.value || 0) / 100);
+        document.getElementById('tien').textContent = fmt.format(t); document.getElementById('tienThue').textContent = fmt.format(th); document.getElementById('tong').textContent = fmt.format(t + th) + ' đ'; };
+    tb.addEventListener('input', tinh); tb.addEventListener('change', tinh); thue.addEventListener('input', tinh); tinh();
+})();
+</script>
+}

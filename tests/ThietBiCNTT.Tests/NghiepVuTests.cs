@@ -330,3 +330,93 @@ public class KhoTests
         P(LyDoPhieuKho.KiemKe, new ChiTietPhieuKho { VatTuId = 1, SoLuong = -3 }).KiemTraHopLe();
     }
 }
+
+public class MuaSamTests
+{
+    private static readonly DateTime Now = new(2026, 11, 24, 9, 0, 0);
+    private static DeXuatMuaSam Dx(decimal donGia, int sl = 2) => new()
+    {
+        NguoiTao = "ktv1", TieuDe = "Mua",
+        Dongs = [new DongDeXuat { Loai = LoaiHangMua.VatTu, VatTuId = 1, SoLuong = sl, DonGiaDuKien = donGia }]
+    };
+
+    [Fact]
+    public void DuoiNguong_KhongCapVatTu_MotCap()
+    {
+        var dx = Dx(1_000_000);
+        dx.GuiDuyet(50_000_000, coCapVatTu: false);
+        Assert.Equal([DeXuatMuaSam.CapCNTT], dx.CacCap());
+        dx.Duyet("admin", "Admin", true, null, Now);
+        Assert.Equal(TrangThaiDeXuat.DaDuyet, dx.TrangThai);
+    }
+
+    [Fact]
+    public void TuNguong_BaCap_CoVatTu()
+    {
+        var dx = Dx(30_000_000);
+        dx.GuiDuyet(50_000_000, coCapVatTu: true);
+        Assert.Equal([1, 2, 3], dx.CacCap());
+        dx.Duyet("admin", "A", true, null, Now);
+        Assert.Equal(DeXuatMuaSam.CapVatTu, dx.CapHienTai);
+        Assert.Throws<DomainException>(() => dx.Duyet("admin", "A", true, null, Now)); // một người không duyệt hai cấp
+        dx.Duyet("vattu", "V", true, null, Now);
+        dx.Duyet("lanhdao", "L", true, null, Now);
+        Assert.Equal(TrangThaiDeXuat.DaDuyet, dx.TrangThai);
+    }
+
+    [Fact]
+    public void TuNguong_KhongCapVatTu_BoQuaCap2()
+    {
+        var dx = Dx(30_000_000);
+        dx.GuiDuyet(50_000_000, coCapVatTu: false);
+        Assert.Equal([1, 3], dx.CacCap());
+        dx.Duyet("admin", "A", true, null, Now);
+        Assert.Equal(DeXuatMuaSam.CapLanhDao, dx.CapHienTai);
+    }
+
+    [Fact]
+    public void KhongTuDuyet_TuChoiCanLyDo_GuiLai()
+    {
+        var dx = Dx(100_000);
+        Assert.Throws<DomainException>(() => new DeXuatMuaSam { NguoiTao = "a" }.GuiDuyet(1, false)); // không có dòng
+        dx.GuiDuyet(50_000_000, false);
+        Assert.Throws<DomainException>(() => dx.Duyet("ktv1", "K", true, null, Now));
+        Assert.Throws<DomainException>(() => dx.Duyet("admin", "A", false, " ", Now));
+        dx.Duyet("admin", "A", false, "Chưa cần", Now);
+        Assert.Equal(TrangThaiDeXuat.TuChoi, dx.TrangThai);
+        dx.GuiDuyet(50_000_000, false);              // gửi lại sau khi sửa
+        dx.Duyet("admin", "A", true, null, Now);     // lượt mới — được duyệt lại
+        Assert.Equal(TrangThaiDeXuat.DaDuyet, dx.TrangThai);
+    }
+
+    [Fact]
+    public void TrangThaiTheoDatHang_VaNhanHang()
+    {
+        var dx = Dx(100_000, 4);
+        dx.GuiDuyet(50_000_000, false); dx.Duyet("admin", "A", true, null, Now);
+        dx.Dongs[0].SoLuongDaDat = 1; dx.CapNhatTheoDonHang();
+        Assert.Equal(TrangThaiDeXuat.DatMotPhan, dx.TrangThai);
+        dx.Dongs[0].SoLuongDaDat = 4; dx.CapNhatTheoDonHang();
+        Assert.Equal(TrangThaiDeXuat.DaDatDu, dx.TrangThai);
+
+        var dh = new DonMuaHang { ThueSuat = 10, HanGiao = new DateOnly(2026, 11, 20), Dongs = [new DongDonHang { SoLuong = 4, DonGia = 100_000 }] };
+        Assert.Equal(440_000, dh.TongTien);
+        Assert.False(dh.TreHan(new DateOnly(2026, 11, 24))); // nháp không tính trễ
+        dh.DatHang(Now);
+        Assert.True(dh.TreHan(new DateOnly(2026, 11, 24)));
+        dh.Dongs[0].SoLuongDaNhan = 1; dh.CapNhatTheoNhanHang();
+        Assert.Equal(TrangThaiDonHang.NhanMotPhan, dh.TrangThai);
+        dh.Dongs[0].SoLuongDaNhan = 4; dh.CapNhatTheoNhanHang();
+        Assert.Equal(TrangThaiDonHang.DaNhanDu, dh.TrangThai);
+        Assert.False(dh.TreHan(new DateOnly(2026, 11, 24)));
+    }
+
+    [Fact]
+    public void DongThietBi_PhaiCoLoaiVaMoTa()
+    {
+        var dx = new DeXuatMuaSam { Dongs = [new DongDeXuat { Loai = LoaiHangMua.ThietBi, SoLuong = 1, LoaiThietBiId = 1 }] };
+        Assert.Throws<DomainException>(dx.KiemTraDong);
+        dx.Dongs[0].MoTa = "PC Core i5";
+        dx.KiemTraDong();
+    }
+}

@@ -1,0 +1,75 @@
+@model DeXuatMuaSam
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Lập đề xuất mua sắm" : "Sửa đề xuất " + Model.SoPhieu;
+    var vts = (List<VatTu>)ViewBag.VatTus; var loais = (List<LoaiThietBi>)ViewBag.LoaiTBs; var dangMua = (Dictionary<int, decimal>)ViewBag.DangMua;
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Mua sắm</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="LapDeXuat" method="post">
+    <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="PhieuSuaChuaId" />
+    <div class="card mb-3"><div class="card-body row g-3">
+        <div class="col-md-8"><label asp-for="TieuDe" class="form-label"></label><input asp-for="TieuDe" class="form-control" required /></div>
+        <div class="col-md-4"><label asp-for="CanCu" class="form-label"></label><select asp-for="CanCu" asp-items="@EnumExtensions.ToSelectList<CanCuDeXuat>(Model.CanCu)" class="form-select"></select></div>
+        <div class="col-12"><label asp-for="LyDo" class="form-label"></label><textarea asp-for="LyDo" class="form-control" rows="2"></textarea></div>
+        @if (Model.PhieuSuaChuaId is not null) { <div class="col-12 small text-muted">Gắn với phiếu sửa chữa #@Model.PhieuSuaChuaId</div> }
+    </div></div>
+    <div class="card mb-3"><div class="card-header d-flex gap-2 align-items-center">Hàng hoá đề xuất
+        <button type="button" class="btn btn-sm btn-outline-primary ms-auto them" data-loai="VatTu"><i class="bi bi-plus"></i> Vật tư</button>
+        <button type="button" class="btn btn-sm btn-outline-primary them" data-loai="ThietBi"><i class="bi bi-plus"></i> Thiết bị mới</button></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+            <thead><tr><th style="width:40%">Hàng hoá</th><th>Tồn / đang mua</th><th>Số lượng</th><th>Đơn giá dự kiến</th><th class="text-end">Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
+            <tbody id="dong"></tbody>
+            <tfoot><tr><td colspan="4" class="text-end">Tổng dự toán</td><td class="text-end fw-semibold text-nowrap" id="tong">0</td><td colspan="2"></td></tr></tfoot>
+        </table></div>
+    </div>
+    <button class="btn btn-outline-primary"><i class="bi bi-save"></i> Lưu nháp</button>
+    <button class="btn btn-primary" name="guiDuyet" value="true"><i class="bi bi-send"></i> Lưu & gửi duyệt</button>
+    <a asp-action="Index" class="btn btn-link">Huỷ</a>
+</form>
+<template id="VatTu">
+    <tr><td><input type="hidden" name="dong[#].Loai" value="VatTu" />
+        <select name="dong[#].VatTuId" class="form-select form-select-sm vt" aria-label="Vật tư" required><option value="">— Chọn vật tư —</option>
+        @foreach (var v in vts) { <option value="@v.Id" data-gia="@v.DonGia.ToString("0")" data-ton="@v.TonKho.ToString("0.##") @v.DonViTinh" data-dang="@dangMua.GetValueOrDefault(v.Id).ToString("0.##")">@v.Ma – @v.Ten</option> }</select></td>
+        <td class="small text-muted ton">—</td>
+        <td><input name="dong[#].SoLuong" type="number" step="any" min="0.01" class="form-control form-control-sm sl" style="width:100px" aria-label="Số lượng" required /></td>
+        <td><input name="dong[#].DonGia" type="number" step="1" min="0" class="form-control form-control-sm gia" style="width:130px" aria-label="Đơn giá" /></td>
+        <td class="text-end tt">0</td>
+        <td><input name="dong[#].GhiChu" class="form-control form-control-sm" aria-label="Ghi chú" /></td>
+        <td><button type="button" class="btn btn-sm btn-link text-danger xoa" aria-label="Xoá dòng"><i class="bi bi-x-lg"></i></button></td></tr>
+</template>
+<template id="ThietBi">
+    <tr><td><input type="hidden" name="dong[#].Loai" value="ThietBi" />
+        <select name="dong[#].LoaiThietBiId" class="form-select form-select-sm mb-1" aria-label="Loại thiết bị" required><option value="">— Loại thiết bị —</option>
+        @foreach (var l in loais) { <option value="@l.Id">@l.Ten</option> }</select>
+        <input name="dong[#].MoTa" class="form-control form-control-sm" placeholder="Tên / cấu hình (VD: Máy tính Core i5, 16GB, SSD 512GB)" aria-label="Mô tả" required /></td>
+        <td class="small text-muted">Tài sản mới</td>
+        <td><input name="dong[#].SoLuong" type="number" step="1" min="1" class="form-control form-control-sm sl" style="width:100px" aria-label="Số lượng" required /></td>
+        <td><input name="dong[#].DonGia" type="number" step="1" min="0" class="form-control form-control-sm gia" style="width:130px" aria-label="Đơn giá" required /></td>
+        <td class="text-end tt">0</td>
+        <td><input name="dong[#].GhiChu" class="form-control form-control-sm" aria-label="Ghi chú" /></td>
+        <td><button type="button" class="btn btn-sm btn-link text-danger xoa" aria-label="Xoá dòng"><i class="bi bi-x-lg"></i></button></td></tr>
+</template>
+@section Scripts {
+<script>
+(function () {
+    const cu = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Dongs.Select(d => new { loai = d.Loai.ToString(), d.VatTuId, d.LoaiThietBiId, d.MoTa, d.SoLuong, gia = d.DonGiaDuKien, d.GhiChu })));
+    const tb = document.getElementById('dong'), fmt = new Intl.NumberFormat('vi-VN');
+    const danhLai = () => [...tb.rows].forEach((r, i) => r.querySelectorAll('[name^="dong["]').forEach(e => e.name = e.name.replace(/^dong\[[^\]]*\]/, 'dong[' + i + ']')));
+    const tinh = () => { let t = 0; [...tb.rows].forEach(r => { const v = (+r.querySelector('.sl').value || 0) * (+r.querySelector('.gia').value || 0); r.querySelector('.tt').textContent = fmt.format(v); t += v; });
+        document.getElementById('tong').textContent = fmt.format(t) + ' đ'; };
+    const capNhat = r => { const s = r.querySelector('.vt'); if (!s) return; const o = s.selectedOptions[0];
+        r.querySelector('.ton').textContent = s.value ? o.dataset.ton + (+o.dataset.dang ? ' · đang mua ' + o.dataset.dang : '') : '—';
+        const g = r.querySelector('.gia'); if (s.value && !g.value) g.value = o.dataset.gia; tinh(); };
+    const them = (loai, d) => { tb.insertAdjacentHTML('beforeend', document.getElementById(loai).innerHTML); danhLai();
+        const r = tb.rows[tb.rows.length - 1];
+        if (d) { const set = (n, v) => { const e = r.querySelector(`[name$="].${n}"]`); if (e && v != null) e.value = v; };
+            set('VatTuId', d.VatTuId); set('LoaiThietBiId', d.LoaiThietBiId); set('MoTa', d.MoTa); set('SoLuong', d.SoLuong); set('DonGia', d.gia); set('GhiChu', d.GhiChu); capNhat(r); } };
+    document.querySelectorAll('.them').forEach(b => b.onclick = () => them(b.dataset.loai));
+    tb.addEventListener('change', e => { if (e.target.classList.contains('vt')) capNhat(e.target.closest('tr')); });
+    tb.addEventListener('input', tinh);
+    tb.addEventListener('click', e => { if (e.target.closest('.xoa')) { e.target.closest('tr').remove(); danhLai(); tinh(); } });
+    if (cu.length) cu.forEach(d => them(d.loai, d)); else them('VatTu');
+    tinh();
+})();
+</script>
+}

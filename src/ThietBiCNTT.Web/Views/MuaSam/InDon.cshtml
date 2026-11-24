@@ -1,0 +1,18 @@
+@model DonMuaHang
+@{ Layout = "_Print"; ViewData["Title"] = Model.SoPhieu; var i = 1; }
+<partial name="_HeaderBenhVien" />
+<h3>ĐƠN ĐẶT HÀNG</h3>
+<p class="text-center">Số: <b>@Model.SoPhieu</b> · Ngày @((Model.NgayDatHang ?? Model.NgayTao).ToString("dd/MM/yyyy"))</p>
+<p>Kính gửi: <b>@Model.NhaCungCap?.Ten</b>@if (!string.IsNullOrEmpty(Model.NhaCungCap?.DiaChi)) { <br />@("Địa chỉ: " + Model.NhaCungCap.DiaChi) }<br />
+Căn cứ: @(Model.HopDong is null ? "" : "Hợp đồng " + Model.HopDong.SoHopDong + " ") @Model.CanCu<br />
+Đề nghị quý đơn vị cung cấp các hàng hoá sau:</p>
+<table class="bb w-100 mb-3">
+    <tr><th>STT</th><th>Tên hàng hoá / quy cách</th><th>ĐVT</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+    @foreach (var d in Model.Dongs) { <tr><td>@(i++)</td><td>@d.TenHang</td><td>@(d.VatTu?.DonViTinh ?? d.DongDeXuat?.DonViTinh)</td><td class="text-end">@d.SoLuong.ToString("0.##")</td><td class="text-end">@d.DonGia.ToString("N0")</td><td class="text-end">@d.ThanhTien.ToString("N0")</td></tr> }
+    <tr><td colspan="5" class="text-end">Cộng tiền hàng</td><td class="text-end">@Model.TienHang.ToString("N0")</td></tr>
+    <tr><td colspan="5" class="text-end">Thuế GTGT @Model.ThueSuat.ToString("0.##")%</td><td class="text-end">@Model.TienThue.ToString("N0")</td></tr>
+    <tr><td colspan="5" class="text-end"><b>Tổng cộng</b></td><td class="text-end"><b>@Model.TongTien.ToString("N0")</b></td></tr>
+</table>
+<p>Thời hạn giao hàng: @(Model.HanGiao?.ToString("dd/MM/yyyy") ?? "theo thoả thuận") · Bảo hành: @Model.BaoHanhThang tháng.
+@if (!string.IsNullOrEmpty(Model.GhiChu)) { <br />@Model.GhiChu }</p>
+<div class="ky"><div><b>Người lập</b><br /><i>(Ký, ghi rõ họ tên)</i><br /><br /><br />@Model.NguoiTao</div><div><b>Trưởng phòng CNTT</b><br /><i>(Ký, ghi rõ họ tên)</i></div><div><b>Thủ trưởng đơn vị</b><br /><i>(Ký, đóng dấu)</i></div></div>

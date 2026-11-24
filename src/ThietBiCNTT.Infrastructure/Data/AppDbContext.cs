@@ -43,6 +43,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<PhieuKho> PhieuKhos => Set<PhieuKho>();
     public DbSet<ChiTietPhieuKho> ChiTietPhieuKhos => Set<ChiTietPhieuKho>();
     public DbSet<TheKho> TheKhos => Set<TheKho>();
+    public DbSet<DeXuatMuaSam> DeXuatMuaSams => Set<DeXuatMuaSam>();
+    public DbSet<DongDeXuat> DongDeXuats => Set<DongDeXuat>();
+    public DbSet<BuocDuyetMuaSam> BuocDuyetMuaSams => Set<BuocDuyetMuaSam>();
+    public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
+    public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
+    public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
     public DbSet<HopDongTaiSan> HopDongTaiSans => Set<HopDongTaiSan>();
     public DbSet<BanQuyenPhanMem> BanQuyenPhanMems => Set<BanQuyenPhanMem>();
     public DbSet<CapPhatBanQuyen> CapPhatBanQuyens => Set<CapPhatBanQuyen>();
@@ -146,6 +152,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.Property(x => x.Nhap).HasPrecision(18, 2); e.Property(x => x.Xuat).HasPrecision(18, 2); e.Property(x => x.TonSau).HasPrecision(18, 2);
         });
         b.Entity<VatTu>().Property(x => x.TonToiDa).HasPrecision(18, 2);
+        b.Entity<DeXuatMuaSam>(e =>
+        {
+            e.HasIndex(x => x.SoPhieu).IsUnique();
+            e.HasIndex(x => new { x.TrangThai, x.CapHienTai });
+            e.HasMany(x => x.Dongs).WithOne(x => x.DeXuatMuaSam).HasForeignKey(x => x.DeXuatMuaSamId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.BuocDuyets).WithOne().HasForeignKey(x => x.DeXuatMuaSamId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<DongDeXuat>(e => { e.Property(x => x.SoLuong).HasPrecision(18, 2); e.Property(x => x.SoLuongDaDat).HasPrecision(18, 2); });
+        b.Entity<DonMuaHang>(e =>
+        {
+            e.HasIndex(x => x.SoPhieu).IsUnique();
+            e.HasIndex(x => new { x.TrangThai, x.HanGiao });
+            e.Property(x => x.ThueSuat).HasPrecision(5, 2);
+            e.HasMany(x => x.Dongs).WithOne(x => x.DonMuaHang).HasForeignKey(x => x.DonMuaHangId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.PhieuNhans).WithOne(x => x.DonMuaHang).HasForeignKey(x => x.DonMuaHangId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<DongDonHang>(e => { e.Property(x => x.SoLuong).HasPrecision(18, 2); e.Property(x => x.SoLuongDaNhan).HasPrecision(18, 2); });
         b.Entity<HopDongTaiSan>(e =>
         {
             e.HasKey(x => new { x.HopDongId, x.TaiSanId });

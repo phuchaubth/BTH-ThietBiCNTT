@@ -52,6 +52,14 @@ public static class Badge
         TrangThaiDieuChuyen.DaDuyet or TrangThaiThanhLy.DaDanhGia or TrangThaiThanhLy.DaPheDuyet => "info",
         TrangThaiDieuChuyen.DaBanGiao or TrangThaiThanhLy.DaThanhLy => "success",
         TrangThaiDieuChuyen.TuChoi or TrangThaiThanhLy.TuChoi => "danger",
+        Domain.Entities.TrangThaiDeXuat.ChoDuyet => "warning text-dark",
+        Domain.Entities.TrangThaiDeXuat.DaDuyet or Domain.Entities.TrangThaiDeXuat.DatMotPhan => "info",
+        Domain.Entities.TrangThaiDeXuat.DaDatDu => "success",
+        Domain.Entities.TrangThaiDeXuat.TuChoi => "danger",
+        Domain.Entities.TrangThaiDeXuat.DaHuy or Domain.Entities.TrangThaiDonHang.DaHuy => "light text-muted border",
+        Domain.Entities.TrangThaiDonHang.DaDatHang => "primary",
+        Domain.Entities.TrangThaiDonHang.NhanMotPhan => "info",
+        Domain.Entities.TrangThaiDonHang.DaNhanDu => "success",
         _ => "secondary"
     };
 
