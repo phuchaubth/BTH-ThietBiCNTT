@@ -37,7 +37,24 @@
             <a class="nav-item" asp-controller="PhieuSuaChua" asp-action="GuiHang"><i class="bi bi-truck"></i> Đang gửi hãng</a>
             <a class="nav-item @Act("BaoCao")" asp-controller="BaoCao" asp-action="Index"><i class="bi bi-bar-chart-line"></i> Báo cáo & KPI</a>
         }
+        @if (quanLy)
+        {
+            <div class="nav-section">Hạ tầng CNTT (JCI 8)</div>
+            <a class="nav-item @Act("HeThong")" asp-controller="HeThong" asp-action="Index"><i class="bi bi-hdd-network"></i> Hệ thống thông tin</a>
+            <a class="nav-item @Act("KeHoachDowntime")" asp-controller="KeHoachDowntime" asp-action="Index"><i class="bi bi-file-earmark-medical"></i> Kế hoạch downtime</a>
+            <a class="nav-item @Act("SuKienDowntime")" asp-controller="SuKienDowntime" asp-action="Index"><i class="bi bi-exclamation-octagon"></i> Sự kiện downtime</a>
+            <a class="nav-item @Act("DienTap")" asp-controller="DienTap" asp-action="Index"><i class="bi bi-clipboard-pulse"></i> Diễn tập downtime</a>
+            <a class="nav-item @Act("SaoLuu")" asp-controller="SaoLuu" asp-action="Index"><i class="bi bi-database-check"></i> Sao lưu & phục hồi</a>
+            <a class="nav-item @Act("HanhDong")" asp-controller="HanhDong" asp-action="Index"><i class="bi bi-list-check"></i> Hành động khắc phục</a>
+        }
+        else if (User.IsInRole(VaiTro.TruongKhoa))
+        {
+            <div class="nav-section">Hệ thống thông tin</div>
+            <a class="nav-item @Act("HeThong")" asp-controller="HeThong" asp-action="Index"><i class="bi bi-hdd-network"></i> Hệ thống khoa sử dụng</a>
+            <a class="nav-item @Act("SuKienDowntime")" asp-controller="SuKienDowntime" asp-action="Index"><i class="bi bi-exclamation-octagon"></i> Sự kiện downtime</a>
+        }
         <div class="nav-section">Nghiệp vụ</div>
+        <a class="nav-item @Act("KeHoachDowntime")" asp-controller="KeHoachDowntime" asp-action="BoKhoa"><i class="bi bi-printer"></i> Bộ downtime của khoa</a>
         <a class="nav-item @Act("DieuChuyen")" asp-controller="DieuChuyen" asp-action="Index"><i class="bi bi-arrow-left-right"></i> Điều chuyển</a>
         @if (quanLy) { <a class="nav-item @Act("ThanhLy")" asp-controller="ThanhLy" asp-action="Index"><i class="bi bi-trash3"></i> Thanh lý</a> }
         @if (User.LaCNTT())

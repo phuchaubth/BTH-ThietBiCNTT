@@ -1165,6 +1165,12 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<bool>("CanRaSoat")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("DaNhacRaSoat")
+                        .HasColumnType("bit");
+
                     b.Property<string>("DanhBa")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -1172,6 +1178,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     b.Property<int>("HeThongId")
                         .HasColumnType("int");
+
+                    b.Property<string>("LyDoRaSoat")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("LyDoTuChoi")
                         .HasMaxLength(1000)
@@ -2134,6 +2144,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AnhHuongAnToan")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("BatDau")
                         .HasColumnType("datetime2");
 
@@ -2291,7 +2304,7 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ChuKyGio")
+                    b.Property<int>("ChuKyPhut")
                         .HasColumnType("int");
 
                     b.Property<bool>("CoBanNgoaiCoSo")

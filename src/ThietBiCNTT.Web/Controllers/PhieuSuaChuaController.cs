@@ -24,7 +24,7 @@ public class BaoHongVm
     public bool XacNhanTrung { get; set; }
 }
 
-public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb, TepService tep) : Controller
+public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, UserManager<AppUser> users, ThamSoService thamSo, ThongBaoService tb, TepService tep, HaTangService haTang) : Controller
 {
     private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
 
@@ -129,6 +129,12 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
         ViewBag.VatTu = new SelectList(await db.VatTus.Where(v => v.TonKho > 0).OrderBy(v => v.Ten)
             .Select(v => new { v.Id, Ten = v.Ma + " - " + v.Ten + " (tồn " + ((double)v.TonKho).ToString() + " " + v.DonViTinh + ")" }).ToListAsync(), "Id", "Ten");
         ViewBag.Tep = await tep.DanhSachAsync("PhieuSuaChua", id.ToString());
+        // FR-HTT-11: hệ thống thông tin phụ thuộc thiết bị này + sự kiện downtime đã mở từ phiếu
+        if (User.XemToanVien())
+        {
+            ViewBag.AnhHuong = await haTang.AnhHuongCuaTaiSanAsync(p.TaiSanId);
+            ViewBag.SuKienDowntime = await db.SuKienDowntimes.AsNoTracking().Where(s => s.PhieuSuaChuaId == p.Id).OrderByDescending(s => s.Id).ToListAsync();
+        }
         ViewBag.LichSuThietBi = await db.PhieuSuaChuas.AsNoTracking().Where(x => x.TaiSanId == p.TaiSanId && x.Id != p.Id)
             .OrderByDescending(x => x.NgayYeuCau).Take(5).ToListAsync();
         return View(p);

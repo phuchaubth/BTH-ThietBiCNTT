@@ -1,0 +1,25 @@
+@model List<KeHoachDowntime>
+@{
+    ViewData["Title"] = "Kế hoạch downtime";
+    var tt = ViewData["trangThai"] as TrangThaiKeHoach?; var homNay = (DateOnly)ViewBag.HomNay; var thieu = (List<HeThongThongTin>)ViewBag.ThieuKeHoach;
+}
+<div class="page-head"><h1>Kế hoạch downtime</h1><span class="text-muted small">HCT.01.04 – xây dựng và duy trì chương trình ứng phó ngừng hệ thống</span>
+    <div class="actions"><a asp-action="BoKhoa" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> Bộ downtime của khoa</a></div></div>
+@if (thieu.Count > 0)
+{
+    <div class="alert alert-danger py-2 small"><b><i class="bi bi-exclamation-octagon"></i> @thieu.Count hệ thống Tối quan trọng/Cao chưa có kế hoạch hiệu lực:</b>
+        @foreach (var h in thieu) { <span class="me-2">@h.Ma @if (User.LaCNTT()) { <a asp-action="Form" asp-route-heThongId="@h.Id">[lập]</a> }</span> }</div>
+}
+<form method="get" class="d-flex gap-2 mb-3"><select name="trangThai" class="form-select form-select-sm" style="width:220px" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Chưa hết hiệu lực —</option></select><button class="btn btn-sm btn-outline-secondary">Lọc</button></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Hệ thống</th><th>Mức</th><th>Phiên bản</th><th>Trạng thái</th><th>Duyệt</th><th>Hiệu lực</th><th>Rà soát</th></tr></thead><tbody>
+    @foreach (var k in Model)
+    {
+        <tr><td><a asp-action="Details" asp-route-id="@k.Id" class="fw-semibold">@k.HeThong!.Ma</a><div class="small text-muted">@k.HeThong.Ten</div></td>
+            <td>@Html.Raw(Badge.Html(k.HeThong.MucTrongYeu))</td><td>v@(k.PhienBan)</td><td>@Html.Raw(Badge.Html(k.TrangThai))</td>
+            <td class="small">@if (k.NguoiDuyetCntt is not null) { <div>CNTT: @k.NguoiDuyetCntt</div> } @if (k.NguoiDuyetLanhDao is not null) { <div>Lãnh đạo: @k.NguoiDuyetLanhDao</div> }</td>
+            <td class="small">@k.NgayHieuLuc?.ToString("dd/MM/yyyy")</td>
+            <td class="small">@k.NgayRaSoat?.ToString("dd/MM/yyyy") @if (k.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">Cần rà soát</span> }</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa có kế hoạch downtime.</td></tr> }
+    </tbody></table></div></div>

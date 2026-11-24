@@ -184,6 +184,7 @@ public static class DbSeeder
                 Checklist = "Đo điện áp ắc quy\nTest chuyển nguồn\nGhi nhận thời gian lưu điện", KyThuatVien = "ktv1" });
         await db.SaveChangesAsync();
         await TaoMauKiemTraMau(db, loai, khoa);
+        await TaoHaTangMauAsync(db, loai, khoa);
     }
 
     private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
@@ -202,6 +203,114 @@ public static class DbSeeder
             new MauKiemTra { Ten = "Kiểm tra máy tính đầu ca – Khoa Cấp cứu", LoaiThietBiId = loai["PC"].Id, KhoaPhongId = khoa["CC"].Id, ChuKyGio = 8,
                 MoTa = "Điều dưỡng trực kiểm tra đầu mỗi ca.",
                 Mucs = [Dk(1, "Khởi động & đăng nhập HIS được"), Dk(2, "Máy in phiếu / mã vạch hoạt động"), Dk(3, "Kết nối mạng ổn định")] });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Dữ liệu mẫu phân hệ hạ tầng CNTT (GĐ3.1): hệ thống thông tin, phụ thuộc, kế hoạch downtime, sao lưu, sự kiện, hành động.</summary>
+    private static async Task TaoHaTangMauAsync(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
+    {
+        if (await db.HeThongThongTins.AnyAsync()) return;
+        var now = DateTime.Now; var homNay = DateOnly.FromDateTime(now);
+        TaiSan Ts(string ma, string ten, string l, string hang) => new() { MaTaiSan = ma, Ten = ten, LoaiThietBiId = loai[l].Id, Hang = hang, NguyenGia = 180_000_000, NgayMua = homNay.AddYears(-3),
+            NgaySuDung = homNay.AddYears(-3), HanBaoHanh = homNay.AddMonths(8), KhoaPhongId = khoa["CNTT"].Id, TrangThai = TrangThaiTaiSan.DangSuDung, NguonVon = NguonVon.NganSach };
+        var sv1 = Ts("SV-0001", "Máy chủ ứng dụng HIS", "SV", "Dell"); var sv2 = Ts("SV-0002", "Máy chủ CSDL HIS", "SV", "Dell"); var sv3 = Ts("SV-0003", "Máy chủ LIS", "SV", "HP");
+        var sv4 = Ts("SV-0004", "Máy chủ PACS", "SV", "HP"); var sw1 = Ts("SW-0001", "Switch lõi tầng 3", "SW", "Cisco"); var ups1 = Ts("UPS-0101", "UPS phòng máy chủ 20kVA", "UPS", "APC");
+        db.TaiSans.AddRange(sv1, sv2, sv3, sv4, sw1, ups1);
+        await db.SaveChangesAsync();
+        db.LichSuTaiSans.AddRange(new[] { sv1, sv2, sv3, sv4, sw1, ups1 }.Select(t => new LichSuTaiSan { TaiSanId = t.Id, LoaiSuKien = LoaiSuKien.TaoMoi, NoiDung = "Nhập dữ liệu ban đầu", ThoiGian = now, NguoiThucHien = "system" }));
+
+        HeThongThongTin Ht(string ma, string ten, LoaiHeThong l, MucTrongYeu m, string? chuSoHuu, int? khoaChu) => new()
+        {
+            Ma = ma, Ten = ten, Loai = l, MucTrongYeu = m, TrangThai = TrangThaiHeThong.VanHanh, PhienBan = "1.0", NgaySuDung = homNay.AddYears(-2), ChuSoHuu = chuSoHuu, ChuSoHuuKhoaPhongId = khoaChu,
+            PhuTrachChinh = "ktv1", PhuTrachDuPhong = "ktv2", NguoiTao = "system", HoTroNhaCungCap = "Kỹ sư hỗ trợ – 0900 000 000 – 24/7"
+        };
+        var his = Ht("HIS", "Hệ thống thông tin bệnh viện (HIS)", LoaiHeThong.LamSang, MucTrongYeu.ToiQuanTrong, "Phó Giám đốc phụ trách khám chữa bệnh", khoa["KB"].Id);
+        var lis = Ht("LIS", "Hệ thống thông tin xét nghiệm (LIS)", LoaiHeThong.CanLamSang, MucTrongYeu.ToiQuanTrong, "Trưởng khoa Xét nghiệm", khoa["XN"].Id);
+        var pacs = Ht("PACS", "Lưu trữ và truyền hình ảnh (PACS)", LoaiHeThong.CanLamSang, MucTrongYeu.Cao, "Trưởng khoa CĐHA", khoa["CDHA"].Id);
+        var mail = Ht("EMAIL", "Thư điện tử nội bộ", LoaiHeThong.HaTangDungChung, MucTrongYeu.TrungBinh, "Trưởng phòng CNTT", khoa["CNTT"].Id);
+        pacs.PhuTrachChinh = "ktv2"; pacs.PhuTrachDuPhong = "ktv1"; mail.PhuTrachDuPhong = null;
+        db.HeThongThongTins.AddRange(his, lis, pacs, mail);
+        await db.SaveChangesAsync();
+        void Khoa(HeThongThongTin h, params string[] ma) { foreach (var m in ma) db.HeThongKhoaPhongs.Add(new HeThongKhoaPhong { HeThongId = h.Id, KhoaPhongId = khoa[m].Id, BatBuoc = true }); }
+        Khoa(his, "KB", "CC", "NOI", "NGOAI", "SAN", "NHI", "DUOC", "TCKT"); Khoa(lis, "XN", "CC", "KB"); Khoa(pacs, "CDHA", "CC", "NGOAI"); Khoa(mail, "CNTT", "KHTH");
+        db.PhuThuocHeThongs.AddRange(
+            new PhuThuocHeThong { HeThongId = his.Id, TaiSanId = sv1.Id, VaiTro = "Máy chủ ứng dụng", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = his.Id, TaiSanId = sv2.Id, VaiTro = "Máy chủ CSDL", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = his.Id, TaiSanId = sw1.Id, VaiTro = "Switch lõi", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = his.Id, TaiSanId = ups1.Id, VaiTro = "Nguồn điện phòng máy chủ", CoDuPhong = true },
+            new PhuThuocHeThong { HeThongId = lis.Id, HeThongPhuThuocId = his.Id, VaiTro = "Nhận chỉ định từ HIS", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = lis.Id, TaiSanId = sv3.Id, VaiTro = "Máy chủ LIS", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = pacs.Id, TaiSanId = sv4.Id, VaiTro = "Máy chủ PACS", CoDuPhong = false },
+            new PhuThuocHeThong { HeThongId = pacs.Id, TaiSanId = sw1.Id, VaiTro = "Switch lõi", CoDuPhong = false });
+        // Kế hoạch downtime: HIS hiệu lực (đã duyệt đủ cấp); PACS còn nháp; LIS chưa có (để minh hoạ cảnh báo BR-HTT-02)
+        db.KeHoachDowntimes.AddRange(
+            new KeHoachDowntime
+            {
+                HeThongId = his.Id, PhienBan = 1, TrangThai = TrangThaiKeHoach.HieuLuc, NgayHieuLuc = homNay.AddMonths(-3), NgayRaSoat = homNay.AddMonths(9), NguoiTao = "admin",
+                NguoiGuiDuyet = "ktv1", NguoiDuyetCntt = "admin", NgayDuyetCntt = now.AddMonths(-3), NguoiDuyetLanhDao = "lanhdao", NgayDuyetLanhDao = now.AddMonths(-3),
+                PhamVi = "HIS: tiếp đón, kê đơn, thanh toán, hồ sơ bệnh án điện tử. Ngừng ảnh hưởng toàn bộ khoa lâm sàng.",
+                TieuChiKichHoat = "HIS không truy cập được quá 15 phút, hoặc CNTT thông báo ngừng.",
+                DanhBa = "Trưởng phòng CNTT: 0901 000 001\nKTV trực: 0901 000 002\nNhà cung cấp HIS (24/7): 0900 000 000\nĐầu mối từng khoa: điều dưỡng trưởng. Kênh thay thế khi mạng hỏng: điện thoại nội bộ.",
+                BuocBatDau = "1. KTV trực xác nhận sự cố, báo Trưởng phòng CNTT.\n2. Thông báo tất cả khoa qua điện thoại nội bộ.\n3. Quá 30 phút: các khoa dùng bộ biểu mẫu giấy.\n4. Liên hệ nhà cung cấp.",
+                BuocTrongDowntime = "Cập nhật tình hình cho các khoa mỗi 30 phút. Máy trạm đọc-chỉ (read-only) tại khoa Cấp cứu.",
+                BuocKhoiPhuc = "Khôi phục từ máy chủ dự phòng hoặc bản sao lưu gần nhất; kiểm tra đăng nhập, mở hồ sơ mẫu; thông báo các khoa.",
+                QuyTrinhThayThe = "Dùng bộ biểu mẫu giấy đặt tại phòng điều dưỡng: phiếu đăng ký khám, y lệnh, phiếu xét nghiệm, phiếu thu. Giấy tờ cất giữ trong tủ khoá, không để lộ thông tin người bệnh.",
+                QuyTrinhNhapBu = "Nhập lại có cấu trúc: thuốc đã kê, dị ứng, chỉ định; quét: phiếu ký tay; chép lại: ghi chú điều dưỡng. Điều dưỡng trưởng đối chiếu, hoàn thành trong 24 giờ.",
+                TieuChiKetThuc = "HIS hoạt động ổn định 30 phút và các khoa xác nhận nhập bù."
+            },
+            new KeHoachDowntime
+            {
+                HeThongId = pacs.Id, PhienBan = 1, TrangThai = TrangThaiKeHoach.Nhap, NguoiTao = "ktv2",
+                TieuChiKichHoat = "PACS không truy cập được quá 15 phút.", DanhBa = "KTV trực: 0901 000 002", BuocBatDau = "Báo khoa CĐHA, chuyển sang in phim / ghi đĩa.",
+                BuocKhoiPhuc = "Khôi phục từ bản sao lưu, kiểm tra ảnh mẫu.", QuyTrinhThayThe = "In phim tạm, trả kết quả giấy.", QuyTrinhNhapBu = "Tải ảnh lên lại sau khôi phục."
+            });
+        // Sao lưu
+        var tv1 = new TacVuSaoLuu { HeThongId = his.Id, Ten = "CSDL HIS – full hằng đêm", DoiTuong = "SQL Server HIS_DB", Loai = LoaiSaoLuu.Full, ChuKyPhut = 1440, GioChay = new TimeOnly(1, 0), PhanMem = "SQL Server Agent", NoiLuu = "NAS nội bộ",
+            SoBanSao = 2, SoLoaiPhuongTien = 1, CoBanNgoaiCoSo = false, LuuGiuNgay = 30, MaHoa = true, TaiSanId = sv2.Id, NguoiTao = "system" };
+        var tv2 = new TacVuSaoLuu { HeThongId = his.Id, Ten = "CSDL HIS – log mỗi 15 phút", DoiTuong = "SQL Server HIS_DB (transaction log)", Loai = LoaiSaoLuu.Log, ChuKyPhut = 15, GioChay = new TimeOnly(0, 5), PhanMem = "SQL Server Agent", NoiLuu = "NAS nội bộ",
+            SoBanSao = 2, SoLoaiPhuongTien = 1, CoBanNgoaiCoSo = false, LuuGiuNgay = 14, MaHoa = true, TaiSanId = sv2.Id, NguoiTao = "system" };
+        var tv3 = new TacVuSaoLuu { HeThongId = pacs.Id, Ten = "Ảnh PACS – sao lưu hằng ngày", DoiTuong = "Kho ảnh DICOM", Loai = LoaiSaoLuu.TepTin, ChuKyPhut = 1440, GioChay = new TimeOnly(2, 0), PhanMem = "Veeam", NoiLuu = "NAS + ổ rời ngoại tuyến",
+            SoBanSao = 3, SoLoaiPhuongTien = 2, CoBanNgoaiCoSo = true, LuuGiuNgay = 90, MaHoa = true, TaiSanId = sv4.Id, NguoiTao = "system" };
+        db.TacVuSaoLuus.AddRange(tv1, tv2, tv3);
+        await db.SaveChangesAsync();
+        var rnd = new Random(7);
+        foreach (var tv in new[] { tv1, tv3 }) // tv2 (log 15 phút) chưa có kết quả nào: minh hoạ mốc "không rõ" và cảnh báo
+            for (var d = 12; d >= 1; d--)
+            {
+                var t = now.Date.AddDays(-d).AddHours(tv.GioChay.Hour).AddMinutes(rnd.Next(0, 20));
+                var ket = tv == tv1 && d == 4 ? KetQuaSaoLuu.Loi : tv == tv3 && d == 7 ? KetQuaSaoLuu.CanhBao : KetQuaSaoLuu.ThanhCong;
+                db.KetQuaSaoLuuLans.Add(new KetQuaSaoLuuLan { TacVuSaoLuuId = tv.Id, ThoiDiem = t, KetQua = ket, DungLuongGb = Math.Round((decimal)(rnd.NextDouble() * 20 + 40), 1), ThoiLuongPhut = rnd.Next(18, 40),
+                    GhiChu = ket == KetQuaSaoLuu.Loi ? "Hết dung lượng thư mục đích" : ket == KetQuaSaoLuu.CanhBao ? "Bỏ qua 3 tệp đang mở" : null, Nguon = NguonKetQua.NhapTay, NguoiGhi = "ktv1", ThoiGianGhi = t.AddHours(1) });
+            }
+        // Một lần thử phục hồi PACS đã chốt (đạt), HIS chưa từng thử → hệ thống nhắc / cảnh báo
+        db.LanThuPhucHois.Add(new LanThuPhucHoi
+        {
+            HeThongId = pacs.Id, TacVuSaoLuuId = tv3.Id, HanThucHien = homNay.AddMonths(-2), BanSaoLuu = "Full " + homNay.AddMonths(-2).AddDays(-1).ToString("dd/MM/yyyy") + " – NAS", ThoiDiemDuLieu = now.AddMonths(-2).AddHours(-30), ThoiDiemSuCo = now.AddMonths(-2).AddHours(-24),
+            MoiTruong = "Máy chủ thử PACS-TEST", BatDau = now.AddMonths(-2), KetThuc = now.AddMonths(-2).AddMinutes(95), KiemTraToanVen = "Mở được 5 ca mẫu, số ảnh khớp 100%.", NguoiXacNhanNghiepVu = "Trưởng khoa CĐHA",
+            ToanVenDat = true, RtoMucTieu = 480, RpoMucTieu = 60, Dat = false, DaChot = true, NguoiChot = "ktv2", NgayChot = now.AddMonths(-2).AddHours(3), NguoiTao = "system"
+        });
+        var pc = db.LanThuPhucHois.Local.First();
+        pc.Dat = pc.RpoDatPhut <= pc.RpoMucTieu && pc.RtoDatPhut <= pc.RtoMucTieu && pc.ToanVenDat;
+        // Sự kiện downtime đã đóng 20 ngày trước (có rút kinh nghiệm) + hành động khắc phục quá hạn
+        var skBd = now.AddDays(-20).Date.AddHours(9);
+        var sk = new SuKienDowntime
+        {
+            Ma = $"DT-{skBd:yyMM}-0001", Loai = LoaiDowntime.DotXuat, MucDo = MucDoDowntime.NgungHoanToan, TrangThai = TrangThaiSuKien.DaDong, MoTa = "Mất điện lưới, UPS cạn pin sau 18 phút, máy chủ HIS tắt đột ngột.",
+            BatDau = skBd, KetThuc = skBd.AddMinutes(55), KichHoatKeHoach = true, RtoPhut = 240, MucTrongYeuCaoNhat = MucTrongYeu.ToiQuanTrong, NguoiTao = "ktv1",
+            NguyenNhanGoc = "Ắc quy UPS xuống cấp, thời gian lưu điện chỉ còn 18 phút; chưa có máy phát tự động chuyển nguồn.", DiemTot = "Các khoa chuyển sang giấy trong 10 phút.", CanCaiThien = "Thay ắc quy UPS; thử chuyển nguồn hằng tháng; bổ sung thông báo qua loa nội bộ.",
+            CanSuaKeHoach = false, NgayRutKinhNghiem = skBd.AddDays(1), NguoiRutKinhNghiem = "admin", NgayDong = skBd.AddDays(2), NguoiDong = "admin"
+        };
+        sk.HeThongs.Add(new SuKienDowntimeHeThong { HeThongId = his.Id });
+        foreach (var m in new[] { "KB", "CC", "NOI" }) sk.Khoas.Add(new SuKienDowntimeKhoa { KhoaPhongId = khoa[m].Id, KichHoatGiay = true, DaNhapBu = true, NguoiXacNhan = "truongkhoacc", ThoiDiemXacNhan = skBd.AddHours(20) });
+        sk.NhatKys.Add(new NhatKyDowntime { ThoiDiem = skBd, NoiDung = "Phát hiện HIS ngừng, kích hoạt kế hoạch downtime.", NguoiGhi = "ktv1" });
+        sk.NhatKys.Add(new NhatKyDowntime { ThoiDiem = skBd.AddMinutes(55), NoiDung = "Hệ thống đã khôi phục.", NguoiGhi = "ktv1" });
+        db.SuKienDowntimes.Add(sk);
+        await db.SaveChangesAsync();
+        db.HanhDongKhacPhucs.Add(new HanhDongKhacPhuc
+        {
+            Ma = $"HD-{now:yyMM}-0001", Nguon = NguonHanhDong.SuKienDowntime, NguonId = sk.Id, MoTa = "Thay ắc quy UPS phòng máy chủ và thử chuyển nguồn hằng tháng.", Loai = LoaiHanhDong.KhacPhuc,
+            HeThongId = his.Id, NguoiChiuTrachNhiem = "ktv1", Han = homNay.AddDays(-5), UuTien = MucDoUuTien.Cao, TrangThai = TrangThaiHanhDong.DangLam, NguoiTao = "admin"
+        });
         await db.SaveChangesAsync();
     }
 }

@@ -1,0 +1,11 @@
+@model DotDienTap
+@{ ViewData["Title"] = "Tạo đợt diễn tập"; }
+<div class="page-head"><h1>Tạo đợt diễn tập downtime</h1></div>
+<div class="alert alert-light border small">Hệ thống tự sinh đợt diễn tập theo chu kỳ của mức trọng yếu. Dùng màn hình này cho đợt ngoài lịch.</div>
+<div class="card" style="max-width:640px"><div class="card-body">
+<form asp-action="Create" method="post" class="row g-3">
+    <div class="col-12"><label class="form-label" for="heThongId">Hệ thống</label><select id="heThongId" name="heThongId" asp-items="ViewBag.DsHeThong" class="form-select" required><option value="">—</option></select></div>
+    <div class="col-md-6"><label class="form-label" for="han">Hạn thực hiện</label><input id="han" name="hanThucHien" type="date" value="@Model.HanThucHien.ToString("yyyy-MM-dd")" class="form-control" required /></div>
+    <div class="col-12"><label class="form-label" for="lyDo">Lý do</label><input id="lyDo" name="lyDo" class="form-control" placeholder="Diễn tập theo yêu cầu" /></div>
+    <div class="col-12"><button class="btn btn-primary">Tạo</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>

@@ -1,0 +1,38 @@
+@model TacVuSaoLuu
+@{
+    ViewData["Title"] = Model.Ten; var cntt = User.LaCNTT(); var moc = (List<MocSl>)ViewBag.Moc; var kqs = (List<KetQuaSaoLuuLan>)ViewBag.KetQuas; int rpo = ViewBag.Rpo; var now = (DateTime)ViewBag.Now;
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Theo dõi sao lưu</a> › @Model.Ten</div>
+<div class="page-head"><h1>@Model.Ten</h1> @Html.Raw(Badge.Html(Model.HeThong!.MucTrongYeu)) @if (!Model.DangApDung) { <span class="badge bg-secondary">Ngừng áp dụng</span> }
+    @if (cntt) { <div class="actions"><a asp-action="TacVuForm" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a></div> }</div>
+<div class="row g-3"><div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-sm-4"><dt>Hệ thống</dt><dd><a asp-controller="HeThong" asp-action="Details" asp-route-id="@Model.HeThongId">@Model.HeThong.Ma</a></dd></div>
+        <div class="col-sm-4"><dt>Đối tượng</dt><dd>@Model.DoiTuong</dd></div><div class="col-sm-4"><dt>Loại</dt><dd>@Model.Loai.Ten()</dd></div>
+        <div class="col-sm-4"><dt>Lịch</dt><dd>mỗi @HaTangHelpers.ChuKyText(Model.ChuKyPhut), từ @Model.GioChay.ToString("HH:mm")</dd></div><div class="col-sm-4"><dt>Phần mềm</dt><dd>@Model.PhanMem</dd></div><div class="col-sm-4"><dt>Lưu giữ</dt><dd>@Model.LuuGiuNgay ngày</dd></div>
+        <div class="col-sm-12"><dt>Nơi lưu</dt><dd>@Model.NoiLuu</dd></div>
+        <div class="col-sm-4"><dt>3-2-1</dt><dd>@(Model.Dat321 ? "Đạt" : "Chưa đạt") <span class="small text-muted">(@Model.SoBanSao bản, @Model.SoLoaiPhuongTien loại, @(Model.CoBanNgoaiCoSo ? "có" : "không") ngoại tuyến)</span></dd></div>
+        <div class="col-sm-4"><dt>RPO @(rpo) phút</dt><dd>@(Model.DapUngRpo(rpo) ? "Chu kỳ đáp ứng" : "Chu kỳ KHÔNG đáp ứng RPO")</dd></div><div class="col-sm-4"><dt>Mã hoá</dt><dd>@(Model.MaHoa ? "Có" : "Không")</dd></div>
+    </dl></div></div>
+    <div class="card mb-3"><div class="card-header">Đối chiếu lịch (14 ngày)</div><div class="table-responsive" style="max-height:320px;overflow:auto"><table class="table table-sm mb-0"><thead><tr><th>Mốc dự kiến</th><th>Trạng thái</th><th>Kết quả ghi nhận</th></tr></thead><tbody>
+        @foreach (var m in moc) { <tr><td class="small">@m.Moc.ToString("HH:mm dd/MM/yyyy")</td><td>@Html.Raw(Badge.Html(m.TrangThai))</td><td class="small">@if (m.KetQua is not null) { @($"{m.KetQua.ThoiDiem:HH:mm dd/MM} · {m.KetQua.DungLuongGb} GB · {m.KetQua.GhiChu}") }</td></tr> }
+    </tbody></table></div></div>
+    <div class="card mb-3"><div class="card-header">Kết quả đã ghi</div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Chạy lúc</th><th>Kết quả</th><th>Dung lượng</th><th>Thời lượng</th><th>Nguồn</th><th>Ghi chú</th></tr></thead><tbody>
+        @foreach (var k in kqs) { <tr><td class="small">@k.ThoiDiem.ToString("HH:mm dd/MM/yyyy")</td><td>@k.KetQua.Ten()</td><td class="small">@k.DungLuongGb GB</td><td class="small">@k.ThoiLuongPhut phút</td><td class="small">@k.Nguon.Ten() · @k.NguoiGhi</td><td class="small">@k.GhiChu</td></tr> }
+        @if (kqs.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Chưa có kết quả nào.</td></tr> }
+    </tbody></table></div></div>
+</div>
+<div class="col-lg-4">
+    @if (cntt)
+    {
+        <div class="card"><div class="card-header">Ghi kết quả sao lưu</div><div class="card-body">
+        <form asp-action="GhiKetQua" asp-route-id="@Model.Id" method="post" class="row g-2">
+            <div class="col-12"><label class="form-label small mb-0" for="td">Thời điểm chạy</label><input id="td" name="thoiDiem" type="datetime-local" value="@now.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" required /></div>
+            <div class="col-12"><label class="form-label small mb-0" for="kq">Kết quả</label><select id="kq" name="ketQua" asp-items="@EnumExtensions.ToSelectList<KetQuaSaoLuu>()" class="form-select form-select-sm"></select></div>
+            <div class="col-6"><label class="form-label small mb-0" for="dl">Dung lượng (GB)</label><input id="dl" name="dungLuongGb" type="number" step="0.01" min="0" class="form-control form-control-sm" /></div>
+            <div class="col-6"><label class="form-label small mb-0" for="tl">Thời lượng (phút)</label><input id="tl" name="thoiLuongPhut" type="number" min="0" class="form-control form-control-sm" /></div>
+            <div class="col-12"><label class="form-label small mb-0" for="gc">Ghi chú (bắt buộc nếu có cảnh báo / lỗi)</label><textarea id="gc" name="ghiChu" class="form-control form-control-sm" rows="2"></textarea></div>
+            <div class="col-12"><button class="btn btn-sm btn-primary">Ghi nhận</button></div>
+        </form></div></div>
+    }
+</div></div>

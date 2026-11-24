@@ -1,0 +1,33 @@
+@model List<DongSaoLuu>
+@{
+    ViewData["Title"] = "Theo dõi sao lưu"; var tu = (DateTime)ViewBag.Tu; int ngay = ViewBag.Ngay; var phucHoi = (Dictionary<int, LanThuPhucHoi>)ViewBag.PhucHoi;
+    var chuaCm = (List<HeThongThongTin>)ViewBag.ChuaChungMinh; var thieu = (List<HeThongThongTin>)ViewBag.TrongYeuThieu; var cntt = User.LaCNTT();
+    string Mau(TrangThaiMocSaoLuu t) => t switch { TrangThaiMocSaoLuu.ThanhCong => "#198754", TrangThaiMocSaoLuu.CanhBao => "#ffc107", TrangThaiMocSaoLuu.Loi => "#dc3545", TrangThaiMocSaoLuu.KhongRo => "#212529", _ => "#e9ecef" };
+    int Xep(TrangThaiMocSaoLuu t) => t switch { TrangThaiMocSaoLuu.Loi => 0, TrangThaiMocSaoLuu.KhongRo => 1, TrangThaiMocSaoLuu.CanhBao => 2, TrangThaiMocSaoLuu.ThanhCong => 3, _ => 4 };
+}
+<div class="page-head"><h1>Theo dõi sao lưu</h1><span class="text-muted small">MOI.01.02 · HCT.01.04 ME5 – ma trận @ngay ngày gần nhất</span>
+    <div class="actions"><a asp-action="PhucHoiDs" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> Thử phục hồi</a>
+    @if (cntt) { <a asp-action="TacVuForm" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm tác vụ sao lưu</a> }</div></div>
+@if (thieu.Count > 0) { <div class="alert alert-danger py-2 small"><b>Hệ thống Tối quan trọng/Cao chưa khai báo sao lưu:</b> @foreach (var h in thieu) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> }</div> }
+@if (chuaCm.Count > 0) { <div class="alert alert-warning py-2 small"><b>Chưa chứng minh phục hồi được (BR-SL-02) – không có lần thử Đạt trong chu kỳ:</b> @foreach (var h in chuaCm) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> }</div> }
+<div class="small mb-2"><span class="badge" style="background:#198754">Thành công</span> <span class="badge" style="background:#ffc107;color:#000">Cảnh báo</span> <span class="badge" style="background:#dc3545">Lỗi</span> <span class="badge" style="background:#212529">Không rõ</span> <span class="badge" style="background:#e9ecef;color:#555">Chưa đến hạn</span></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Hệ thống</th><th>Tác vụ</th><th>3-2-1</th><th>RPO</th><th>Thành công</th><th>Ngày</th><th>Thử phục hồi gần nhất</th></tr></thead><tbody>
+@foreach (var d in Model)
+{
+    var t = d.TacVu;
+    <tr><td><a asp-controller="HeThong" asp-action="Details" asp-route-id="@t.HeThongId" class="fw-semibold">@t.HeThong!.Ma</a> @Html.Raw(Badge.Html(t.HeThong.MucTrongYeu))</td>
+        <td><a asp-action="TacVu" asp-route-id="@t.Id">@t.Ten</a><div class="small text-muted">@t.Loai.Ten() · @HaTangHelpers.ChuKyText(t.ChuKyPhut)</div></td>
+        <td>@if (t.Dat321) { <span class="text-success">Đạt</span> } else { <span class="text-danger" title="Cần ≥3 bản, ≥2 loại phương tiện, ≥1 bản ngoài cơ sở/ngoại tuyến">Chưa</span> }</td>
+        <td>@if (t.DapUngRpo(d.Rpo)) { <span class="text-success">Đạt</span> } else { <span class="text-danger">Không</span> }</td>
+        <td class="small">@(d.TyLe is { } r ? r.ToString("0.#") + "%" : "—")</td>
+        <td style="min-width:350px"><div class="d-flex flex-wrap" style="gap:2px">
+            @for (var i = 0; i < ngay; i++)
+            {
+                var day = tu.AddDays(i).Date; var mocs = d.Moc.Where(m => m.Moc.Date == day).ToList();
+                var tt = mocs.Count == 0 ? TrangThaiMocSaoLuu.ChuaDenHan : mocs.OrderBy(m => Xep(m.TrangThai)).First().TrangThai;
+                <span title="@day.ToString("dd/MM") @(mocs.Count == 0 ? "không có lịch" : tt.Ten())" style="display:inline-block;width:9px;height:18px;border-radius:2px;background:@(mocs.Count == 0 ? "#f8f9fa" : Mau(tt))"></span>
+            }</div></td>
+        <td class="small">@if (phucHoi.TryGetValue(t.HeThongId, out var p)) { <a asp-action="PhucHoi" asp-route-id="@p.Id" class="text-decoration-none"><span class="badge @(p.Dat == true ? "bg-success" : "bg-danger")">@(p.Dat == true ? "Đạt" : "Không đạt")</span> @p.NgayChot?.ToString("dd/MM/yyyy")</a> } else { <span class="text-muted">chưa có</span> }</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Chưa khai báo tác vụ sao lưu.</td></tr> }
+</tbody></table></div></div>

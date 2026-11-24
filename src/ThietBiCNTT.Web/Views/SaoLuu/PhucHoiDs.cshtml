@@ -1,0 +1,16 @@
+@model List<LanThuPhucHoi>
+@{ ViewData["Title"] = "Thử phục hồi"; var daChot = (bool)ViewData["daChot"]!; var homNay = (DateOnly)ViewBag.HomNay; var chuaCm = (List<HeThongThongTin>)ViewBag.ChuaChungMinh; }
+<div class="page-head"><h1>Thử phục hồi</h1><span class="text-muted small">Chứng minh bản sao lưu phục hồi được trong RTO/RPO (HCT.01.04, MOI.01.02)</span>
+    <div class="actions"><a asp-action="Index" class="btn btn-sm btn-outline-secondary">Theo dõi sao lưu</a>@if (User.LaCNTT()) { <a asp-action="PhucHoiTao" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tạo lần thử</a> }</div></div>
+@if (chuaCm.Count > 0) { <div class="alert alert-warning py-2 small"><b>Chưa chứng minh phục hồi được:</b> @foreach (var h in chuaCm) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> }</div> }
+<ul class="nav nav-tabs mb-3"><li class="nav-item"><a class="nav-link @(!daChot ? "active" : "")" asp-action="PhucHoiDs" asp-route-daChot="false">Chưa chốt</a></li><li class="nav-item"><a class="nav-link @(daChot ? "active" : "")" asp-action="PhucHoiDs" asp-route-daChot="true">Đã chốt</a></li></ul>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Hệ thống</th><th>Hạn</th><th>RTO đạt / mục tiêu</th><th>RPO đạt / mục tiêu</th><th>Kết quả</th><th>Ghi chú</th></tr></thead><tbody>
+@foreach (var l in Model)
+{
+    <tr class="@(l.QuaHan(homNay) ? "table-danger" : "")"><td><a asp-action="PhucHoi" asp-route-id="@l.Id" class="fw-semibold">@l.HeThong?.Ma</a><div class="small text-muted">@l.HeThong?.Ten</div></td>
+        <td class="small">@l.HanThucHien.ToString("dd/MM/yyyy") @if (l.QuaHan(homNay)) { <span class="badge bg-danger">Quá hạn</span> }</td>
+        <td class="small">@(l.RtoDatPhut is { } a ? $"{a:0.#} / {l.RtoMucTieu} phút" : "")</td><td class="small">@(l.RpoDatPhut is { } b ? $"{b:0.#} / {l.RpoMucTieu} phút" : "")</td>
+        <td>@if (l.Dat is { } d) { <span class="badge @(d ? "bg-success" : "bg-danger")">@(d ? "Đạt" : "Không đạt")</span> }</td><td class="small">@l.LyDo</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có.</td></tr> }
+</tbody></table></div></div>

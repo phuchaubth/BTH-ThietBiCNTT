@@ -1,0 +1,62 @@
+@model LanThuPhucHoi
+@{
+    var h = Model.HeThong!; ViewData["Title"] = $"Thử phục hồi {h.Ma}"; var cntt = User.LaCNTT(); int rto = ViewBag.Rto; int rpo = ViewBag.Rpo; var homNay = (DateOnly)ViewBag.HomNay;
+    var hanhDongs = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var sua = cntt && !Model.DaChot;
+    string Dt(DateTime? t) => (t ?? DateTime.Now).ToString("yyyy-MM-ddTHH:mm");
+    string Gio(int p) => p >= 60 ? $"{p / 60.0:0.#} giờ" : $"{p} phút";
+    var rtoDat = Model.RtoDatPhut; var rpoDat = Model.RpoDatPhut;
+}
+<div class="small text-muted mb-1"><a asp-action="PhucHoiDs">Thử phục hồi</a> › @h.Ma</div>
+<div class="page-head"><h1>Thử phục hồi · <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id">@h.Ma</a></h1>
+    @if (Model.DaChot) { <span class="badge @(Model.Dat == true ? "bg-success" : "bg-danger")">@(Model.Dat == true ? "Đạt" : "Không đạt")</span> <span class="badge bg-dark">Đã chốt</span> } else { <span class="badge bg-secondary">Chưa chốt</span> @if (Model.QuaHan(homNay)) { <span class="badge bg-danger">Quá hạn</span> } }
+    @if (cntt) { <div class="actions"><a asp-controller="HanhDong" asp-action="Create" asp-route-nguon="ThuPhucHoi" asp-route-nguonId="@Model.Id" asp-route-heThongId="@h.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-list-check"></i> Tạo hành động khắc phục</a></div> }</div>
+<div class="row g-3"><div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body"><div class="row text-center">
+        <div class="col-6 col-md-3"><div class="kpi p-0"><div class="label">RTO mục tiêu</div><div class="value">@Gio(Model.RtoMucTieu ?? rto)</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi p-0"><div class="label">RTO đạt được</div><div class="value @(rtoDat > (Model.RtoMucTieu ?? rto) ? "text-danger" : "")">@(rtoDat is { } a ? $"{a:0.#} phút" : "—")</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi p-0"><div class="label">RPO mục tiêu</div><div class="value">@Gio(Model.RpoMucTieu ?? rpo)</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi p-0"><div class="label">RPO đạt được</div><div class="value @(rpoDat > (Model.RpoMucTieu ?? rpo) ? "text-danger" : "")">@(rpoDat is { } b ? $"{b:0.#} phút" : "—")</div></div></div>
+    </div><div class="small text-muted mt-2">Hạn thực hiện @Model.HanThucHien.ToString("dd/MM/yyyy") · @Model.LyDo. RTO = hoàn tất − bắt đầu phục hồi; RPO = thời điểm sự cố giả định − thời điểm dữ liệu của bản sao lưu.</div></div></div>
+    <div class="card mb-3"><div class="card-header">Biên bản thử phục hồi <span class="small fw-normal text-muted">FR-SL-06</span></div><div class="card-body">
+    @if (sua)
+    {
+        <form asp-action="PhucHoiGhi" asp-route-id="@Model.Id" method="post" class="row g-2">
+            <div class="col-md-6"><label class="form-label small mb-0" for="tv">Tác vụ sao lưu dùng để phục hồi</label><select id="tv" name="tacVuId" asp-items="ViewBag.TacVus" class="form-select form-select-sm"><option value="">—</option></select></div>
+            <div class="col-md-6"><label class="form-label small mb-0" for="bs">Bản sao lưu được chọn (ngày, loại, nơi lưu)</label><input id="bs" name="banSaoLuu" value="@Model.BanSaoLuu" class="form-control form-control-sm" /></div>
+            <div class="col-md-6"><label class="form-label small mb-0" for="dl">Thời điểm dữ liệu của bản sao lưu</label><input id="dl" name="thoiDiemDuLieu" type="datetime-local" value="@(Model.ThoiDiemDuLieu?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" /></div>
+            <div class="col-md-6"><label class="form-label small mb-0" for="sc">Thời điểm sự cố giả định (để trống = lúc bắt đầu phục hồi)</label><input id="sc" name="thoiDiemSuCo" type="datetime-local" value="@(Model.ThoiDiemSuCo?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" /></div>
+            <div class="col-md-12"><label class="form-label small mb-0" for="mt">Môi trường phục hồi</label><input id="mt" name="moiTruong" value="@Model.MoiTruong" class="form-control form-control-sm" placeholder="Máy chủ thử / môi trường dự phòng" /></div>
+            <div class="col-md-6"><label class="form-label small mb-0" for="bd">Bắt đầu phục hồi</label><input id="bd" name="batDau" type="datetime-local" value="@(Model.BatDau?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" /></div>
+            <div class="col-md-6"><label class="form-label small mb-0" for="kt">Hoàn tất phục hồi</label><input id="kt" name="ketThuc" type="datetime-local" value="@(Model.KetThuc?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" /></div>
+            <div class="col-12"><label class="form-label small mb-0" for="tv2">Kiểm tra toàn vẹn (ứng dụng mở được, đối chiếu số bản ghi mẫu…)</label><textarea id="tv2" name="kiemTraToanVen" class="form-control form-control-sm" rows="3">@Model.KiemTraToanVen</textarea></div>
+            <div class="col-md-8"><label class="form-label small mb-0" for="xn">Người dùng nghiệp vụ xác nhận</label><input id="xn" name="nguoiXacNhan" value="@Model.NguoiXacNhanNghiepVu" class="form-control form-control-sm" /></div>
+            <div class="col-md-4 align-self-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="toanVenDat" value="true" id="tvd" @(Model.ToanVenDat ? "checked" : "") /><label class="form-check-label small" for="tvd">Kiểm tra toàn vẹn đạt</label></div></div>
+            <div class="col-12"><button class="btn btn-sm btn-primary">Lưu biên bản</button></div>
+        </form>
+    }
+    else
+    {
+        <dl class="row info mb-0 small"><div class="col-sm-6"><dt>Tác vụ / bản sao lưu</dt><dd>@Model.TacVuSaoLuu?.Ten @Model.BanSaoLuu</dd></div><div class="col-sm-6"><dt>Môi trường</dt><dd>@Model.MoiTruong</dd></div>
+        <div class="col-sm-4"><dt>Dữ liệu của bản sao lưu</dt><dd>@Model.ThoiDiemDuLieu?.ToString("HH:mm dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Bắt đầu</dt><dd>@Model.BatDau?.ToString("HH:mm dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Hoàn tất</dt><dd>@Model.KetThuc?.ToString("HH:mm dd/MM/yyyy")</dd></div>
+        <div class="col-12"><dt>Kiểm tra toàn vẹn (@(Model.ToanVenDat ? "đạt" : "không đạt"))</dt><dd style="white-space:pre-line">@Model.KiemTraToanVen</dd></div><div class="col-12"><dt>Xác nhận nghiệp vụ</dt><dd>@Model.NguoiXacNhanNghiepVu</dd></div></dl>
+    }
+    </div></div>
+    @if (sua)
+    {
+        <div class="card mb-3 border-primary"><div class="card-body d-flex align-items-center gap-3"><form asp-action="PhucHoiChot" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Chốt biên bản? Sau khi chốt không sửa được (chỉ thêm phụ lục).')"><button class="btn btn-primary">Chốt biên bản</button></form>
+            <span class="small text-muted">Đạt khi kiểm tra toàn vẹn đạt và RTO, RPO đạt được không vượt mục tiêu. Không đạt: hệ thống bắt buộc tạo hành động khắc phục và lên lịch thử lại trong @ThamSo.SoNguyen(TS.JciPhucHoiLaiNgay) ngày.</span></div></div>
+    }
+    @if (Model.DaChot)
+    {
+        @if (Model.Dat == false) { <div class="alert alert-danger py-2 small"><b>Không đạt:</b> @string.Join("; ", Model.LyDoKhongDat())</div> }
+        <div class="card mb-3"><div class="card-header">Phụ lục (sau khi chốt – BR-SL-03)</div><div class="card-body small"><pre class="mb-2" style="white-space:pre-wrap">@Model.PhuLuc</pre>
+        @if (cntt) { <form asp-action="PhucHoiPhuLuc" asp-route-id="@Model.Id" method="post" class="d-flex gap-2"><input name="noiDung" class="form-control form-control-sm" placeholder="Nội dung bổ sung / đính chính" required /><button class="btn btn-sm btn-outline-primary">Thêm</button></form> }
+        <div class="text-muted mt-2">Chốt bởi @Model.NguoiChot lúc @Model.NgayChot?.ToString("HH:mm dd/MM/yyyy").</div></div></div>
+    }
+</div>
+<div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Hành động khắc phục (@hanhDongs.Count)</div><div class="list-group list-group-flush small">
+        @foreach (var hd in hanhDongs) { <a class="list-group-item list-group-item-action" asp-controller="HanhDong" asp-action="Details" asp-route-id="@hd.Id"><b>@hd.Ma</b> · @hd.MoTa <span class="text-muted">@hd.TrangThai.Ten()</span></a> }
+        @if (hanhDongs.Count == 0) { <div class="list-group-item text-muted">Chưa có.</div> }</div></div>
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "LanThuPhucHoi", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: sua))
+</div></div>

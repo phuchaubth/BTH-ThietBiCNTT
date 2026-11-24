@@ -1,0 +1,39 @@
+@model HeThongThongTin
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm hệ thống thông tin" : "Sửa hệ thống " + Model.Ma;
+    var macDinh = (Dictionary<MucTrongYeu, MucTieuTheoMuc>)ViewBag.MacDinh;
+}
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:980px"><div class="card-body">
+<form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-3"><label asp-for="Ma" class="form-label"></label><input asp-for="Ma" class="form-control" placeholder="HIS" /></div>
+    <div class="col-md-9"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="Hệ thống thông tin bệnh viện (HIS)" /></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-3"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiHeThong>()" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="MucTrongYeu" class="form-label"></label><select asp-for="MucTrongYeu" asp-items="@EnumExtensions.ToSelectList<MucTrongYeu>()" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="TrangThai" class="form-label"></label><select asp-for="TrangThai" asp-items="@EnumExtensions.ToSelectList<TrangThaiHeThong>()" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="PhienBan" class="form-label"></label><input asp-for="PhienBan" class="form-control" /></div>
+    <div class="col-12"><div class="alert alert-light border small mb-0">RTO/RPO mặc định theo mức trọng yếu (Tham số hệ thống → JCI 8 – RTO/RPO):
+        @foreach (var kv in macDinh) { <span class="me-3"><b>@kv.Key.Ten()</b>: RTO @kv.Value.RtoPhut phút, RPO @kv.Value.RpoPhut phút</span> }
+        <br />Chỉ nhập RTO/RPO riêng khi hệ thống cần mục tiêu khác mặc định.</div></div>
+    <div class="col-md-3"><label asp-for="RtoPhut" class="form-label"></label><input asp-for="RtoPhut" type="number" min="1" class="form-control" placeholder="mặc định" /></div>
+    <div class="col-md-3"><label asp-for="RpoPhut" class="form-label"></label><input asp-for="RpoPhut" type="number" min="1" class="form-control" placeholder="mặc định" /></div>
+    <div class="col-md-3"><label asp-for="NgaySuDung" class="form-label"></label><input asp-for="NgaySuDung" type="date" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="CapDoAttt" class="form-label"></label><input asp-for="CapDoAttt" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="SoQdCapDo" class="form-label"></label><input asp-for="SoQdCapDo" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="NgayQdCapDo" class="form-label"></label><input asp-for="NgayQdCapDo" type="date" class="form-control" /></div>
+    <hr class="my-1" />
+    <div class="col-md-6"><label asp-for="ChuSoHuuKhoaPhongId" class="form-label"></label><select asp-for="ChuSoHuuKhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="ChuSoHuu" class="form-label"></label><input asp-for="ChuSoHuu" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="PhuTrachChinh" class="form-label"></label><select asp-for="PhuTrachChinh" asp-items="ViewBag.DsCntt" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="PhuTrachDuPhong" class="form-label"></label><select asp-for="PhuTrachDuPhong" asp-items="ViewBag.DsCntt" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="NhaCungCapId" class="form-label"></label><select asp-for="NhaCungCapId" asp-items="ViewBag.DsNcc" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-6"><label asp-for="HopDongId" class="form-label"></label><select asp-for="HopDongId" asp-items="ViewBag.DsHopDong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-12"><label asp-for="HoTroNhaCungCap" class="form-label"></label><input asp-for="HoTroNhaCungCap" class="form-control" placeholder="Anh Tuấn – 0912 345 678 – hỗ trợ 24/7" /></div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="@(Model.Id == 0 ? "Index" : "Details")" asp-route-id="@(Model.Id == 0 ? null : Model.Id)" class="btn btn-link">Huỷ</a></div>
+</form>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

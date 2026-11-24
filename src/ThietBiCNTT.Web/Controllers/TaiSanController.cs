@@ -19,7 +19,7 @@ public class TaiSanFormVm
     public string? LyDoThayDoi { get; set; }
 }
 
-public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo, TepService tep) : Controller
+public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo, TepService tep, HaTangService haTang) : Controller
 {
     private IQueryable<TaiSan> PhamViTaiSan()
     {
@@ -136,6 +136,8 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ts is null) return NotFound();
         ViewBag.Tep = await tep.DanhSachAsync("TaiSan", id.ToString());
+        // Hệ thống thông tin phụ thuộc tài sản này (FR-HTT-07) — chỉ CNTT / Lãnh đạo
+        if (User.XemToanVien()) ViewBag.AnhHuong = await haTang.AnhHuongCuaTaiSanAsync(id);
         ViewBag.HopDong = await db.HopDongTaiSans.AsNoTracking().Where(x => x.TaiSanId == id).Select(x => x.HopDong!).ToListAsync();
         ViewBag.BanQuyen = await db.CapPhatBanQuyens.AsNoTracking().Where(x => x.TaiSanId == id).Select(x => x.BanQuyenPhanMem!).ToListAsync();
         // Phiếu kiểm tra áp dụng cho thiết bị này (người dùng được ghi)

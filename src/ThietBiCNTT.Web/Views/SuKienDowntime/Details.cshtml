@@ -1,0 +1,112 @@
+@model SuKienDowntime
+@{
+    ViewData["Title"] = Model.Ma; var cntt = User.LaCNTT(); var now = (DateTime)ViewBag.Now; var tt = Model.TrangThai;
+    var keHoachs = (List<KeHoachDowntime>)ViewBag.KeHoachs; var hanhDongs = (List<HanhDongKhacPhuc>)ViewBag.HanhDong; var lyDo = (List<string>)ViewBag.LyDoChuaDong;
+    var moDong = tt is not (TrangThaiSuKien.DaDong or TrangThaiSuKien.DaHuy);
+    var batBuocRkn = Model.BatBuocRutKinhNghiem(now);
+    var nhoTime = (DateTime t) => t.ToString("yyyy-MM-ddTHH:mm");
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Sự kiện downtime</a> › @Model.Ma</div>
+<div class="page-head"><h1>@Model.Ma · @Model.Loai.Ten()</h1> @Html.Raw(Badge.Html(tt))
+    @if (Model.AnhHuongAnToan) { <span class="badge bg-danger">Ảnh hưởng an toàn người bệnh</span> }
+    @if (Model.VuotRto(now)) { <span class="badge bg-danger">Vượt RTO</span> }
+    <div class="actions">
+        @if (cntt && Model.PhieuSuaChuaId is not null) { <a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@Model.PhieuSuaChuaId" class="btn btn-sm btn-outline-secondary">Phiếu @Model.PhieuSuaChua?.SoPhieu</a> }
+        @if (cntt && tt != TrangThaiSuKien.DaHuy) { <a asp-controller="HanhDong" asp-action="Create" asp-route-nguon="SuKienDowntime" asp-route-nguonId="@Model.Id" asp-route-heThongId="@Model.HeThongs.FirstOrDefault()?.HeThongId" class="btn btn-sm btn-outline-primary"><i class="bi bi-list-check"></i> Tạo hành động khắc phục</a> }
+    </div></div>
+<div class="row g-3">
+<div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-12"><dt>Mô tả</dt><dd style="white-space:pre-line">@Model.MoTa</dd></div>
+        <div class="col-sm-4"><dt>Hệ thống</dt><dd>@foreach (var h in Model.HeThongs) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.HeThongId" class="me-2">@h.HeThong?.Ma</a> }</dd></div>
+        <div class="col-sm-4"><dt>Mức độ</dt><dd>@Model.MucDo.Ten()</dd></div>
+        <div class="col-sm-4"><dt>Kích hoạt kế hoạch</dt><dd>@(Model.KichHoatKeHoach ? "Có" : "Không")</dd></div>
+        @if (Model.Loai == LoaiDowntime.CoKeHoach) { <div class="col-sm-6"><dt>Khung giờ đăng ký</dt><dd>@Model.DuKienBatDau?.ToString("HH:mm dd/MM/yyyy") – @Model.DuKienKetThuc?.ToString("HH:mm dd/MM/yyyy")</dd></div> }
+        <div class="col-sm-3"><dt>Bắt đầu</dt><dd>@Model.BatDau?.ToString("HH:mm dd/MM/yyyy")</dd></div>
+        <div class="col-sm-3"><dt>Khôi phục</dt><dd>@Model.KetThuc?.ToString("HH:mm dd/MM/yyyy")</dd></div>
+        <div class="col-sm-3"><dt>Thời lượng</dt><dd class="@(Model.VuotRto(now) ? "overdue" : "")">@HaTangHelpers.ThoiLuongText(Model.ThoiLuong(now))</dd></div>
+        <div class="col-sm-3"><dt>RTO</dt><dd>@(Model.RtoPhut is { } r ? (r >= 60 ? $"{r / 60.0:0.#} giờ" : $"{r} phút") : "—")</dd></div>
+        @if (Model.Loai == LoaiDowntime.CoKeHoach && Model.BatDau is not null) { <div class="col-sm-6"><dt>Phần tính như đột xuất (BR-DT-04)</dt><dd>@HaTangHelpers.ThoiLuongText(Model.ThoiLuongDotXuat(now))</dd></div> }
+    </dl></div></div>
+
+    <div class="card mb-3"><div class="card-header">Khoa/phòng bị ảnh hưởng & nhập bù dữ liệu <span class="small fw-normal text-muted">FR-DT-07</span></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Khoa/phòng</th><th>Quy trình giấy</th><th>Nhập bù</th><th></th></tr></thead><tbody>
+        @foreach (var k in Model.Khoas.OrderBy(k => k.KhoaPhong?.Ten))
+        {
+            var duocXacNhan = cntt || (User.IsInRole(VaiTro.TruongKhoa) && User.KhoaPhongId() == k.KhoaPhongId);
+            <tr><td>@k.KhoaPhong?.Ten</td>
+                <td>@if (cntt && moDong) { <form asp-action="QuyTrinhGiay" asp-route-id="@Model.Id" method="post" class="d-inline"><input type="hidden" name="khoaId" value="@k.KhoaPhongId" /><input type="hidden" name="kichHoat" value="@((!k.KichHoatGiay).ToString().ToLower())" />
+                        <button class="btn btn-sm py-0 @(k.KichHoatGiay ? "btn-warning" : "btn-outline-secondary")">@(k.KichHoatGiay ? "Đang dùng giấy" : "Không dùng")</button></form> }
+                    else { @(k.KichHoatGiay ? "Đã dùng giấy" : "Không dùng") }</td>
+                <td class="small">@if (!k.KichHoatGiay) { <span class="text-muted">Không cần</span> } else if (k.DaNhapBu) { <span class="text-success"><i class="bi bi-check-circle"></i> @k.NguoiXacNhan @k.ThoiDiemXacNhan?.ToString("dd/MM HH:mm")</span> } else { <span class="text-danger">Chưa xác nhận</span> }</td>
+                <td class="text-end">@if (k.KichHoatGiay && !k.DaNhapBu && duocXacNhan && Model.KetThuc is not null && moDong)
+                    { <form asp-action="NhapBu" asp-route-id="@Model.Id" method="post" class="d-flex gap-1"><input type="hidden" name="khoaId" value="@k.KhoaPhongId" /><input name="ghiChu" class="form-control form-control-sm" placeholder="Ghi chú" style="width:160px" /><button class="btn btn-sm btn-success text-nowrap">Xác nhận đã nhập bù</button></form> }</td></tr>
+        }
+        @if (Model.Khoas.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Không có khoa nào.</td></tr> }
+        </tbody></table></div></div>
+
+    @if (cntt && moDong)
+    {
+        <div class="card mb-3 border-primary"><div class="card-header">Thao tác</div><div class="card-body d-flex flex-wrap gap-3">
+            @if (tt == TrangThaiSuKien.DaLenLich)
+            {
+                <form asp-action="BatDauThucTe" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 align-items-end"><div><label class="form-label small mb-0" for="bd">Bắt đầu thực tế</label><input id="bd" name="thoiDiem" type="datetime-local" value="@nhoTime(now)" class="form-control form-control-sm" /></div><button class="btn btn-sm btn-primary">Bắt đầu</button></form>
+                <form asp-action="Huy" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Huỷ lịch downtime?')" class="align-self-end"><button class="btn btn-sm btn-outline-danger">Huỷ lịch</button></form>
+            }
+            @if (tt == TrangThaiSuKien.DangDienRa)
+            {
+                <form asp-action="KhoiPhuc" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 align-items-end"><div><label class="form-label small mb-0" for="kp">Thời điểm khôi phục</label><input id="kp" name="thoiDiem" type="datetime-local" value="@nhoTime(now)" class="form-control form-control-sm" /></div><button class="btn btn-sm btn-success">Ghi nhận đã khôi phục</button></form>
+            }
+            @if (tt == TrangThaiSuKien.DaKhoiPhuc)
+            {
+                <div class="w-100">
+                    @if (lyDo.Count > 0) { <div class="alert alert-warning py-2 small mb-2"><b>Chưa đóng được (BR-DT-03):</b> @string.Join("; ", lyDo).</div> }
+                    <form asp-action="Dong" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-success" disabled="@(lyDo.Count > 0)">Đóng sự kiện</button></form>
+                </div>
+            }
+        </div></div>
+    }
+
+    @if (moDong && tt != TrangThaiSuKien.DaLenLich && (batBuocRkn || Model.DaRutKinhNghiem) || Model.DaRutKinhNghiem)
+    {
+        <div class="card mb-3 @(batBuocRkn && !Model.DaRutKinhNghiem ? "border-warning" : "")"><div class="card-header">Rút kinh nghiệm @if (batBuocRkn) { <span class="badge bg-warning text-dark">Bắt buộc</span> } <span class="small fw-normal text-muted">FR-DT-08 · QPS.03.04 ME2</span></div><div class="card-body">
+            @if (Model.DaRutKinhNghiem && !(cntt && moDong))
+            {
+                <dl class="row info mb-0"><div class="col-12"><dt>Nguyên nhân gốc</dt><dd style="white-space:pre-line">@Model.NguyenNhanGoc</dd></div><div class="col-md-6"><dt>Điều làm tốt</dt><dd>@Model.DiemTot</dd></div><div class="col-md-6"><dt>Cần cải thiện</dt><dd>@Model.CanCaiThien</dd></div>
+                <div class="col-12"><dt>Cần sửa kế hoạch downtime</dt><dd>@(Model.CanSuaKeHoach ? "Có" : "Không") · @Model.NguoiRutKinhNghiem @Model.NgayRutKinhNghiem?.ToString("dd/MM/yyyy")</dd></div></dl>
+            }
+            else if (cntt && moDong)
+            {
+                <form asp-action="RutKinhNghiem" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12"><label class="form-label small mb-0" for="ng">Nguyên nhân gốc</label><textarea id="ng" name="nguyenNhan" class="form-control form-control-sm" rows="2" required>@Model.NguyenNhanGoc</textarea></div>
+                    <div class="col-md-6"><label class="form-label small mb-0" for="dt">Điều làm tốt</label><textarea id="dt" name="diemTot" class="form-control form-control-sm" rows="2">@Model.DiemTot</textarea></div>
+                    <div class="col-md-6"><label class="form-label small mb-0" for="cc">Điều cần cải thiện</label><textarea id="cc" name="canCaiThien" class="form-control form-control-sm" rows="2" required>@Model.CanCaiThien</textarea></div>
+                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="canSuaKeHoach" value="true" id="sk" @(Model.CanSuaKeHoach ? "checked" : "") /><label class="form-check-label small" for="sk">Cần sửa kế hoạch downtime (kế hoạch sẽ được đánh dấu cần rà soát)</label></div></div>
+                    <div class="col-12"><button class="btn btn-sm btn-primary">Lưu rút kinh nghiệm</button></div>
+                </form>
+            }
+        </div></div>
+    }
+
+    <div class="card mb-3"><div class="card-header">Hành động khắc phục liên quan (@hanhDongs.Count)</div><div class="list-group list-group-flush small">
+        @foreach (var h in hanhDongs) { <a class="list-group-item list-group-item-action" asp-controller="HanhDong" asp-action="Details" asp-route-id="@h.Id"><b>@h.Ma</b> · @h.MoTa <span class="text-muted">— @h.NguoiChiuTrachNhiem, hạn @h.Han.ToString("dd/MM/yyyy") · @h.TrangThai.Ten()</span></a> }
+        @if (hanhDongs.Count == 0) { <div class="list-group-item text-muted">Chưa có.</div> }</div></div>
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "SuKienDowntime", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt && moDong))
+</div>
+<div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Kế hoạch downtime áp dụng</div><ul class="list-group list-group-flush small">
+        @foreach (var k in keHoachs) { <li class="list-group-item"><a asp-controller="KeHoachDowntime" asp-action="Details" asp-route-id="@k.Id">@(Model.HeThongs.FirstOrDefault(h => h.HeThongId == k.HeThongId)?.HeThong?.Ma) v@(k.PhienBan)</a></li> }
+        @if (keHoachs.Count == 0) { <li class="list-group-item text-danger">Chưa có kế hoạch hiệu lực cho hệ thống bị ảnh hưởng.</li> }</ul></div>
+    <div class="card"><div class="card-header">Nhật ký diễn biến</div><div class="card-body">
+        <ul class="timeline small">
+        @foreach (var n in Model.NhatKys.OrderBy(n => n.ThoiDiem)) { <li><b>@n.ThoiDiem.ToString("HH:mm dd/MM")</b> · @n.NguoiGhi<div style="white-space:pre-line">@n.NoiDung</div></li> }
+        </ul>
+        @if (cntt && moDong)
+        {
+            <form asp-action="Ghi" asp-route-id="@Model.Id" method="post" class="mt-2">
+                <input type="datetime-local" name="thoiDiem" value="@nhoTime(now)" class="form-control form-control-sm mb-1" aria-label="Thời điểm" />
+                <textarea name="noiDung" class="form-control form-control-sm mb-1" rows="2" placeholder="VD: đã thông báo các khoa, liên hệ nhà cung cấp…" required></textarea>
+                <button class="btn btn-sm btn-outline-primary">Thêm vào nhật ký</button></form>
+        }
+    </div></div>
+</div></div>

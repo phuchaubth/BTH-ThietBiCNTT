@@ -1,0 +1,26 @@
+@model TacVuSaoLuu
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm tác vụ sao lưu" : "Sửa tác vụ sao lưu"; int? rpo = ViewBag.Rpo; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:900px"><div class="card-body">
+<form asp-action="TacVuForm" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="HeThongId" class="form-label">Hệ thống</label><select asp-for="HeThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">—</option></select>@if (rpo is { } r) { <div class="form-text">RPO của hệ thống: @r phút — chu kỳ sao lưu nên ≤ @r phút.</div> }</div>
+    <div class="col-md-6"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="Sao lưu CSDL HIS – full hằng đêm" /></div>
+    <div class="col-md-6"><label asp-for="DoiTuong" class="form-label"></label><input asp-for="DoiTuong" class="form-control" placeholder="CSDL SQL Server HIS_DB" /></div>
+    <div class="col-md-3"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiSaoLuu>()" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="ChuKyPhut" class="form-label"></label><input asp-for="ChuKyPhut" type="number" min="5" class="form-control" /><div class="form-text">1440 = hằng ngày; 15 = mỗi 15 phút</div></div>
+    <div class="col-md-3"><label asp-for="GioChay" class="form-label"></label><input asp-for="GioChay" type="time" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="PhanMem" class="form-label"></label><input asp-for="PhanMem" class="form-control" placeholder="Veeam, SQL Agent…" /></div>
+    <div class="col-md-6"><label asp-for="NoiLuu" class="form-label"></label><input asp-for="NoiLuu" class="form-control" placeholder="NAS nội bộ; ổ rời ngoại tuyến; phòng máy dự phòng" /></div>
+    <div class="col-md-3"><label asp-for="LuuGiuNgay" class="form-label"></label><input asp-for="LuuGiuNgay" type="number" min="1" class="form-control" /></div>
+    <hr class="my-1" /><div class="col-12 small text-muted">Quy tắc <b>3-2-1</b>: ≥ 3 bản dữ liệu, ≥ 2 loại phương tiện lưu trữ khác nhau, ≥ 1 bản ngoài cơ sở hoặc ngoại tuyến (intent HCT.01.05: lưu tại vị trí vật lý ngoại tuyến).</div>
+    <div class="col-md-3"><label asp-for="SoBanSao" class="form-label"></label><input asp-for="SoBanSao" type="number" min="1" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="SoLoaiPhuongTien" class="form-label"></label><input asp-for="SoLoaiPhuongTien" type="number" min="1" class="form-control" /></div>
+    <div class="col-md-3 align-self-end"><div class="form-check"><input asp-for="CoBanNgoaiCoSo" class="form-check-input" /><label asp-for="CoBanNgoaiCoSo" class="form-check-label"></label></div></div>
+    <div class="col-md-3 align-self-end"><div class="form-check"><input asp-for="MaHoa" class="form-check-input" /><label asp-for="MaHoa" class="form-check-label"></label></div></div>
+    <div class="col-md-6"><label asp-for="TaiSanId" class="form-label"></label><select asp-for="TaiSanId" asp-items="ViewBag.DsMayChu" class="form-select"><option value="">—</option></select><div class="form-text">Khi lỗi liên tiếp với hệ thống Tối quan trọng, hệ thống tự tạo phiếu sửa chữa cho máy chủ này.</div></div>
+    <div class="col-md-6 align-self-end"><div class="form-check"><input asp-for="DangApDung" class="form-check-input" /><label asp-for="DangApDung" class="form-check-label"></label></div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

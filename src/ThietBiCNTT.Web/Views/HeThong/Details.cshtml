@@ -1,0 +1,161 @@
+@model HeThongThongTin
+@{
+    ViewData["Title"] = Model.Ma;
+    var cntt = User.LaCNTT(); var toanVien = User.XemToanVien(); var homNay = DateOnly.FromDateTime(DateTime.Today);
+    var kd30 = ((double Pct, TimeSpan Dt))ViewBag.KhaDung30; var kd90 = ((double Pct, TimeSpan Dt))ViewBag.KhaDung90; var kd30All = ((double Pct, TimeSpan Dt))ViewBag.KhaDung30TatCa;
+    var keHoachs = (List<KeHoachDowntime>)ViewBag.KeHoach; var suKiens = (List<SuKienDowntime>)ViewBag.SuKien;
+    var loiDon = (List<TaiSan>)ViewBag.DiemLoiDon; var phuThuocVao = (List<HeThongThongTin>)ViewBag.HeThongPhuThuocVao;
+    var tacVus = (List<TacVuSaoLuu>)ViewBag.TacVu; var phucHois = (List<LanThuPhucHoi>)ViewBag.PhucHoi; var dienTaps = (List<DotDienTap>)ViewBag.DienTap; var hanhDongs = (List<HanhDongKhacPhuc>)ViewBag.HanhDong;
+    var khHieuLuc = keHoachs.FirstOrDefault(k => k.TrangThai == TrangThaiKeHoach.HieuLuc);
+    var mt = (MucTieuTheoMuc)ViewBag.MucTieu; int rto = ViewBag.Rto; int rpo = ViewBag.Rpo;
+    string Gio(int p) => p >= 60 ? $"{p / 60.0:0.#} giờ" : $"{p} phút";
+    var thieu = Model.HoSoThieu();
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Hệ thống thông tin</a> › @Model.Ma</div>
+<div class="page-head"><h1>@Model.Ma · @Model.Ten</h1> @Html.Raw(Badge.Html(Model.MucTrongYeu)) @Html.Raw(Badge.Html(Model.TrangThai))
+    <div class="actions">
+        @if (cntt) { <a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
+            <a asp-controller="SuKienDowntime" asp-action="Create" asp-route-heThongId="@Model.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-exclamation-octagon"></i> Ghi nhận downtime</a> }
+    </div></div>
+@if (toanVien && thieu.Count > 0) { <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle"></i> Hồ sơ chưa đầy đủ (BR-HTT-01): thiếu @string.Join(", ", thieu).</div> }
+@if (toanVien && Model.LaTrongYeu && Model.TrangThai == TrangThaiHeThong.VanHanh)
+{
+    if (khHieuLuc is null) { <div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-octagon"></i> Chưa có kế hoạch downtime hiệu lực (BR-HTT-02, HCT.01.04). @if (cntt) { <a asp-controller="KeHoachDowntime" asp-action="Form" asp-route-heThongId="@Model.Id">Lập kế hoạch</a> }</div> }
+    if (tacVus.Count(t => t.DangApDung) == 0) { <div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-octagon"></i> Chưa khai báo sao lưu (BR-HTT-02, MOI.01.02). @if (cntt) { <a asp-controller="SaoLuu" asp-action="TacVuForm" asp-route-heThongId="@Model.Id">Khai báo sao lưu</a> }</div> }
+}
+<div class="row g-3">
+<div class="col-lg-8">
+    <div class="card mb-3"><div class="card-header">Thông tin chung</div><div class="card-body"><dl class="row info mb-0">
+        <div class="col-12"><dt>Mô tả nghiệp vụ</dt><dd style="white-space:pre-line">@Model.MoTa</dd></div>
+        <div class="col-sm-4"><dt>Loại</dt><dd>@Model.Loai.Ten()</dd></div>
+        <div class="col-sm-4"><dt>Phiên bản</dt><dd>@Model.PhienBan</dd></div>
+        <div class="col-sm-4"><dt>Đưa vào sử dụng</dt><dd>@Model.NgaySuDung?.ToString("dd/MM/yyyy")</dd></div>
+        <div class="col-sm-4"><dt>RTO</dt><dd>@Gio(rto) @if (Model.RtoPhut is null) { <span class="text-muted small">(mặc định @Model.MucTrongYeu.Ten())</span> }</dd></div>
+        <div class="col-sm-4"><dt>RPO</dt><dd>@Gio(rpo) @if (Model.RpoPhut is null) { <span class="text-muted small">(mặc định)</span> }</dd></div>
+        <div class="col-sm-4"><dt>Cấp độ ATTT</dt><dd>@(Model.CapDoAttt?.ToString() ?? "—") <span class="small text-muted">@Model.SoQdCapDo @Model.NgayQdCapDo?.ToString("dd/MM/yyyy")</span></dd></div>
+        <div class="col-sm-4"><dt>Chủ sở hữu nghiệp vụ</dt><dd>@Model.ChuSoHuu <span class="small text-muted">@Model.ChuSoHuuKhoaPhong?.Ten</span></dd></div>
+        <div class="col-sm-4"><dt>Phụ trách kỹ thuật</dt><dd>@Model.PhuTrachChinh <span class="small text-muted">dự phòng: @Model.PhuTrachDuPhong</span></dd></div>
+        <div class="col-sm-4"><dt>Nhà cung cấp</dt><dd>@Model.NhaCungCap?.Ten</dd></div>
+        <div class="col-sm-6"><dt>Hợp đồng hỗ trợ</dt><dd>@if (Model.HopDong is not null) { <a asp-controller="HopDong" asp-action="Details" asp-route-id="@Model.HopDongId">@Model.HopDong.SoHopDong</a> }</dd></div>
+        <div class="col-sm-6"><dt>Đầu mối nhà cung cấp</dt><dd>@Model.HoTroNhaCungCap</dd></div>
+        @if (!string.IsNullOrWhiteSpace(Model.GhiChu)) { <div class="col-12"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div> }
+    </dl></div></div>
+
+    <div class="card mb-3"><div class="card-header d-flex">Phụ thuộc hạ tầng <span class="ms-auto small fw-normal text-muted">FR-HTT-06</span></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+            <thead><tr><th>Thành phần</th><th>Loại</th><th>Vai trò</th><th>Dự phòng</th>@if (cntt) { <th></th> }</tr></thead>
+            <tbody>
+            @foreach (var p in Model.PhuThuocs.OrderBy(p => p.TaiSanId == null).ThenBy(p => p.TaiSan?.MaTaiSan))
+            {
+                <tr>
+                    <td>@if (p.TaiSan is not null) { <a asp-controller="TaiSan" asp-action="Details" asp-route-id="@p.TaiSanId">@p.TaiSan.MaTaiSan</a> <span class="small">@p.TaiSan.Ten</span> }
+                        else { <a asp-action="Details" asp-route-id="@p.HeThongPhuThuocId">@p.HeThongPhuThuoc?.Ma</a> <span class="small">@p.HeThongPhuThuoc?.Ten</span> }</td>
+                    <td class="small">@(p.TaiSan is not null ? p.TaiSan.LoaiThietBi?.Ten ?? "Tài sản" : "Hệ thống")</td>
+                    <td class="small">@p.VaiTro</td>
+                    <td>@if (cntt) {
+                        <form asp-action="SuaPhuThuoc" asp-route-id="@Model.Id" method="post" class="d-inline"><input type="hidden" name="phuThuocId" value="@p.Id" /><input type="hidden" name="coDuPhong" value="@((!p.CoDuPhong).ToString().ToLower())" />
+                            <button class="btn btn-sm @(p.CoDuPhong ? "btn-success" : "btn-outline-danger") py-0" title="Đổi trạng thái dự phòng">@(p.CoDuPhong ? "Có" : "Không")</button></form> }
+                        else { @(p.CoDuPhong ? "Có" : "Không") }</td>
+                    @if (cntt) { <td class="text-end"><form asp-action="GoPhuThuoc" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Gỡ phụ thuộc này?')"><input type="hidden" name="phuThuocId" value="@p.Id" /><button class="btn btn-sm btn-link text-danger p-0">Gỡ</button></form></td> }
+                </tr>
+            }
+            @if (Model.PhuThuocs.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa khai báo phụ thuộc.</td></tr> }
+            </tbody></table></div>
+        @if (cntt)
+        {
+            <form asp-action="ThemPhuThuoc" asp-route-id="@Model.Id" method="post" class="card-footer bg-white row g-2">
+                <div class="col-md-6"><label class="form-label small mb-0" for="dsMa">Tài sản (mã, cách nhau bởi dấu phẩy / xuống dòng)</label><textarea id="dsMa" name="danhSachMa" class="form-control form-control-sm" rows="2" placeholder="SV-0001, SW-0002"></textarea></div>
+                <div class="col-md-6"><label class="form-label small mb-0" for="htpt">hoặc hệ thống mà hệ thống này phụ thuộc</label><select id="htpt" name="heThongPhuThuocId" asp-items="ViewBag.DsHeThong" class="form-select form-select-sm"><option value="">—</option></select></div>
+                <div class="col-md-6"><label class="form-label small mb-0" for="vt">Vai trò</label><input id="vt" name="vaiTro" class="form-control form-control-sm" placeholder="Máy chủ ứng dụng / CSDL / Switch lõi / UPS…" /></div>
+                <div class="col-md-3 align-self-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="coDuPhong" value="true" id="dp" /><label class="form-check-label small" for="dp">Có dự phòng</label></div></div>
+                <div class="col-md-3 align-self-end text-end"><button class="btn btn-sm btn-outline-primary">Thêm phụ thuộc</button></div>
+            </form>
+        }
+    </div>
+
+    @if (toanVien)
+    {
+    <div class="card mb-3"><div class="card-header">Điểm lỗi đơn & hệ thống phụ thuộc vào hệ thống này <span class="small fw-normal text-muted">FR-HTT-07, 08</span></div><div class="card-body small">
+        <div class="mb-2"><b>Điểm lỗi đơn</b> (thành phần không có dự phòng):
+            @if (loiDon.Count == 0) { <span class="text-success">không phát hiện</span> } else { foreach (var t in loiDon) { <a class="badge bg-danger text-decoration-none me-1" asp-controller="TaiSan" asp-action="Details" asp-route-id="@t.Id">@t.MaTaiSan</a> } }</div>
+        <div><b>Hệ thống bị ảnh hưởng nếu hệ thống này ngừng</b>:
+            @if (phuThuocVao.Count == 0) { <span class="text-muted">không có</span> } else { foreach (var h in phuThuocVao) { <a asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> } }</div>
+    </div></div>
+    }
+
+    <div class="card mb-3"><div class="card-header d-flex">Kế hoạch downtime <span class="ms-auto">@if (cntt) { <a asp-controller="KeHoachDowntime" asp-action="Form" asp-route-heThongId="@Model.Id" class="btn btn-sm btn-outline-primary py-0">Phiên bản mới</a> }</span></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Phiên bản</th><th>Trạng thái</th><th>Hiệu lực</th><th>Rà soát</th></tr></thead><tbody>
+        @foreach (var k in keHoachs)
+        {
+            <tr><td><a asp-controller="KeHoachDowntime" asp-action="Details" asp-route-id="@k.Id">v@(k.PhienBan)</a></td><td>@Html.Raw(Badge.Html(k.TrangThai))</td><td class="small">@k.NgayHieuLuc?.ToString("dd/MM/yyyy")</td>
+                <td class="small">@k.NgayRaSoat?.ToString("dd/MM/yyyy") @if (k.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">Cần rà soát</span> }</td></tr>
+        }
+        @if (keHoachs.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Chưa có kế hoạch.</td></tr> }
+        </tbody></table></div></div>
+
+    <div class="card mb-3"><div class="card-header">Sự kiện downtime gần đây</div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Mã</th><th>Loại</th><th>Bắt đầu</th><th>Thời lượng</th><th>Trạng thái</th></tr></thead><tbody>
+        @foreach (var s in suKiens)
+        {
+            <tr><td><a asp-controller="SuKienDowntime" asp-action="Details" asp-route-id="@s.Id">@s.Ma</a></td><td class="small">@s.Loai.Ten()</td><td class="small">@((s.BatDau ?? s.DuKienBatDau)?.ToString("dd/MM/yyyy HH:mm"))</td>
+                <td class="small @(s.VuotRto(DateTime.Now) ? "overdue" : "")">@HaTangHelpers.ThoiLuongText(s.ThoiLuong(DateTime.Now))</td><td>@Html.Raw(Badge.Html(s.TrangThai))</td></tr>
+        }
+        @if (suKiens.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa có sự kiện.</td></tr> }
+        </tbody></table></div></div>
+
+    @if (toanVien)
+    {
+    <div class="card mb-3"><div class="card-header d-flex">Sao lưu & thử phục hồi <span class="ms-auto">@if (cntt) { <a asp-controller="SaoLuu" asp-action="TacVuForm" asp-route-heThongId="@Model.Id" class="btn btn-sm btn-outline-primary py-0">Thêm tác vụ</a> }</span></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Tác vụ</th><th>Loại</th><th>Chu kỳ</th><th>3-2-1</th><th>Đáp ứng RPO</th></tr></thead><tbody>
+        @foreach (var t in tacVus)
+        {
+            <tr class="@(t.DangApDung ? "" : "text-muted")"><td><a asp-controller="SaoLuu" asp-action="TacVu" asp-route-id="@t.Id">@t.Ten</a></td><td class="small">@t.Loai.Ten()</td><td class="small">@HaTangHelpers.ChuKyText(t.ChuKyPhut)</td>
+                <td>@if (t.Dat321) { <span class="text-success">Đạt</span> } else { <span class="text-danger">Chưa</span> }</td>
+                <td>@if (t.DapUngRpo(rpo)) { <span class="text-success">Đạt</span> } else { <span class="text-danger">Không (chu kỳ @HaTangHelpers.ChuKyText(t.ChuKyPhut) > RPO @Gio(rpo))</span> }</td></tr>
+        }
+        @if (tacVus.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa khai báo sao lưu.</td></tr> }
+        </tbody></table></div>
+        <div class="card-body border-top small">
+            <b>Thử phục hồi</b> (chu kỳ @(mt.ChuKyThuPhucHoiThang == 0 ? "—" : mt.ChuKyThuPhucHoiThang + " tháng")):
+            @foreach (var l in phucHois) { <a asp-controller="SaoLuu" asp-action="PhucHoi" asp-route-id="@l.Id" class="badge text-decoration-none me-1 @(!l.DaChot ? "bg-secondary" : l.Dat == true ? "bg-success" : "bg-danger")">@(l.DaChot ? l.NgayChot!.Value.ToString("dd/MM/yyyy") : "hạn " + l.HanThucHien.ToString("dd/MM/yyyy"))@(l.DaChot ? (l.Dat == true ? " Đạt" : " Không đạt") : "")</a> }
+            @if (phucHois.Count == 0) { <span class="text-muted">chưa có</span> }
+            <br /><b>Diễn tập downtime</b> (chu kỳ @(mt.ChuKyDienTapThang == 0 ? "—" : mt.ChuKyDienTapThang + " tháng")):
+            @foreach (var d in dienTaps) { <a asp-controller="DienTap" asp-action="Details" asp-route-id="@d.Id" class="badge text-decoration-none me-1 @(!d.DaChot ? "bg-secondary" : d.KetLuan == KetLuanDienTap.KhongDat ? "bg-danger" : "bg-success")">@(d.DaChot ? d.NgayChot!.Value.ToString("dd/MM/yyyy") + " " + d.KetLuan!.Value.Ten() : "hạn " + d.HanThucHien.ToString("dd/MM/yyyy"))</a> }
+            @if (dienTaps.Count == 0) { <span class="text-muted">chưa có</span> }
+        </div></div>
+
+    <div class="card mb-3"><div class="card-header">Hành động khắc phục đang mở (@hanhDongs.Count)</div>
+        <div class="list-group list-group-flush small">
+        @foreach (var h in hanhDongs) { <a class="list-group-item list-group-item-action @(h.QuaHan(homNay) ? "list-group-item-danger" : "")" asp-controller="HanhDong" asp-action="Details" asp-route-id="@h.Id"><b>@h.Ma</b> · @h.MoTa <span class="text-muted">— @h.NguoiChiuTrachNhiem, hạn @h.Han.ToString("dd/MM/yyyy")</span></a> }
+        @if (hanhDongs.Count == 0) { <div class="list-group-item text-muted">Không có.</div> }
+        </div></div>
+    }
+</div>
+<div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Khả dụng (BR-DT-05)</div><div class="card-body">
+        <div class="kpi p-0 mb-2"><div class="label">30 ngày – chỉ downtime đột xuất</div><div class="value @(kd30.Pct < 99.5 ? "text-danger" : "")">@kd30.Pct.ToString("0.###")%</div><div class="sub">Ngừng @HaTangHelpers.ThoiLuongText(kd30.Dt)</div></div>
+        <div class="kpi p-0 mb-2"><div class="label">90 ngày – chỉ downtime đột xuất</div><div class="value">@kd90.Pct.ToString("0.###")%</div><div class="sub">Ngừng @HaTangHelpers.ThoiLuongText(kd90.Dt)</div></div>
+        <div class="small text-muted">Tính cả downtime có kế hoạch (30 ngày): @kd30All.Pct.ToString("0.###")%.</div>
+    </div></div>
+    <div class="card mb-3"><div class="card-header">Khoa/phòng sử dụng (@Model.KhoaPhongs.Count)</div>
+        <ul class="list-group list-group-flush small">
+        @foreach (var k in Model.KhoaPhongs.OrderBy(k => k.KhoaPhong?.Ten))
+        {
+            <li class="list-group-item d-flex align-items-center">@k.KhoaPhong?.Ten <span class="badge @(k.BatBuoc ? "bg-danger-subtle text-danger-emphasis" : "bg-secondary-subtle text-secondary-emphasis") ms-2">@(k.BatBuoc ? "bắt buộc" : "hỗ trợ")</span>
+                @if (cntt) { <form asp-action="GoKhoa" asp-route-id="@Model.Id" method="post" class="ms-auto"><input type="hidden" name="khoaId" value="@k.KhoaPhongId" /><button class="btn btn-sm btn-link text-danger p-0">Gỡ</button></form> }</li>
+        }
+        @if (Model.KhoaPhongs.Count == 0) { <li class="list-group-item text-muted">Chưa khai báo.</li> }
+        </ul>
+        @if (cntt)
+        {
+            <form asp-action="ThemKhoa" asp-route-id="@Model.Id" method="post" class="card-footer bg-white">
+                <label class="form-label small mb-1" for="khoaIds">Thêm khoa/phòng (giữ Ctrl để chọn nhiều)</label>
+                <select id="khoaIds" name="khoaIds" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm mb-2" multiple size="5"></select>
+                <div class="d-flex align-items-center gap-2"><div class="form-check"><input class="form-check-input" type="checkbox" name="batBuoc" value="true" id="bb" checked /><label class="form-check-label small" for="bb">Phụ thuộc bắt buộc</label></div>
+                <button class="btn btn-sm btn-outline-primary ms-auto">Thêm</button></div>
+            </form>
+        }
+    </div>
+    @if (toanVien) { @await Html.PartialAsync("_DinhKem", (DoiTuong: "HeThong", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt)) }
+</div>
+</div>

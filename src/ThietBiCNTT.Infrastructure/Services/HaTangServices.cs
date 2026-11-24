@@ -58,7 +58,11 @@ public class HaTangService(AppDbContext db, ThamSoService thamSo)
     /// <summary>Mốc sao lưu của một tác vụ trong khoảng thời gian (FR-SL-04, FR-SL-08).</summary>
     public async Task<List<(DateTime Moc, TrangThaiMocSaoLuu TrangThai, KetQuaSaoLuuLan? KetQua)>> MocSaoLuuAsync(TacVuSaoLuu tv, DateTime tu, DateTime den, DateTime now)
     {
-        var buoc = TimeSpan.FromHours(Math.Max(1, tv.ChuKyGio));
+        var buoc = TimeSpan.FromMinutes(Math.Max(5, tv.ChuKyPhut));
+        // Không tính các mốc trước khi tác vụ tồn tại (ngày khai báo hoặc kết quả đầu tiên đã ghi) — tránh cảnh báo "không rõ" giả.
+        var dauTien = await db.KetQuaSaoLuuLans.AsNoTracking().Where(k => k.TacVuSaoLuuId == tv.Id).MinAsync(k => (DateTime?)k.ThoiDiem);
+        var batDau = dauTien is { } d && d < tv.NgayTao ? d : tv.NgayTao;
+        if (tu < batDau) tu = batDau;
         var kq = await db.KetQuaSaoLuuLans.AsNoTracking().Where(k => k.TacVuSaoLuuId == tv.Id && k.ThoiDiem >= tu - buoc && k.ThoiDiem < den + buoc).ToListAsync();
         return DoiChieuSaoLuu.Moc(tv, kq, tu, den, now, TimeSpan.FromHours(thamSo.SoNguyen(TS.JciSaoLuuChoGio)));
     }
@@ -152,6 +156,7 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
         await haTang.SinhLichAsync(homNay, ct);
         await DowntimeCoKeHoachAsync(now, ct);
         await DienTapPhucHoiAsync(homNay, ct);
+        await RaSoatKeHoachAsync(homNay, ct);
         await SaoLuuAsync(now, ct);
         await HanhDongAsync(homNay, ct);
         await db.SaveChangesAsync(ct);
@@ -184,6 +189,18 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
                 $"{s.MoTa}\nKhoa chuẩn bị quy trình thay thế theo bộ downtime của khoa.", $"/SuKienDowntime/Details/{s.Id}", MucDoThongBao.CanhBao);
             s.DaThongBaoTruoc = true;
             if (nhac1h) s.DaNhacTruoc1Gio = true;
+        }
+    }
+
+    /// <summary>FR-DT-13 (HCT.01.04 – duy trì): kế hoạch downtime đến hạn rà soát hoặc có cờ cần rà soát → nhắc người phụ trách một lần.</summary>
+    private async Task RaSoatKeHoachAsync(DateOnly homNay, CancellationToken ct)
+    {
+        foreach (var k in await db.KeHoachDowntimes.Include(x => x.HeThong).Where(x => x.TrangThai == TrangThaiKeHoach.HieuLuc && !x.DaNhacRaSoat).ToListAsync(ct))
+        {
+            if (!k.DenHanRaSoat(homNay)) continue;
+            k.DaNhacRaSoat = true;
+            await tb.GuiAsync(await PhuTrachAsync(k.HeThong), LoaiThongBao.DienTap, $"Rà soát kế hoạch downtime {k.HeThong?.Ma} v{k.PhienBan}",
+                k.CanRaSoat ? k.LyDoRaSoat : $"Đến hạn rà soát định kỳ ({k.NgayRaSoat:dd/MM/yyyy}).", $"/KeHoachDowntime/Details/{k.Id}", MucDoThongBao.CanhBao);
         }
     }
 
@@ -235,7 +252,7 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
             .Where(t => t.DangApDung && t.HeThong!.TrangThai == TrangThaiHeThong.VanHanh).ToListAsync(ct);
         foreach (var tv in ds)
         {
-            var tu = now.AddHours(-Math.Max(24 * 7, tv.ChuKyGio * (nguong + 2)));
+            var tu = now.AddMinutes(-Math.Max(24 * 7 * 60, tv.ChuKyPhut * (nguong + 2)));
             var moc = await haTang.MocSaoLuuAsync(tv, tu, now, now);
             var loi = DoiChieuSaoLuu.LoiLienTiep(moc);
             if (loi == 0) { tv.SoLanLoiDaCanhBao = 0; continue; }
@@ -309,7 +326,7 @@ public static class HaTangTongHop
         if (dt > 0) dong.Add($"• {dt} đợt diễn tập downtime quá hạn");
         var ph = await db.LanThuPhucHois.CountAsync(x => !x.DaChot && x.HanThucHien < d, ct);
         if (ph > 0) dong.Add($"• {ph} lần thử phục hồi quá hạn");
-        var rs = await db.KeHoachDowntimes.CountAsync(k => k.TrangThai == TrangThaiKeHoach.HieuLuc && k.NgayRaSoat <= d, ct);
+        var rs = await db.KeHoachDowntimes.CountAsync(k => k.TrangThai == TrangThaiKeHoach.HieuLuc && (k.CanRaSoat || k.NgayRaSoat <= d), ct);
         if (rs > 0) dong.Add($"• {rs} kế hoạch downtime đến hạn rà soát");
         var sl = await db.TacVuSaoLuus.CountAsync(t => t.DangApDung && t.SoLanLoiDaCanhBao > 0, ct);
         if (sl > 0) dong.Add($"• {sl} tác vụ sao lưu đang lỗi / không rõ kết quả");

@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Tạo hành động khắc phục"; var nguon = (NguonHanhDong)ViewBag.Nguon; int? nguonId = ViewBag.NguonId; string link = ViewBag.LinkNguon; var han = (DateOnly)ViewBag.HanMacDinh;
+}
+<div class="page-head"><h1>Tạo hành động khắc phục</h1></div>
+<div class="card" style="max-width:820px"><div class="card-body">
+<form asp-action="Create" method="post" class="row g-3">
+    <input type="hidden" name="nguon" value="@nguon" /><input type="hidden" name="nguonId" value="@nguonId" />
+    <div class="col-12 small text-muted">Nguồn: <b>@nguon.Ten()</b>@if (link.Length > 0) { <a href="@link"> — xem nguồn</a> }</div>
+    <div class="col-12"><label class="form-label" for="mt">Nội dung hành động</label><textarea id="mt" name="moTa" class="form-control" rows="3" required>@ViewBag.MoTa</textarea></div>
+    <div class="col-md-4"><label class="form-label" for="lo">Loại</label><select id="lo" name="loai" asp-items="@EnumExtensions.ToSelectList<LoaiHanhDong>()" class="form-select"></select></div>
+    <div class="col-md-4"><label class="form-label" for="ut">Ưu tiên</label><select id="ut" name="uuTien" asp-items="@EnumExtensions.ToSelectList<MucDoUuTien>(MucDoUuTien.TrungBinh)" class="form-select"></select></div>
+    <div class="col-md-4"><label class="form-label" for="h">Hạn hoàn thành</label><input id="h" name="han" type="date" value="@han.ToString("yyyy-MM-dd")" class="form-control" /></div>
+    <div class="col-md-6"><label class="form-label" for="ng">Người chịu trách nhiệm</label><select id="ng" name="nguoiChiuTrachNhiem" asp-items="ViewBag.DsNguoi" class="form-select" required></select></div>
+    <div class="col-md-6"><label class="form-label" for="ht">Hệ thống liên quan</label><select id="ht" name="heThongId" asp-items="ViewBag.DsHeThong" class="form-select"><option value="">—</option></select></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Tạo</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>

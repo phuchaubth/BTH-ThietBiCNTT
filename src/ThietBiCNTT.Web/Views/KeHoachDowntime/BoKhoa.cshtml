@@ -1,0 +1,27 @@
+@model BoKhoaVm?
+@{ ViewData["Title"] = "Bộ downtime của khoa"; var dsKhoa = ViewBag.DsKhoa as SelectList; }
+<div class="page-head"><h1>Bộ downtime của khoa</h1><span class="text-muted small">Khi hệ thống ngừng: làm gì, gọi ai, dùng biểu mẫu nào (HCT.01.04, MOI.02.03)</span>
+    @if (Model is not null) { <div class="actions"><a asp-action="InBoKhoa" asp-route-khoaId="@Model.Khoa.Id" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-printer"></i> In / lưu PDF một trang</a></div> }</div>
+@if (dsKhoa is not null) { <form method="get" class="d-flex gap-2 mb-3" style="max-width:480px"><select name="khoaId" asp-items="dsKhoa" class="form-select form-select-sm" aria-label="Khoa/phòng"><option value="">— Chọn khoa/phòng —</option></select><button class="btn btn-sm btn-outline-secondary">Xem</button></form> }
+@if (Model is null) { <div class="alert alert-info">@(dsKhoa is null ? "Tài khoản chưa gắn khoa/phòng nên không có bộ downtime." : "Chọn khoa/phòng để xem bộ downtime.")</div> }
+else
+{
+    <div class="alert alert-light border small">In bộ này và dán tại <b>@Model.Khoa.Ten</b>; lưu một bản PDF trên máy trạm ngoại tuyến vì khi downtime có thể không truy cập được hệ thống.</div>
+    @foreach (var m in Model.Muc)
+    {
+        <div class="card mb-3"><div class="card-header d-flex">@m.HeThong.Ma · @m.HeThong.Ten @Html.Raw(Badge.Html(m.HeThong.MucTrongYeu)) <span class="ms-auto small fw-normal">@(m.BatBuoc ? "Khoa phụ thuộc bắt buộc" : "Hỗ trợ")</span></div>
+        <div class="card-body small">
+        @if (m.KeHoach is null) { <div class="text-danger">Chưa có kế hoạch downtime hiệu lực cho hệ thống này — liên hệ Phòng CNTT.</div> }
+        else
+        {
+            <div class="mb-2"><b>Khi nào kích hoạt:</b> @m.KeHoach.TieuChiKichHoat</div>
+            <div class="mb-2"><b>Gọi ai:</b><div style="white-space:pre-line">@m.KeHoach.DanhBa</div></div>
+            <div class="mb-2"><b>Làm gì khi bắt đầu downtime:</b><div style="white-space:pre-line">@m.KeHoach.BuocBatDau</div></div>
+            <div class="mb-2"><b>Quy trình thay thế tại khoa (biểu mẫu giấy):</b><div style="white-space:pre-line">@m.KeHoach.QuyTrinhThayThe</div></div>
+            <div class="mb-1"><b>Sau khi khôi phục (nhập bù):</b><div style="white-space:pre-line">@m.KeHoach.QuyTrinhNhapBu</div></div>
+            <a asp-action="Details" asp-route-id="@m.KeHoach.Id" class="small">Xem toàn bộ kế hoạch v@(m.KeHoach.PhienBan)</a>
+        }
+        </div></div>
+    }
+    @if (Model.Muc.Count == 0) { <div class="alert alert-info">Khoa/phòng chưa được khai báo là bên sử dụng hệ thống thông tin nào.</div> }
+}

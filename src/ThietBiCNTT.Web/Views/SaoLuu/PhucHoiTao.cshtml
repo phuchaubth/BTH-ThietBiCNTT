@@ -1,0 +1,11 @@
+@model LanThuPhucHoi
+@{ ViewData["Title"] = "Tạo lần thử phục hồi"; }
+<div class="page-head"><h1>Tạo lần thử phục hồi</h1></div>
+<div class="alert alert-light border small">Hệ thống tự sinh lần thử theo chu kỳ của mức trọng yếu. Dùng màn hình này cho lần thử ngoài lịch, ví dụ sau khi thay đổi lớn hệ thống sao lưu (FR-SL-09).</div>
+<div class="card" style="max-width:640px"><div class="card-body">
+<form asp-action="PhucHoiTao" method="post" class="row g-3">
+    <div class="col-12"><label class="form-label" for="h">Hệ thống</label><select id="h" name="heThongId" asp-items="ViewBag.DsHeThong" class="form-select" required><option value="">—</option></select></div>
+    <div class="col-md-6"><label class="form-label" for="han">Hạn thực hiện</label><input id="han" name="hanThucHien" type="date" value="@Model.HanThucHien.ToString("yyyy-MM-dd")" class="form-control" required /></div>
+    <div class="col-12"><label class="form-label" for="ld">Lý do</label><input id="ld" name="lyDo" class="form-control" placeholder="Thử phục hồi sau nâng cấp phần mềm sao lưu" /></div>
+    <div class="col-12"><button class="btn btn-primary">Tạo</button> <a asp-action="PhucHoiDs" class="btn btn-link">Huỷ</a></div>
+</form></div></div>

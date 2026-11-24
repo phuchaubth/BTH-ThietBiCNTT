@@ -1,0 +1,54 @@
+@model KeHoachDowntime
+@{
+    var h = Model.HeThong!; ViewData["Title"] = $"Kế hoạch downtime {h.Ma} v{Model.PhienBan}";
+    var cntt = User.LaCNTT(); var duocDuyetCntt = (bool)ViewBag.DuocDuyetCntt; var canLd = (bool)ViewBag.CanLanhDao; var homNay = (DateOnly)ViewBag.HomNay;
+    var phienBans = (List<KeHoachDowntime>)ViewBag.PhienBans; var dienTaps = (List<DotDienTap>)ViewBag.DienTap;
+    var coTheDuyet = Model.TrangThai == TrangThaiKeHoach.ChoDuyet && ((Model.NguoiDuyetCntt is null && duocDuyetCntt) || (canLd && Model.NguoiDuyetCntt is not null && Model.NguoiDuyetLanhDao is null && User.IsInRole(VaiTro.LanhDao)));
+    void Muc(string tieuDe, string? nd, bool batBuoc = false) { if (string.IsNullOrWhiteSpace(nd) && !batBuoc) return; <div class="mb-3"><div class="small text-muted text-uppercase fw-semibold">@tieuDe</div><div style="white-space:pre-line">@nd</div></div> }
+}
+<div class="small text-muted mb-1">@if (User.XemToanVien()) { <a asp-action="Index">Kế hoạch downtime</a> } else { <a asp-action="BoKhoa">Bộ downtime của khoa</a> } › @h.Ma v@(Model.PhienBan)</div>
+<div class="page-head"><h1>Kế hoạch downtime · <a asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id">@h.Ma</a> v@(Model.PhienBan)</h1> @Html.Raw(Badge.Html(Model.TrangThai)) @Html.Raw(Badge.Html(h.MucTrongYeu))
+    @if (Model.DenHanRaSoat(homNay)) { <span class="badge bg-warning text-dark">Cần rà soát</span> }
+    <div class="actions">
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.Nhap) { <a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a>
+            <form asp-action="GuiDuyet" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Gửi duyệt</button></form> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.HieuLuc) { <form asp-action="PhienBanMoi" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-outline-primary"><i class="bi bi-files"></i> Tạo phiên bản mới</button></form> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.HieuLuc && Model.DenHanRaSoat(homNay)) { <form asp-action="DaRaSoat" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-success"><i class="bi bi-check2-square"></i> Đã rà soát, giữ nguyên</button></form> }
+    </div></div>
+@if (Model.CanRaSoat) { <div class="alert alert-warning py-2 small" style="white-space:pre-line"><b>Cần rà soát (FR-DT-13):</b> @Model.LyDoRaSoat</div> }
+@if (!string.IsNullOrWhiteSpace(Model.LyDoTuChoi)) { <div class="alert alert-danger py-2 small"><b>Bị từ chối:</b> @Model.LyDoTuChoi</div> }
+<div class="row g-3">
+<div class="col-lg-8">
+    <div class="card mb-3"><div class="card-body">
+        @{ Muc("Phạm vi & tác động dự kiến", Model.PhamVi); Muc("Tiêu chí kích hoạt", Model.TieuChiKichHoat, true); Muc("Vai trò & danh bạ liên lạc", Model.DanhBa, true);
+           Muc("Các bước khi bắt đầu downtime", Model.BuocBatDau, true); Muc("Các bước trong thời gian downtime", Model.BuocTrongDowntime);
+           Muc("Các bước khi khôi phục", Model.BuocKhoiPhuc, true); Muc("Quy trình thay thế tại khoa (làm việc bằng giấy)", Model.QuyTrinhThayThe, true);
+           Muc("Quy trình nhập bù dữ liệu & người đối chiếu", Model.QuyTrinhNhapBu, true); Muc("Tiêu chí kết thúc downtime", Model.TieuChiKetThuc); }
+    </div></div>
+    @if (Model.TrangThai == TrangThaiKeHoach.ChoDuyet && (coTheDuyet || duocDuyetCntt || User.IsInRole(VaiTro.LanhDao)))
+    {
+        <div class="card mb-3 border-warning"><div class="card-header">Phê duyệt</div><div class="card-body">
+            <p class="small mb-2">Bước 1: Trưởng phòng CNTT@(canLd ? " · Bước 2: Lãnh đạo (hệ thống Tối quan trọng)" : "")@(Model.NguoiDuyetCntt is not null ? $" — đã duyệt bước 1: {Model.NguoiDuyetCntt}" : "")</p>
+            <div class="d-flex gap-2 flex-wrap">
+            @if (coTheDuyet) { <form asp-action="Duyet" asp-route-id="@Model.Id" method="post"><button class="btn btn-success"><i class="bi bi-check-lg"></i> Duyệt</button></form> }
+            <form asp-action="TuChoi" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 flex-grow-1"><input name="lyDo" class="form-control" placeholder="Lý do từ chối" required /><button class="btn btn-outline-danger">Từ chối</button></form></div>
+        </div></div>
+    }
+    @await Html.PartialAsync("_DinhKem", (DoiTuong: "KeHoachDowntime", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt && Model.TrangThai == TrangThaiKeHoach.Nhap))
+</div>
+<div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Thông tin phê duyệt</div><div class="card-body small">
+        <div>Ngày hiệu lực: <b>@Model.NgayHieuLuc?.ToString("dd/MM/yyyy")</b></div><div>Hạn rà soát: <b>@Model.NgayRaSoat?.ToString("dd/MM/yyyy")</b></div>
+        <div>Gửi duyệt: @Model.NguoiGuiDuyet</div><div>Trưởng phòng CNTT: @Model.NguoiDuyetCntt @Model.NgayDuyetCntt?.ToString("dd/MM/yyyy")</div>
+        @if (canLd) { <div>Lãnh đạo: @Model.NguoiDuyetLanhDao @Model.NgayDuyetLanhDao?.ToString("dd/MM/yyyy")</div> }
+    </div></div>
+    <div class="card mb-3"><div class="card-header">Các phiên bản</div><ul class="list-group list-group-flush small">
+        @foreach (var p in phienBans) { <li class="list-group-item @(p.Id == Model.Id ? "active" : "")"><a class="@(p.Id == Model.Id ? "text-white" : "")" asp-action="Details" asp-route-id="@p.Id">v@(p.PhienBan)</a> @Html.Raw(Badge.Html(p.TrangThai))</li> }
+    </ul></div>
+    @if (User.XemToanVien())
+    {
+        <div class="card"><div class="card-header">Diễn tập (thử nghiệm)</div><ul class="list-group list-group-flush small">
+            @foreach (var d in dienTaps) { <li class="list-group-item"><a asp-controller="DienTap" asp-action="Details" asp-route-id="@d.Id">@(d.DaChot ? d.NgayChot!.Value.ToString("dd/MM/yyyy") : "hạn " + d.HanThucHien.ToString("dd/MM/yyyy"))</a> @(d.DaChot ? d.KetLuan!.Value.Ten() : "chưa chốt")</li> }
+            @if (dienTaps.Count == 0) { <li class="list-group-item text-muted">Chưa có.</li> }</ul></div>
+    }
+</div></div>

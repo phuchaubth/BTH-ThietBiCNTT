@@ -16,6 +16,14 @@
 - Hợp đồng (gắn tài sản), bản quyền phần mềm (cấp phát, chặn vượt số lượng), theo dõi gửi hãng
 - Báo cáo SLA / MTTR / MTBF / dừng máy / chi phí / năng suất KTV, xuất Excel nhiều sheet
 
+**Giai đoạn 3.1 – Hạ tầng CNTT theo JCI 8** (chương HCT, MOI):
+- Danh mục hệ thống thông tin: mức trọng yếu, RTO/RPO, khoa sử dụng, phụ thuộc hạ tầng, phân tích ảnh hưởng và điểm lỗi đơn
+- Kế hoạch downtime (HCT.01.04): phiên bản, duyệt 1–2 cấp, rà soát; bộ downtime của khoa in được
+- Sự kiện downtime đột xuất / có kế hoạch: nhật ký, khôi phục so với RTO, nhập bù theo khoa, rút kinh nghiệm, điều kiện đóng; khả dụng theo hệ thống
+- Diễn tập downtime và thử phục hồi: biên bản chốt không sửa được, kết luận Không đạt tự tạo hành động khắc phục và lịch thử lại
+- Sao lưu: tác vụ, quy tắc 3-2-1, đối chiếu lịch với kết quả (ma trận 30 ngày), cảnh báo thiếu/lỗi
+- Hành động khắc phục (CAPA) dùng chung: kiểm chứng hiệu quả bởi người khác, gia hạn có duyệt, xuất Excel
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -34,6 +42,7 @@
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
 # các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, thongbao.py (cần mock.py)
+python3 tests/e2e/hatang.py                   # hạ tầng CNTT theo JCI 8 (GĐ3.1) — chạy trên CSDL demo mới
 ```
 
 ## Cấu trúc

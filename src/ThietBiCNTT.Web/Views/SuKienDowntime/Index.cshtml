@@ -1,0 +1,29 @@
+@model List<SuKienDowntime>
+@{
+    ViewData["Title"] = "Sự kiện downtime";
+    var tt = ViewData["trangThai"] as TrangThaiSuKien?; var loai = ViewData["loai"] as LoaiDowntime?; var dangMo = (bool)ViewData["dangMo"]!; var now = DateTime.Now;
+}
+<div class="page-head"><h1>Sự kiện downtime</h1><span class="text-muted small">HCT.01.04 – ngừng hệ thống có kế hoạch và đột xuất</span>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Create" asp-route-loai="DotXuat" class="btn btn-sm btn-danger"><i class="bi bi-exclamation-octagon"></i> Ghi nhận downtime đột xuất</a>
+        <a asp-action="Create" asp-route-loai="CoKeHoach" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar-plus"></i> Đăng ký downtime có kế hoạch</a></div> }</div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="trangThai" class="form-select form-select-sm" style="width:190px" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <select name="loai" class="form-select form-select-sm" style="width:170px" asp-items="@EnumExtensions.ToSelectList(loai)" aria-label="Loại"><option value="">— Mọi loại —</option></select>
+    <select name="heThong" class="form-select form-select-sm" style="width:260px" asp-items="ViewBag.DsHeThong" aria-label="Hệ thống"><option value="">— Mọi hệ thống —</option></select>
+    <div class="form-check align-self-center"><input class="form-check-input" type="checkbox" name="dangMo" value="true" id="dm" @(dangMo ? "checked" : "") /><label class="form-check-label small" for="dm">Chỉ chưa đóng</label></div>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Mã</th><th>Hệ thống</th><th>Loại</th><th>Bắt đầu</th><th>Thời lượng</th><th>RTO</th><th>Khoa</th><th>Trạng thái</th></tr></thead><tbody>
+    @foreach (var s in Model)
+    {
+        <tr class="@(s.TrangThai == TrangThaiSuKien.DangDienRa ? "table-danger" : "")">
+            <td class="fw-semibold"><a asp-action="Details" asp-route-id="@s.Id">@s.Ma</a>@if (s.AnhHuongAnToan) { <span class="badge bg-danger ms-1" title="Ảnh hưởng an toàn người bệnh">ATNB</span> }</td>
+            <td class="small">@string.Join(", ", s.HeThongs.Select(h => h.HeThong?.Ma))</td>
+            <td class="small">@s.Loai.Ten()</td><td class="small text-nowrap">@((s.BatDau ?? s.DuKienBatDau)?.ToString("dd/MM/yyyy HH:mm"))</td>
+            <td class="small @(s.VuotRto(now) ? "overdue" : "")">@HaTangHelpers.ThoiLuongText(s.ThoiLuong(now))</td>
+            <td class="small">@(s.RtoPhut is { } r ? (r >= 60 ? $"{r / 60.0:0.#} giờ" : $"{r} phút") : "")</td>
+            <td class="small">@s.Khoas.Count</td><td>@Html.Raw(Badge.Html(s.TrangThai))</td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Không có sự kiện.</td></tr> }
+    </tbody></table></div></div>

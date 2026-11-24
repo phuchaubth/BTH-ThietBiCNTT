@@ -1,0 +1,20 @@
+@model KeHoachDowntime
+@{ ViewData["Title"] = (Model.Id == 0 ? "Lập" : "Sửa") + $" kế hoạch downtime {Model.HeThong?.Ma} v{Model.PhienBan}"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="alert alert-light border small">Theo <b>HCT.01.04</b>: kế hoạch nêu tác động, chiến lược duy trì chăm sóc (kể cả dịch vụ bên ngoài), truyền thông trong/ngoài, khôi phục và đào tạo. Kế hoạch được <b>duy trì</b> (phiên bản, rà soát) và <b>thử nghiệm ít nhất mỗi năm</b> bằng diễn tập.</div>
+<div class="card" style="max-width:980px"><div class="card-body">
+<form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="HeThongId" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-12"><label asp-for="PhamVi" class="form-label"></label><textarea asp-for="PhamVi" class="form-control" rows="2" placeholder="Hệ thống/ứng dụng, khoa bị ảnh hưởng, tác động dự kiến lên các mặt chăm sóc và dịch vụ"></textarea></div>
+    <div class="col-12"><label asp-for="TieuChiKichHoat" class="form-label"></label><textarea asp-for="TieuChiKichHoat" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><label asp-for="DanhBa" class="form-label"></label><textarea asp-for="DanhBa" class="form-control" rows="3" placeholder="Trưởng phòng CNTT: …&#10;Kỹ thuật viên trực: …&#10;Nhà cung cấp: …&#10;Đầu mối từng khoa; kênh liên lạc thay thế khi mạng hỏng (điện thoại, bộ đàm)"></textarea></div>
+    <div class="col-12"><label asp-for="BuocBatDau" class="form-label"></label><textarea asp-for="BuocBatDau" class="form-control" rows="4" placeholder="1. Xác nhận sự cố, thông báo ngay cho các khoa&#10;2. Kích hoạt quy trình giấy khi quá ngưỡng (mặc định 30 phút)&#10;3. Liên hệ nhà cung cấp"></textarea></div>
+    <div class="col-12"><label asp-for="BuocTrongDowntime" class="form-label"></label><textarea asp-for="BuocTrongDowntime" class="form-control" rows="3"></textarea></div>
+    <div class="col-12"><label asp-for="BuocKhoiPhuc" class="form-label"></label><textarea asp-for="BuocKhoiPhuc" class="form-control" rows="3" placeholder="Khôi phục từ bản sao lưu / chuyển đổi dự phòng (failover), kiểm tra toàn vẹn, thông báo khôi phục"></textarea></div>
+    <div class="col-12"><label asp-for="QuyTrinhThayThe" class="form-label"></label><textarea asp-for="QuyTrinhThayThe" class="form-control" rows="4" placeholder="Biểu mẫu giấy thay thế (đính kèm sau khi lưu), cách ghi, nơi cất giữ; dịch vụ do bên ngoài cung cấp (xét nghiệm, CĐHA) lấy kết quả thế nào; quản lý giấy tờ để giữ bí mật"></textarea></div>
+    <div class="col-12"><label asp-for="QuyTrinhNhapBu" class="form-label"></label><textarea asp-for="QuyTrinhNhapBu" class="form-control" rows="3" placeholder="Dữ liệu nhập lại có cấu trúc / quét / chép lại; người đối chiếu; hạn hoàn thành"></textarea></div>
+    <div class="col-12"><label asp-for="TieuChiKetThuc" class="form-label"></label><textarea asp-for="TieuChiKetThuc" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu bản nháp</button> <a asp-action="@(Model.Id == 0 ? "Index" : "Details")" asp-route-id="@(Model.Id == 0 ? null : Model.Id)" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -102,6 +102,12 @@
                 @foreach (var b in (List<BanQuyenPhanMem>)ViewBag.BanQuyen) { <a class="list-group-item list-group-item-action" asp-controller="BanQuyen" asp-action="Details" asp-route-id="@b.Id"><i class="bi bi-key"></i> @b.Ten @(b.NgayHetHan is null ? "" : "· hết hạn " + b.NgayHetHan?.ToString("dd/MM/yyyy"))</a> }
             </div></div>
         }
+        @if (ViewBag.AnhHuong is AnhHuongTaiSan ah && ah.HeThongs.Count > 0)
+        {
+            <div class="card mb-3"><div class="card-header">Hệ thống thông tin phụ thuộc tài sản này</div><div class="list-group list-group-flush small">
+                @foreach (var h in ah.HeThongs) { <a class="list-group-item list-group-item-action" asp-controller="HeThong" asp-action="Details" asp-route-id="@h.Id">@h.Ma – @h.Ten @Html.Raw(Badge.Html(h.MucTrongYeu))</a> }
+                <div class="list-group-item text-muted">Ảnh hưởng @ah.Khoas.Count khoa/phòng nếu ngừng.</div></div></div>
+        }
         @await Html.PartialAsync("_DinhKem", (DoiTuong: "TaiSan", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: User.LaCNTT()))
         <div class="card"><div class="card-header">Dòng thời gian</div><div class="card-body">
             <ul class="timeline">

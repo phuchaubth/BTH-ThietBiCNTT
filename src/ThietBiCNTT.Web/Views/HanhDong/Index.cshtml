@@ -1,0 +1,25 @@
+@model List<HanhDongKhacPhuc>
+@{
+    ViewData["Title"] = "Hành động khắc phục"; var homNay = (DateOnly)ViewBag.HomNay; var tt = ViewData["trangThai"] as TrangThaiHanhDong?; var nguon = ViewData["nguon"] as NguonHanhDong?; var quaHan = (bool)ViewData["quaHan"]!; var conMo = (bool)ViewData["conMo"]!;
+    var hoTen = (Dictionary<string, string>)ViewBag.HoTen;
+}
+<div class="page-head"><h1>Hành động khắc phục</h1><span class="text-muted small">CAPA dùng chung: mở → thực hiện → kiểm chứng hiệu quả (QPS.04.00, GLD.04.00)</span>
+    <div class="actions"><a asp-action="Xuat" asp-all-route-data="@(new Dictionary<string, string?> { ["trangThai"] = tt?.ToString(), ["nguon"] = nguon?.ToString(), ["quaHan"] = quaHan.ToString(), ["conMo"] = conMo.ToString() })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a>
+    @if (User.LaCNTT()) { <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tạo hành động</a> }</div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <select name="trangThai" class="form-select form-select-sm" style="width:170px" asp-items="@EnumExtensions.ToSelectList(tt)" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <select name="nguon" class="form-select form-select-sm" style="width:220px" asp-items="@EnumExtensions.ToSelectList(nguon)" aria-label="Nguồn"><option value="">— Mọi nguồn —</option></select>
+    <select name="nguoi" class="form-select form-select-sm" style="width:220px" asp-items="ViewBag.DsNguoi" aria-label="Người"><option value="">— Mọi người —</option></select>
+    <select name="heThong" class="form-select form-select-sm" style="width:240px" asp-items="ViewBag.DsHeThong" aria-label="Hệ thống"><option value="">— Mọi hệ thống —</option></select>
+    <div class="form-check align-self-center"><input class="form-check-input" type="checkbox" name="quaHan" value="true" id="qh" @(quaHan ? "checked" : "") /><label class="form-check-label small" for="qh">Quá hạn</label></div>
+    <div class="form-check align-self-center"><input class="form-check-input" type="checkbox" name="conMo" value="true" id="cm" @(conMo ? "checked" : "") /><label class="form-check-label small" for="cm">Chưa đóng</label></div>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Mã</th><th>Nội dung</th><th>Nguồn</th><th>Hệ thống</th><th>Phụ trách</th><th>Hạn</th><th>Trạng thái</th></tr></thead><tbody>
+@foreach (var h in Model)
+{
+    <tr class="@(h.QuaHan(homNay) ? "table-danger" : "")"><td class="fw-semibold text-nowrap"><a asp-action="Details" asp-route-id="@h.Id">@h.Ma</a></td><td class="small">@h.MoTa</td><td class="small">@h.Nguon.Ten()</td><td class="small">@h.HeThong?.Ma</td>
+        <td class="small">@hoTen.TenNguoi(h.NguoiChiuTrachNhiem)</td><td class="small text-nowrap">@h.Han.ToString("dd/MM/yyyy") @if (h.QuaHan(homNay)) { <span class="badge bg-danger">Quá hạn</span> }</td><td>@Html.Raw(Badge.Html(h.TrangThai))</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-4">Không có hành động nào.</td></tr> }
+</tbody></table></div></div>

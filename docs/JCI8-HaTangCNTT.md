@@ -800,6 +800,16 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 | **GĐ3.3** | TD (FR-TD-01..08) · TC (FR-TC-01..06) · FR-RR-03, 07 · FR-SL-03 · FR-JC-05, 07 · FR-HTT-04, 14 · FR-AN-07 | GĐ3.1 | MOI.01.01, MOI.01.03, FMS.10.00, GLD.05.00 |
 | Sau GĐ3 (C) | Đọc quyền từ AD/LDAP, nhận cảnh báo từ hệ thống giám sát | – | Tuỳ nhu cầu |
 
+### 10.1a. Hiện trạng triển khai GĐ3.1 (cập nhật 24/11/2026)
+
+| Phân hệ | Đã làm | Chưa làm / ghi chú |
+|---|---|---|
+| HTT | FR-HTT-01..07, 10, 11 (kèm FR-HTT-04 ở biểu mẫu); BR-HTT-01..05; cảnh báo trên phiếu sửa chữa và hồ sơ tài sản | Hồ sơ HTTT chưa có mục "thay đổi gần đây", "sự cố an ninh" (phân hệ TD, AN thuộc GĐ3.2–3.3); chưa có FR-HTT-09, 12, 13, 14 |
+| DT | FR-DT-01..08, 10, 12, 13; BR-DT-01..06; bộ downtime của khoa (in / lưu PDF bằng trình duyệt) | FR-DT-09 (đào tạo) thuộc GĐ3.2; FR-DT-11 chưa liên kết phiếu kiểm tra mẫu 4.12; NFR-JC-01 chưa gửi email PDF khi kế hoạch thay đổi |
+| SL | FR-SL-01, 02, 04..08; BR-SL-01..03 | FR-SL-09 phụ thuộc phân hệ Thay đổi (GĐ3.3) — hiện tạo lần thử ngoài lịch bằng tay; FR-SL-02 chưa đọc từ phiếu kiểm tra; FR-SL-03 (API) thuộc GĐ3.3 |
+| HD (CAPA) | FR-HD-01..05; nguồn: tạo trực tiếp, sự kiện downtime, diễn tập, thử phục hồi | Chưa có nút tạo từ kiểm tra bất thường và sao lưu lỗi (nguồn đã khai báo trong mô hình) |
+| Chung | Job nền: sinh lịch diễn tập/thử phục hồi, nhắc & leo thang quá hạn, thông báo downtime có kế hoạch, cảnh báo sao lưu, nhắc rà soát kế hoạch; dòng bản tin hằng ngày; 44+ unit test, kịch bản e2e `tests/e2e/hatang.py` | Chu kỳ sao lưu tính theo **phút** (để đáp ứng RPO 15 phút) |
+
 ### 10.2. Tiêu chí nghiệm thu GĐ3.1
 
 1. Khai báo được tối thiểu các HTTT Tối quan trọng thực tế của Bệnh viện (HIS, LIS, PACS, EMR) với đầy đủ phụ thuộc; chọn một máy chủ → thấy đúng HTTT và khoa bị ảnh hưởng.

@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Phân tích ảnh hưởng";
+    var ts = ViewBag.TaiSan as TaiSan; var kq = ViewBag.KetQua as AnhHuongTaiSan;
+    var loiDon = (List<(TaiSan TaiSan, List<HeThongThongTin> HeThongs)>)ViewBag.DiemLoiDon;
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Hệ thống thông tin</a> › Phân tích ảnh hưởng</div>
+<div class="page-head"><h1>Phân tích ảnh hưởng</h1><span class="text-muted small">Nếu một thành phần ngừng, hệ thống và khoa nào bị ảnh hưởng? (FR-HTT-07)</span></div>
+<form method="get" class="d-flex gap-2 mb-3" style="max-width:520px">
+    <input name="ma" value="@ViewBag.Ma" class="form-control form-control-sm" placeholder="Mã tài sản, ví dụ SV-0001" aria-label="Mã tài sản" />
+    <button class="btn btn-sm btn-primary">Phân tích</button>
+</form>
+@if (ts is null && !string.IsNullOrWhiteSpace((string?)ViewBag.Ma)) { <div class="alert alert-warning py-2">Không tìm thấy tài sản <b>@ViewBag.Ma</b>.</div> }
+@if (ts is not null && kq is not null)
+{
+    <div class="card mb-3"><div class="card-header">Nếu <a asp-controller="TaiSan" asp-action="Details" asp-route-id="@ts.Id">@ts.MaTaiSan</a> – @ts.Ten ngừng hoạt động</div><div class="card-body">
+        @if (kq.HeThongs.Count == 0) { <span class="text-muted">Không có hệ thống thông tin nào phụ thuộc vào tài sản này.</span> }
+        else
+        {
+            @if (kq.CoToiQuanTrong) { <div class="alert alert-danger py-2"><i class="bi bi-exclamation-octagon"></i> Ảnh hưởng tới hệ thống <b>Tối quan trọng</b> — nên ưu tiên Khẩn cấp và mở sự kiện downtime.</div> }
+            <div class="row"><div class="col-md-7"><h6>Hệ thống bị ảnh hưởng (@kq.HeThongs.Count)</h6>
+                <ul class="list-unstyled">@foreach (var h in kq.HeThongs) { <li class="mb-1"><a asp-action="Details" asp-route-id="@h.Id">@h.Ma</a> – @h.Ten @Html.Raw(Badge.Html(h.MucTrongYeu))</li> }</ul></div>
+                <div class="col-md-5"><h6>Khoa/phòng bị ảnh hưởng (@kq.Khoas.Count)</h6>
+                <ul class="list-unstyled small">@foreach (var k in kq.Khoas) { <li>@k.Ten @(k.LaKhoaTrongYeu ? "⚠" : "")</li> }</ul></div></div>
+        }
+    </div></div>
+}
+<div class="card"><div class="card-header">Điểm lỗi đơn của hệ thống Tối quan trọng / Cao (FR-HTT-08)</div>
+    <div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Tài sản</th><th>Hệ thống phụ thuộc</th></tr></thead><tbody>
+    @foreach (var x in loiDon)
+    {
+        <tr><td><a asp-controller="TaiSan" asp-action="Details" asp-route-id="@x.TaiSan.Id">@x.TaiSan.MaTaiSan</a> <span class="small">@x.TaiSan.Ten</span></td>
+            <td>@foreach (var h in x.HeThongs) { <a asp-action="Details" asp-route-id="@h.Id" class="me-2">@h.Ma</a> }</td></tr>
+    }
+    @if (loiDon.Count == 0) { <tr><td colspan="2" class="text-center text-muted py-3">Không phát hiện điểm lỗi đơn (hoặc chưa khai báo phụ thuộc).</td></tr> }
+    </tbody></table></div></div>

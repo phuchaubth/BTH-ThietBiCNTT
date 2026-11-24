@@ -99,6 +99,12 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
         ViewBag.MacDinh = Enum.GetValues<MucTrongYeu>().ToDictionary(m => m, thamSo.MucTieu);
     }
 
+    /// <summary>FR-DT-13: phụ thuộc hạ tầng thay đổi → kế hoạch downtime hiệu lực cần rà soát.</summary>
+    private async Task DanhDauRaSoatAsync(int heThongId, string lyDo)
+    {
+        foreach (var k in await db.KeHoachDowntimes.Where(k => k.HeThongId == heThongId && k.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync()) k.DanhDauCanRaSoat(lyDo);
+    }
+
     [Authorize(Roles = VaiTro.NhomCNTT)]
     public async Task<IActionResult> Form(int? id)
     {
@@ -176,6 +182,7 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
             var khongCo = mas.Except(ts.Select(t => t.MaTaiSan)).ToList();
             if (khongCo.Count > 0) thongBao.Add("Không tìm thấy: " + string.Join(", ", khongCo));
         }
+        await DanhDauRaSoatAsync(id, "Phụ thuộc hạ tầng của hệ thống đã thay đổi");
         await db.SaveChangesAsync();
         TempData[thongBao.Count == 0 ? "ok" : "err"] = (them > 0 ? $"Đã thêm {them} tài sản. " : "") + string.Join(" ", thongBao) + (thongBao.Count == 0 && them == 0 ? "Đã cập nhật phụ thuộc." : "");
         return RedirectToAction(nameof(Details), new { id });
@@ -192,6 +199,8 @@ public class HeThongController(AppDbContext db, ThamSoService thamSo, HaTangServ
     public async Task<IActionResult> GoPhuThuoc(int id, int phuThuocId)
     {
         await db.PhuThuocHeThongs.Where(x => x.Id == phuThuocId && x.HeThongId == id).ExecuteDeleteAsync();
+        await DanhDauRaSoatAsync(id, "Phụ thuộc hạ tầng của hệ thống đã thay đổi");
+        await db.SaveChangesAsync();
         return RedirectToAction(nameof(Details), new { id });
     }
 

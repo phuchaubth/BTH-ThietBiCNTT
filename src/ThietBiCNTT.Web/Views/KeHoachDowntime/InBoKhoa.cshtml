@@ -1,0 +1,21 @@
+@model BoKhoaVm
+@{ ViewData["Title"] = "Bộ downtime – " + Model.Khoa.Ten; Layout = "_Print"; }
+@await Html.PartialAsync("_HeaderBenhVien")
+<h3>BỘ HƯỚNG DẪN KHI HỆ THỐNG THÔNG TIN NGỪNG HOẠT ĐỘNG<br /><small>@Model.Khoa.Ten</small></h3>
+<p style="font-size:11pt">In ngày @DateTime.Now.ToString("dd/MM/yyyy HH:mm"). Dùng khi hệ thống không truy cập được quá ngưỡng quy định hoặc khi Phòng CNTT thông báo. Dán tại khoa và lưu một bản ngoại tuyến.</p>
+@foreach (var m in Model.Muc)
+{
+    <div style="border:1px solid #000;padding:4mm;margin-bottom:5mm;page-break-inside:avoid;font-size:11pt">
+        <b>@m.HeThong.Ma – @m.HeThong.Ten</b> (@m.HeThong.MucTrongYeu.Ten()@(m.BatBuoc ? ", khoa phụ thuộc bắt buộc" : ""))
+        @if (m.KeHoach is null) { <p>Chưa có kế hoạch hiệu lực — liên hệ Phòng CNTT.</p> }
+        else
+        {
+            <p style="margin:2mm 0"><b>Kích hoạt khi:</b> @m.KeHoach.TieuChiKichHoat</p>
+            <p style="margin:2mm 0;white-space:pre-line"><b>Liên hệ:</b>&#10;@m.KeHoach.DanhBa</p>
+            <p style="margin:2mm 0;white-space:pre-line"><b>Khi bắt đầu:</b>&#10;@m.KeHoach.BuocBatDau</p>
+            <p style="margin:2mm 0;white-space:pre-line"><b>Quy trình thay thế (biểu mẫu giấy):</b>&#10;@m.KeHoach.QuyTrinhThayThe</p>
+            <p style="margin:2mm 0;white-space:pre-line"><b>Sau khi khôi phục – nhập bù:</b>&#10;@m.KeHoach.QuyTrinhNhapBu</p>
+            <p style="margin:2mm 0;font-size:9pt">Kế hoạch v@(m.KeHoach.PhienBan), hiệu lực @m.KeHoach.NgayHieuLuc?.ToString("dd/MM/yyyy").</p>
+        }
+    </div>
+}

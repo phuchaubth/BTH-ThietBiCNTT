@@ -1,0 +1,35 @@
+@model SuKienVm
+@{
+    var dotXuat = Model.Loai == LoaiDowntime.DotXuat; ViewData["Title"] = dotXuat ? "Ghi nhận downtime đột xuất" : "Đăng ký downtime có kế hoạch";
+    var heThongs = (List<HeThongThongTin>)ViewBag.HeThongs; var phieu = ViewBag.Phieu as PhieuSuaChua;
+}
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+@if (phieu is not null) { <div class="alert alert-info py-2 small">Từ phiếu <a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@phieu.Id">@phieu.SoPhieu</a>. Các hệ thống phụ thuộc vào thiết bị của phiếu đã được chọn sẵn.</div> }
+<div class="card" style="max-width:900px"><div class="card-body">
+<form asp-action="Create" method="post" class="row g-3">
+    <input type="hidden" asp-for="Loai" /><input type="hidden" asp-for="PhieuSuaChuaId" />
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-12"><label class="form-label">Hệ thống bị ảnh hưởng</label>
+        <div class="border rounded p-2" style="max-height:230px;overflow:auto">
+        @foreach (var h in heThongs)
+        {
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="HeThongIds" value="@h.Id" id="h@(h.Id)" @(Model.HeThongIds.Contains(h.Id) ? "checked" : "") />
+                <label class="form-check-label" for="h@(h.Id)">@h.Ma – @h.Ten <span class="small text-muted">(@h.MucTrongYeu.Ten())</span></label></div>
+        }</div><div class="form-text">Khoa bị ảnh hưởng được lấy tự động theo các hệ thống đã chọn.</div></div>
+    <div class="col-md-4"><label asp-for="MucDo" class="form-label">Mức độ</label><select asp-for="MucDo" asp-items="@EnumExtensions.ToSelectList<MucDoDowntime>()" class="form-select"></select></div>
+    @if (dotXuat)
+    {
+        <div class="col-md-4"><label asp-for="BatDau" class="form-label">Thời điểm bắt đầu</label><input asp-for="BatDau" type="datetime-local" class="form-control" /></div>
+        <div class="col-md-4 align-self-end"><div class="form-check"><input class="form-check-input" type="checkbox" asp-for="KichHoatKeHoach" /><label class="form-check-label" asp-for="KichHoatKeHoach">Kích hoạt kế hoạch downtime (các khoa chuyển sang quy trình giấy)</label></div></div>
+    }
+    else
+    {
+        <div class="col-md-4"><label asp-for="DuKienBatDau" class="form-label">Dự kiến bắt đầu</label><input asp-for="DuKienBatDau" type="datetime-local" class="form-control" /></div>
+        <div class="col-md-4"><label asp-for="DuKienKetThuc" class="form-label">Dự kiến kết thúc</label><input asp-for="DuKienKetThuc" type="datetime-local" class="form-control" /></div>
+    }
+    <div class="col-12"><label asp-for="MoTa" class="form-label">@(dotXuat ? "Mô tả sự cố" : "Lý do và thay đổi dự kiến sau khi hoàn tất")</label><textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+        @if (!dotXuat) { <div class="form-text">Thông báo gửi các khoa trước @ThamSo.SoNguyen(TS.JciThongBaoTruocGio) giờ và nhắc lại trước 1 giờ, gồm: hệ thống/khoa bị ảnh hưởng; giờ bắt đầu và thời gian dự kiến; lý do và thay đổi dự kiến.</div> }</div>
+    @if (dotXuat) { <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" asp-for="AnhHuongAnToan" /><label class="form-check-label" asp-for="AnhHuongAnToan">Có ảnh hưởng an toàn người bệnh / sự cố an toàn — cần báo cáo vào hệ thống báo cáo sự cố của bệnh viện (GLD.04.00 ME5)</label></div></div> }
+    <div class="col-12"><button class="btn btn-@(dotXuat ? "danger" : "primary")"><i class="bi bi-save"></i> @(dotXuat ? "Ghi nhận & thông báo" : "Đăng ký & thông báo")</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

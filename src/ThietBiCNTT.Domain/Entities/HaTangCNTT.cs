@@ -216,6 +216,31 @@ public class KeHoachDowntime : BaseEntity
     public DateTime? NgayDuyetLanhDao { get; set; }
     [StringLength(1000)] public string? LyDoTuChoi { get; set; }
 
+    /// <summary>FR-DT-13 (HCT.01.04 – duy trì): kế hoạch cần rà soát do sự kiện, diễn tập hoặc thay đổi phụ thuộc.</summary>
+    public bool CanRaSoat { get; set; }
+    [StringLength(1000)] public string? LyDoRaSoat { get; set; }
+    public bool DaNhacRaSoat { get; set; }
+
+    public bool DenHanRaSoat(DateOnly homNay) => TrangThai == TrangThaiKeHoach.HieuLuc && (CanRaSoat || NgayRaSoat is { } h && h <= homNay);
+
+    public void DanhDauCanRaSoat(string lyDo)
+    {
+        if (TrangThai != TrangThaiKeHoach.HieuLuc) return;
+        CanRaSoat = true; DaNhacRaSoat = false;
+        if (string.IsNullOrWhiteSpace(lyDo)) return;
+        var them = lyDo.Trim();
+        if (LyDoRaSoat is not null && LyDoRaSoat.Contains(them)) return;
+        var moi = (LyDoRaSoat is null ? "" : LyDoRaSoat + "\n") + them;
+        LyDoRaSoat = moi.Length > 1000 ? moi[^1000..] : moi;
+    }
+
+    /// <summary>Rà soát xong, giữ nguyên kế hoạch: xoá cờ và dời hạn rà soát.</summary>
+    public void RaSoatXong(DateOnly homNay, int thang)
+    {
+        if (TrangThai != TrangThaiKeHoach.HieuLuc) throw new DomainException("Chỉ rà soát kế hoạch đang hiệu lực.");
+        CanRaSoat = false; LyDoRaSoat = null; DaNhacRaSoat = false; NgayRaSoat = homNay.AddMonths(Math.Max(1, thang));
+    }
+
     public bool DuocSua => TrangThai == TrangThaiKeHoach.Nhap;
 
     public void GuiDuyet(string nguoi)
@@ -294,6 +319,8 @@ public class SuKienDowntime : BaseEntity
     [Display(Name = "Dự kiến bắt đầu")] public DateTime? DuKienBatDau { get; set; }
     [Display(Name = "Dự kiến kết thúc")] public DateTime? DuKienKetThuc { get; set; }
     [Display(Name = "Kích hoạt kế hoạch downtime")] public bool KichHoatKeHoach { get; set; }
+    /// <summary>GLD.04.00 ME5: đánh dấu để báo cáo vào hệ thống báo cáo sự cố an toàn người bệnh của bệnh viện.</summary>
+    [Display(Name = "Ảnh hưởng an toàn người bệnh / sự cố an toàn")] public bool AnhHuongAnToan { get; set; }
     [Display(Name = "Phiếu sửa chữa liên quan")] public int? PhieuSuaChuaId { get; set; }
     public PhieuSuaChua? PhieuSuaChua { get; set; }
     /// <summary>RTO nhỏ nhất của các hệ thống bị ảnh hưởng tại thời điểm ghi nhận (phút).</summary>
@@ -570,7 +597,7 @@ public class TacVuSaoLuu : BaseEntity
     [Required, StringLength(200), Display(Name = "Tên tác vụ")] public string Ten { get; set; } = "";
     [Required, StringLength(300), Display(Name = "Đối tượng sao lưu")] public string DoiTuong { get; set; } = "";
     [Display(Name = "Loại")] public LoaiSaoLuu Loai { get; set; } = LoaiSaoLuu.Full;
-    [Range(1, 8760), Display(Name = "Chu kỳ (giờ)")] public int ChuKyGio { get; set; } = 24;
+    [Range(5, 525600), Display(Name = "Chu kỳ (phút)")] public int ChuKyPhut { get; set; } = 1440;
     [Display(Name = "Giờ chạy dự kiến")] public TimeOnly GioChay { get; set; } = new(1, 0);
     [StringLength(100), Display(Name = "Phần mềm sao lưu")] public string? PhanMem { get; set; }
     [StringLength(500), Display(Name = "Nơi lưu")] public string? NoiLuu { get; set; }
@@ -589,13 +616,13 @@ public class TacVuSaoLuu : BaseEntity
     public bool Dat321 => SoBanSao >= 3 && SoLoaiPhuongTien >= 2 && CoBanNgoaiCoSo;
 
     /// <summary>FR-SL-01: chu kỳ sao lưu có đáp ứng RPO (phút) không.</summary>
-    public bool DapUngRpo(int rpoPhut) => ChuKyGio * 60 <= rpoPhut;
+    public bool DapUngRpo(int rpoPhut) => ChuKyPhut <= rpoPhut;
 
     /// <summary>Các mốc dự kiến chạy trong [tu, den) — theo giờ chạy + chu kỳ.</summary>
     public IEnumerable<DateTime> LichDuKien(DateTime tu, DateTime den)
     {
         var moc = tu.Date + GioChay.ToTimeSpan();
-        var buoc = TimeSpan.FromHours(Math.Max(1, ChuKyGio));
+        var buoc = TimeSpan.FromMinutes(Math.Max(5, ChuKyPhut));
         while (moc - buoc >= tu) moc -= buoc;
         while (moc < tu) moc += buoc;
         for (; moc < den; moc += buoc) yield return moc;
@@ -644,7 +671,7 @@ public static class DoiChieuSaoLuu
     public static List<(DateTime Moc, TrangThaiMocSaoLuu TrangThai, KetQuaSaoLuuLan? KetQua)> Moc(
         TacVuSaoLuu tv, IReadOnlyCollection<KetQuaSaoLuuLan> ketQuas, DateTime tu, DateTime den, DateTime now, TimeSpan khoangCho)
     {
-        var buoc = TimeSpan.FromHours(Math.Max(1, tv.ChuKyGio));
+        var buoc = TimeSpan.FromMinutes(Math.Max(5, tv.ChuKyPhut));
         var kq = new List<(DateTime, TrangThaiMocSaoLuu, KetQuaSaoLuuLan?)>();
         var daDung = new HashSet<long>();
         foreach (var m in tv.LichDuKien(tu, den))

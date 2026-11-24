@@ -1,0 +1,15 @@
+@model List<DotDienTap>
+@{ ViewData["Title"] = "Diễn tập downtime"; var daChot = (bool)ViewData["daChot"]!; var homNay = (DateOnly)ViewBag.HomNay; }
+<div class="page-head"><h1>Diễn tập downtime</h1><span class="text-muted small">HCT.01.04 – thử nghiệm chương trình ít nhất mỗi năm</span>
+    @if (User.LaCNTT()) { <div class="actions"><a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tạo đợt diễn tập</a></div> }</div>
+<ul class="nav nav-tabs mb-3"><li class="nav-item"><a class="nav-link @(!daChot ? "active" : "")" asp-action="Index" asp-route-daChot="false">Chưa chốt</a></li><li class="nav-item"><a class="nav-link @(daChot ? "active" : "")" asp-action="Index" asp-route-daChot="true">Đã chốt</a></li></ul>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead><tr><th>Hệ thống</th><th>Hạn</th><th>Thực hiện</th><th>Hình thức</th><th>Kết luận</th><th>Ghi chú</th></tr></thead><tbody>
+@foreach (var d in Model)
+{
+    <tr class="@(d.QuaHan(homNay) ? "table-danger" : "")"><td><a asp-action="Details" asp-route-id="@d.Id" class="fw-semibold">@d.HeThong?.Ma</a><div class="small text-muted">@d.HeThong?.Ten</div></td>
+        <td class="small">@d.HanThucHien.ToString("dd/MM/yyyy") @if (d.QuaHan(homNay)) { <span class="badge bg-danger">Quá hạn</span> }</td>
+        <td class="small">@d.NgayThucHien?.ToString("dd/MM/yyyy")</td><td class="small">@(d.NgayThucHien is null ? "" : d.HinhThuc.Ten())</td>
+        <td>@if (d.KetLuan is { } k) { @Html.Raw(Badge.Html(k)) }</td><td class="small">@d.LyDo</td></tr>
+}
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có đợt diễn tập.</td></tr> }
+</tbody></table></div></div>
