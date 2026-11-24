@@ -26,6 +26,7 @@
 | **Hướng dẫn triển khai trên IIS** (kèm script trong `deploy/`) | [docs/TrienKhaiIIS.md](docs/TrienKhaiIIS.md) |
 | Chứng chỉ HTTPS Let's Encrypt tự gia hạn cho `thietbi.bth.org.vn` | [docs/ChungChiHTTPS.md](docs/ChungChiHTTPS.md) |
 | Quyết định nghiệp vụ & danh mục tham số hệ thống | [docs/QuyetDinhNghiepVu.md](docs/QuyetDinhNghiepVu.md) |
+| **Đặc tả GĐ3 – Hạ tầng CNTT theo JCI phiên bản 8** (dự thảo) | [docs/JCI8-HaTangCNTT.md](docs/JCI8-HaTangCNTT.md) |
 
 ## Kiểm thử
 
