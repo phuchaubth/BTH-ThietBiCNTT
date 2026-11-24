@@ -50,6 +50,9 @@ public static class DependencyInjection
         services.AddScoped<BaoCaoService>();
         services.AddScoped<CanhBaoService>();
         services.AddScoped<HangDoiGuiService>();
+        services.AddScoped<HaTangService>();
+        services.AddScoped<HanhDongService>();
+        services.AddScoped<HaTangCanhBaoService>();
         services.AddScoped<IKenhGui, EmailSender>();
         services.AddScoped<IKenhGui, TelegramSender>();
         services.AddHttpClient("telegram", c => c.Timeout = TimeSpan.FromSeconds(20));

@@ -62,6 +62,36 @@ public static class TS
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
     public const string ChoGhiNhoVoiKhoa = "BaoMat.ChoGhiNhoVoiKhoa";
+    // GĐ3.1 – Hạ tầng CNTT theo JCI 8 (bảng 4.1.3 và các thời hạn trong docs/JCI8-HaTangCNTT.md)
+    public const string JciRto1 = "Jci.RtoToiQuanTrongPhut";
+    public const string JciRto2 = "Jci.RtoCaoPhut";
+    public const string JciRto3 = "Jci.RtoTrungBinhPhut";
+    public const string JciRto4 = "Jci.RtoThapPhut";
+    public const string JciRpo1 = "Jci.RpoToiQuanTrongPhut";
+    public const string JciRpo2 = "Jci.RpoCaoPhut";
+    public const string JciRpo3 = "Jci.RpoTrungBinhPhut";
+    public const string JciRpo4 = "Jci.RpoThapPhut";
+    public const string JciDienTap1 = "Jci.DienTapToiQuanTrongThang";
+    public const string JciDienTap2 = "Jci.DienTapCaoThang";
+    public const string JciDienTap3 = "Jci.DienTapTrungBinhThang";
+    public const string JciDienTap4 = "Jci.DienTapThapThang";
+    public const string JciPhucHoi1 = "Jci.ThuPhucHoiToiQuanTrongThang";
+    public const string JciPhucHoi2 = "Jci.ThuPhucHoiCaoThang";
+    public const string JciPhucHoi3 = "Jci.ThuPhucHoiTrungBinhThang";
+    public const string JciPhucHoi4 = "Jci.ThuPhucHoiThapThang";
+    public const string JciRaSoatKeHoachThang = "Jci.RaSoatKeHoachThang";
+    public const string JciThongBaoTruocGio = "Jci.ThongBaoDowntimeTruocGio";
+    public const string JciNhacDienTapTruocNgay = "Jci.NhacDienTapTruocNgay";
+    public const string JciDienTapLaiNgay = "Jci.DienTapLaiTrongNgay";
+    public const string JciLeoThangDienTap2Ngay = "Jci.LeoThangDienTapCap2Ngay";
+    public const string JciLeoThangDienTap3Ngay = "Jci.LeoThangDienTapCap3Ngay";
+    public const string JciNhacPhucHoiTruocNgay = "Jci.NhacThuPhucHoiTruocNgay";
+    public const string JciPhucHoiLaiNgay = "Jci.ThuPhucHoiLaiTrongNgay";
+    public const string JciSaoLuuChoGio = "Jci.SaoLuuKhoangChoGio";
+    public const string JciSaoLuuLoiTaoPhieu = "Jci.SaoLuuLoiLienTiepTaoPhieu";
+    public const string JciHanhDongNhacTruocNgay = "Jci.HanhDongNhacTruocNgay";
+    public const string JciHanhDongMacDinhNgay = "Jci.HanhDongHanMacDinhNgay";
+    public const string JciNguoiDuyetCntt = "Jci.NguoiDuyetCntt";
 }
 
 public static class ThamSoMacDinh
@@ -120,6 +150,39 @@ public static class ThamSoMacDinh
         T(131, "Thông báo", TS.LeoThangCap2NguoiNhan, "Người nhận leo thang cấp 2", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập (Trưởng phòng CNTT…), cách nhau bởi dấu phẩy."),
         T(132, "Thông báo", TS.LeoThangCap3SauPhut, "Leo thang cấp 3 (Lãnh đạo) sau khi quá hạn", KieuThamSo.SoNguyen, "240", "phút", 0, 43200, moTa: "Chỉ áp dụng phiếu Khẩn cấp hoặc của khoa trọng yếu. Gửi cho các tài khoản vai trò Lãnh đạo. 0 = tắt."),
 
+        T(200, "JCI 8 – RTO/RPO", TS.JciRto1, "RTO mức Tối quan trọng", KieuThamSo.SoNguyen, "240", "phút", 1, 100000, "Thời gian tối đa được phép để khôi phục hệ thống (bảng 4.1.3). Hệ thống có thể ghi đè riêng."),
+        T(201, "JCI 8 – RTO/RPO", TS.JciRpo1, "RPO mức Tối quan trọng", KieuThamSo.SoNguyen, "15", "phút", 1, 100000, "Lượng dữ liệu tối đa được phép mất, tính theo thời gian."),
+        T(202, "JCI 8 – RTO/RPO", TS.JciRto2, "RTO mức Cao", KieuThamSo.SoNguyen, "480", "phút", 1, 100000),
+        T(203, "JCI 8 – RTO/RPO", TS.JciRpo2, "RPO mức Cao", KieuThamSo.SoNguyen, "60", "phút", 1, 100000),
+        T(204, "JCI 8 – RTO/RPO", TS.JciRto3, "RTO mức Trung bình", KieuThamSo.SoNguyen, "1440", "phút", 1, 100000),
+        T(205, "JCI 8 – RTO/RPO", TS.JciRpo3, "RPO mức Trung bình", KieuThamSo.SoNguyen, "1440", "phút", 1, 100000),
+        T(206, "JCI 8 – RTO/RPO", TS.JciRto4, "RTO mức Thấp", KieuThamSo.SoNguyen, "4320", "phút", 1, 100000),
+        T(207, "JCI 8 – RTO/RPO", TS.JciRpo4, "RPO mức Thấp", KieuThamSo.SoNguyen, "1440", "phút", 1, 100000),
+
+        T(209, "JCI 8 – Downtime", TS.JciNguoiDuyetCntt, "Người duyệt bước Trưởng phòng CNTT", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập, cách nhau bởi dấu phẩy. Duyệt kế hoạch downtime (FR-DT-02), xác nhận dùng downtime thực tế thay diễn tập (FR-DT-12), duyệt gia hạn hành động khắc phục."),
+        T(210, "JCI 8 – Downtime", TS.JciDienTap1, "Chu kỳ diễn tập downtime – Tối quan trọng", KieuThamSo.SoNguyen, "6", "tháng", 0, 60, "0 = không bắt buộc."),
+        T(211, "JCI 8 – Downtime", TS.JciDienTap2, "Chu kỳ diễn tập downtime – Cao", KieuThamSo.SoNguyen, "12", "tháng", 0, 60),
+        T(212, "JCI 8 – Downtime", TS.JciDienTap3, "Chu kỳ diễn tập downtime – Trung bình", KieuThamSo.SoNguyen, "0", "tháng", 0, 60),
+        T(213, "JCI 8 – Downtime", TS.JciDienTap4, "Chu kỳ diễn tập downtime – Thấp", KieuThamSo.SoNguyen, "0", "tháng", 0, 60),
+        T(214, "JCI 8 – Downtime", TS.JciRaSoatKeHoachThang, "Rà soát lại kế hoạch downtime sau", KieuThamSo.SoNguyen, "12", "tháng", 1, 60, "FR-DT-02: đến hạn sẽ nhắc người phụ trách kỹ thuật."),
+        T(215, "JCI 8 – Downtime", TS.JciThongBaoTruocGio, "Thông báo downtime có kế hoạch tới khoa trước", KieuThamSo.SoNguyen, "48", "giờ", 1, 720, "FR-DT-05. Hệ thống nhắc lại trước 1 giờ."),
+        T(216, "JCI 8 – Downtime", TS.JciNhacDienTapTruocNgay, "Nhắc diễn tập trước hạn", KieuThamSo.SoNguyen, "30", "ngày", 0, 180, "FR-DT-10: đợt diễn tập được tạo trước hạn số ngày này."),
+        T(217, "JCI 8 – Downtime", TS.JciDienTapLaiNgay, "Diễn tập lại khi Không đạt trong", KieuThamSo.SoNguyen, "90", "ngày", 7, 365, "FR-DT-12."),
+        T(218, "JCI 8 – Downtime", TS.JciLeoThangDienTap2Ngay, "Diễn tập quá hạn: báo Trưởng phòng CNTT sau", KieuThamSo.SoNguyen, "7", "ngày", 0, 365, "BR-DT-06. Người nhận = Người nhận leo thang cấp 2 (nhóm Thông báo)."),
+        T(219, "JCI 8 – Downtime", TS.JciLeoThangDienTap3Ngay, "Diễn tập quá hạn: báo Lãnh đạo sau", KieuThamSo.SoNguyen, "30", "ngày", 0, 365, "BR-DT-06."),
+
+        T(230, "JCI 8 – Sao lưu", TS.JciPhucHoi1, "Chu kỳ thử phục hồi – Tối quan trọng", KieuThamSo.SoNguyen, "6", "tháng", 0, 60, "0 = không bắt buộc."),
+        T(231, "JCI 8 – Sao lưu", TS.JciPhucHoi2, "Chu kỳ thử phục hồi – Cao", KieuThamSo.SoNguyen, "12", "tháng", 0, 60),
+        T(232, "JCI 8 – Sao lưu", TS.JciPhucHoi3, "Chu kỳ thử phục hồi – Trung bình", KieuThamSo.SoNguyen, "12", "tháng", 0, 60),
+        T(233, "JCI 8 – Sao lưu", TS.JciPhucHoi4, "Chu kỳ thử phục hồi – Thấp", KieuThamSo.SoNguyen, "0", "tháng", 0, 60),
+        T(234, "JCI 8 – Sao lưu", TS.JciNhacPhucHoiTruocNgay, "Nhắc thử phục hồi trước hạn", KieuThamSo.SoNguyen, "14", "ngày", 0, 180, "FR-SL-05."),
+        T(235, "JCI 8 – Sao lưu", TS.JciPhucHoiLaiNgay, "Thử phục hồi lại khi Không đạt trong", KieuThamSo.SoNguyen, "30", "ngày", 1, 365, "FR-SL-07."),
+        T(236, "JCI 8 – Sao lưu", TS.JciSaoLuuChoGio, "Khoảng chờ kết quả sao lưu sau giờ dự kiến", KieuThamSo.SoNguyen, "3", "giờ", 1, 72, "FR-SL-04: quá khoảng này chưa có kết quả → 'Không rõ' và cảnh báo."),
+        T(237, "JCI 8 – Sao lưu", TS.JciSaoLuuLoiTaoPhieu, "Tự tạo phiếu sửa chữa khi lỗi liên tiếp (hệ thống Tối quan trọng)", KieuThamSo.SoNguyen, "2", "lần", 0, 20, "FR-SL-04. 0 = tắt."),
+
+        T(240, "JCI 8 – Hành động khắc phục", TS.JciHanhDongMacDinhNgay, "Hạn mặc định của hành động khắc phục", KieuThamSo.SoNguyen, "30", "ngày", 1, 365),
+        T(241, "JCI 8 – Hành động khắc phục", TS.JciHanhDongNhacTruocNgay, "Nhắc trước hạn", KieuThamSo.SoNguyen, "3", "ngày", 0, 60, "FR-HD-03. Quá hạn: leo thang người nhận cấp 2 sau 7 ngày, Lãnh đạo sau 30 ngày (theo BR-DT-06)."),
+
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),
         T(102, "Bảo mật", TS.ChoGhiNhoVoiKhoa, "Cho 'Ghi nhớ đăng nhập' với tài khoản khoa", KieuThamSo.BatTat, "false", moTa: "Nên tắt vì máy ở khoa dùng chung."),
@@ -166,6 +229,18 @@ public class ThamSoService(AppDbContext db, IMemoryCache cache)
         SoThuc(TS.SlaKhanCap), SoThuc(TS.SlaCao), SoThuc(TS.SlaTrungBinh), SoThuc(TS.SlaThap),
         SoThuc(TS.SlaHeSoKhoaTrongYeu), BatTat(TS.SlaKhoaTrongYeu24h),
         Gio(TS.SlaGioBatDau), Gio(TS.SlaGioKetThuc), ThuTrongTuan(TS.SlaNgayLamViec), NgayNghi());
+
+    /// <summary>Bảng 4.1.3: RTO/RPO mặc định, chu kỳ diễn tập & thử phục hồi theo mức trọng yếu.</summary>
+    public MucTieuTheoMuc MucTieu(MucTrongYeu m) => m switch
+    {
+        MucTrongYeu.ToiQuanTrong => new(SoNguyen(TS.JciRto1), SoNguyen(TS.JciRpo1), SoNguyen(TS.JciDienTap1), SoNguyen(TS.JciPhucHoi1)),
+        MucTrongYeu.Cao => new(SoNguyen(TS.JciRto2), SoNguyen(TS.JciRpo2), SoNguyen(TS.JciDienTap2), SoNguyen(TS.JciPhucHoi2)),
+        MucTrongYeu.TrungBinh => new(SoNguyen(TS.JciRto3), SoNguyen(TS.JciRpo3), SoNguyen(TS.JciDienTap3), SoNguyen(TS.JciPhucHoi3)),
+        _ => new(SoNguyen(TS.JciRto4), SoNguyen(TS.JciRpo4), SoNguyen(TS.JciDienTap4), SoNguyen(TS.JciPhucHoi4)),
+    };
+
+    public int Rto(HeThongThongTin h) => h.RtoPhut ?? MucTieu(h.MucTrongYeu).RtoPhut;
+    public int Rpo(HeThongThongTin h) => h.RpoPhut ?? MucTieu(h.MucTrongYeu).RpoPhut;
 
     public DateTime TinhHanSla(DateTime batDau, Domain.Enums.MucDoUuTien uuTien, bool khoaTrongYeu) =>
         SlaCalculator.TinhHan(batDau, uuTien, khoaTrongYeu, Sla());

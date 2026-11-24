@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using ThietBiCNTT.Domain.Entities;
 using ThietBiCNTT.Domain.Enums;
 using ThietBiCNTT.Infrastructure.Data;
 using ThietBiCNTT.Infrastructure.Identity;
@@ -52,6 +53,32 @@ public static class Badge
         TrangThaiDieuChuyen.DaDuyet or TrangThaiThanhLy.DaDanhGia or TrangThaiThanhLy.DaPheDuyet => "info",
         TrangThaiDieuChuyen.DaBanGiao or TrangThaiThanhLy.DaThanhLy => "success",
         TrangThaiDieuChuyen.TuChoi or TrangThaiThanhLy.TuChoi => "danger",
+        // GĐ3.1
+        MucTrongYeu.ToiQuanTrong => "danger",
+        MucTrongYeu.Cao => "warning",
+        MucTrongYeu.TrungBinh => "info",
+        MucTrongYeu.Thap => "secondary",
+        TrangThaiHeThong.VanHanh => "success",
+        TrangThaiHeThong.DangTrienKhai => "info",
+        TrangThaiKeHoach.Nhap => "secondary",
+        TrangThaiKeHoach.ChoDuyet => "warning",
+        TrangThaiKeHoach.HieuLuc => "success",
+        TrangThaiKeHoach.HetHieuLuc => "light text-muted border",
+        TrangThaiSuKien.DaLenLich => "info",
+        TrangThaiSuKien.DangDienRa => "danger",
+        TrangThaiSuKien.DaKhoiPhuc => "warning",
+        TrangThaiSuKien.DaDong => "success",
+        KetLuanDienTap.Dat => "success",
+        KetLuanDienTap.DatCoKhuyenNghi => "info",
+        KetLuanDienTap.KhongDat => "danger",
+        TrangThaiHanhDong.Mo => "primary",
+        TrangThaiHanhDong.DangLam => "warning",
+        TrangThaiHanhDong.ChoKiemChung => "info",
+        TrangThaiHanhDong.DaDong => "success",
+        TrangThaiMocSaoLuu.ThanhCong => "success",
+        TrangThaiMocSaoLuu.CanhBao => "warning",
+        TrangThaiMocSaoLuu.Loi => "danger",
+        TrangThaiMocSaoLuu.KhongRo => "dark",
         _ => "secondary"
     };
 
@@ -60,6 +87,11 @@ public static class Badge
 
 public static class UserExtensions
 {
+    /// <summary>GĐ3.1: người được gán bước duyệt "Trưởng phòng CNTT" (tham số Jci.NguoiDuyetCntt).</summary>
+    public static bool LaDuyetCntt(this ClaimsPrincipal u, ThamSoService ts) =>
+        u.Identity?.Name is { } n && ts.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Contains(n, StringComparer.OrdinalIgnoreCase);
+
     public static bool LaCNTT(this ClaimsPrincipal u) => u.IsInRole(VaiTro.QuanTri) || u.IsInRole(VaiTro.CanBoCNTT);
     public static bool LaDuyet(this ClaimsPrincipal u) => u.IsInRole(VaiTro.QuanTri) || u.IsInRole(VaiTro.LanhDao);
 }
@@ -168,6 +200,9 @@ public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<Thon
                 if (DateTime.Now - lanCanhBao >= TimeSpan.FromMinutes(5))
                 {
                     await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
+                    // GĐ3.1: lịch diễn tập / thử phục hồi, downtime có kế hoạch, sao lưu, hành động khắc phục
+                    try { await scope.ServiceProvider.GetRequiredService<HaTangCanhBaoService>().ChayAsync(DateTime.Now, ct); }
+                    catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "Lỗi job cảnh báo hạ tầng CNTT"); }
                     lanCanhBao = DateTime.Now;
                 }
                 await scope.ServiceProvider.GetRequiredService<HangDoiGuiService>().XuLyAsync(ct);

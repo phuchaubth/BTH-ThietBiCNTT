@@ -44,6 +44,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<TinNhanCho> TinNhanChos => Set<TinNhanCho>();
     public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
+    // GĐ3.1 – Hạ tầng CNTT theo JCI 8
+    public DbSet<HeThongThongTin> HeThongThongTins => Set<HeThongThongTin>();
+    public DbSet<HeThongKhoaPhong> HeThongKhoaPhongs => Set<HeThongKhoaPhong>();
+    public DbSet<PhuThuocHeThong> PhuThuocHeThongs => Set<PhuThuocHeThong>();
+    public DbSet<KeHoachDowntime> KeHoachDowntimes => Set<KeHoachDowntime>();
+    public DbSet<SuKienDowntime> SuKienDowntimes => Set<SuKienDowntime>();
+    public DbSet<SuKienDowntimeHeThong> SuKienDowntimeHeThongs => Set<SuKienDowntimeHeThong>();
+    public DbSet<SuKienDowntimeKhoa> SuKienDowntimeKhoas => Set<SuKienDowntimeKhoa>();
+    public DbSet<NhatKyDowntime> NhatKyDowntimes => Set<NhatKyDowntime>();
+    public DbSet<DotDienTap> DotDienTaps => Set<DotDienTap>();
+    public DbSet<TacVuSaoLuu> TacVuSaoLuus => Set<TacVuSaoLuu>();
+    public DbSet<KetQuaSaoLuuLan> KetQuaSaoLuuLans => Set<KetQuaSaoLuuLan>();
+    public DbSet<LanThuPhucHoi> LanThuPhucHois => Set<LanThuPhucHoi>();
+    public DbSet<HanhDongKhacPhuc> HanhDongKhacPhucs => Set<HanhDongKhacPhuc>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -147,6 +161,37 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasIndex(x => new { x.DotKiemKeId, x.TaiSanId });
             e.HasIndex(x => new { x.DotKiemKeId, x.KetQua });
         });
+        // GĐ3.1 – Hạ tầng CNTT theo JCI 8
+        b.Entity<HeThongThongTin>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique();
+            e.HasOne(x => x.ChuSoHuuKhoaPhong).WithMany().HasForeignKey(x => x.ChuSoHuuKhoaPhongId);
+            e.HasMany(x => x.KhoaPhongs).WithOne(x => x.HeThong).HasForeignKey(x => x.HeThongId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.PhuThuocs).WithOne(x => x.HeThong).HasForeignKey(x => x.HeThongId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<HeThongKhoaPhong>().HasKey(x => new { x.HeThongId, x.KhoaPhongId });
+        b.Entity<PhuThuocHeThong>(e =>
+        {
+            e.HasOne(x => x.HeThongPhuThuoc).WithMany().HasForeignKey(x => x.HeThongPhuThuocId);
+            e.HasIndex(x => x.TaiSanId);
+            e.HasIndex(x => x.HeThongPhuThuocId);
+        });
+        b.Entity<KeHoachDowntime>().HasIndex(x => new { x.HeThongId, x.PhienBan }).IsUnique();
+        b.Entity<SuKienDowntime>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique();
+            e.HasIndex(x => new { x.TrangThai, x.BatDau });
+            e.HasMany(x => x.HeThongs).WithOne(x => x.SuKienDowntime).HasForeignKey(x => x.SuKienDowntimeId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Khoas).WithOne(x => x.SuKienDowntime).HasForeignKey(x => x.SuKienDowntimeId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.NhatKys).WithOne().HasForeignKey(x => x.SuKienDowntimeId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<SuKienDowntimeHeThong>().HasKey(x => new { x.SuKienDowntimeId, x.HeThongId });
+        b.Entity<SuKienDowntimeKhoa>().HasKey(x => new { x.SuKienDowntimeId, x.KhoaPhongId });
+        b.Entity<DotDienTap>().HasIndex(x => new { x.HeThongId, x.DaChot });
+        b.Entity<TacVuSaoLuu>().HasMany(x => x.KetQuas).WithOne(x => x.TacVuSaoLuu).HasForeignKey(x => x.TacVuSaoLuuId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<KetQuaSaoLuuLan>(e => { e.HasIndex(x => new { x.TacVuSaoLuuId, x.ThoiDiem }); e.Property(x => x.DungLuongGb).HasPrecision(18, 2); });
+        b.Entity<LanThuPhucHoi>().HasIndex(x => new { x.HeThongId, x.DaChot });
+        b.Entity<HanhDongKhacPhuc>(e => { e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => new { x.TrangThai, x.Han }); e.HasIndex(x => new { x.Nguon, x.NguonId }); });
         b.Entity<ThamSoHeThong>().Property(x => x.ToiThieu).HasPrecision(18, 2);
         b.Entity<ThamSoHeThong>().Property(x => x.ToiDa).HasPrecision(18, 2);
     }

@@ -17,7 +17,12 @@ public enum LoaiThongBao
     [Display(Name = "Vật tư dưới định mức")] VatTu,
     [Display(Name = "Kiểm tra bất thường")] KiemTraBatThuong,
     [Display(Name = "Tổng hợp hằng ngày")] TongHopNgay,
-    [Display(Name = "Hệ thống")] HeThong
+    [Display(Name = "Hệ thống")] HeThong,
+    // GĐ3.1 – JCI 8
+    [Display(Name = "Downtime hệ thống thông tin")] Downtime,
+    [Display(Name = "Sao lưu")] SaoLuu,
+    [Display(Name = "Diễn tập / thử phục hồi")] DienTap,
+    [Display(Name = "Hành động khắc phục")] HanhDong
 }
 
 public enum MucDoThongBao { ThongTin = 1, CanhBao, KhanCap }
