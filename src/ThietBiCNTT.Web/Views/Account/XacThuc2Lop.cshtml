@@ -1,0 +1,26 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xác thực 2 lớp - Quản lý TTB CNTT</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <style>body{background:linear-gradient(135deg,#0f2d4a,#1d5c96);min-height:100vh;display:flex;align-items:center;justify-content:center}</style>
+</head>
+<body>
+<div class="card shadow" style="width:380px;max-width:92vw"><div class="card-body p-4">
+    <div class="text-center mb-3"><i class="bi bi-shield-lock text-primary" style="font-size:2.5rem"></i><h1 class="h5 mt-2 mb-0">Xác thực 2 lớp</h1>
+        <div class="text-muted small">Mở ứng dụng xác thực trên điện thoại và nhập mã 6 số</div></div>
+    @if (ViewData["Error"] is string e) { <div class="alert alert-danger py-2 small">@e</div> }
+    <form method="post" asp-action="XacThuc2Lop" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+        <input type="hidden" name="remember" value="@(ViewData["Remember"] is true ? "true" : "false")" />
+        <div class="mb-3"><label class="form-label" for="ma">Mã xác thực</label>
+            <input name="ma" id="ma" class="form-control form-control-lg text-center font-monospace" inputmode="numeric" autocomplete="one-time-code" autofocus required maxlength="20" /></div>
+        <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="laMaKhoiPhuc" value="true" id="kp" /><label class="form-check-label small" for="kp">Dùng mã khôi phục (khi mất điện thoại)</label></div>
+        <button class="btn btn-primary w-100">Xác nhận</button>
+    </form>
+    <div class="text-center mt-3"><a asp-action="Login" class="small">Quay lại đăng nhập</a></div>
+</div></div>
+</body>
+</html>

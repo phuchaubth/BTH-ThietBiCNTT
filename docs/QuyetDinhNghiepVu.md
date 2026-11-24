@@ -74,6 +74,8 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Giao diện di động | `Mobile.Menu.CanBoCNTT` | Menu điện thoại – Cán bộ CNTT / KTV | Văn bản | viec,quetqr,kiemtra,kiemke,thongbao |
 | Giao diện di động | `Mobile.Menu.LanhDao` | Menu điện thoại – Lãnh đạo | Văn bản | tongquan,duyet,baocao,ngansach,thongbao |
 | Giao diện di động | `Mobile.Menu.QuanTri` | Menu điện thoại – Quản trị | Văn bản | viec,quetqr,duyet,tongquan,thongbao |
+| Bảo mật | `BaoMat.BatBuoc2FAQuanTri` | Bắt buộc xác thực 2 lớp với Quản trị & Cán bộ CNTT | Bật/Tắt | false |
+| Thông báo | `ThongBao.ZaloBat` | Gửi thông báo qua Zalo OA | Bật/Tắt | false |
 | Ngân sách | `NganSach.BatBuocKhoanMuc` | Bắt buộc chọn khoản mục ngân sách khi gửi duyệt đề xuất | Bật/Tắt | false |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |

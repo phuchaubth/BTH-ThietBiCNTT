@@ -60,11 +60,13 @@ st,b2=api("/api/v1/yeucau", k1, "POST", {"maTaiSan":ma,"moTa":"lặp","uuTien":"
 st,b2=api(f"/api/v1/phieusuachua/{so}", k1); check(st==200 and b2["trangThai"]=="Moi", "đọc lại phiếu")
 check(so in a.get("/PhieuSuaChua")[1], "phiếu hiện trong giao diện")
 nk=a.get("/NhatKy")[1]; check("api:HIS" in nk, "nhật ký thao tác ghi người tạo là khoá API")
+# Chỉ xét sự kiện của phiếu vừa tạo (job bảo trì định kỳ có thể sinh thêm lệnh — cũng phát phieu.tao)
+cua=lambda: [(h,b) for h,b in nhan if h.get("X-TBCNTT-Event")=="phieu.tao" and json.loads(b)["duLieu"]["soPhieu"]==so]
 for i in range(45):
-    if any(h.get("X-TBCNTT-Event")=="phieu.tao" for h,_ in nhan): break
+    if cua(): break
     time.sleep(1)
-ev=[(h,b) for h,b in nhan if h.get("X-TBCNTT-Event")=="phieu.tao"]
-check(len(ev)==1, "webhook phieu.tao được gửi (job nền)")
+ev=cua()
+check(len(ev)==1, "webhook phieu.tao của phiếu vừa tạo được gửi đúng một lần (job nền)")
 if ev:
     h,b=ev[0]; sig="sha256="+hmac.new(bimat.encode(), b, hashlib.sha256).hexdigest()
     check(h.get("X-TBCNTT-Signature")==sig, "chữ ký HMAC khớp")

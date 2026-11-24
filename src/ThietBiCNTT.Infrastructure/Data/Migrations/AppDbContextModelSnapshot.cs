@@ -3236,6 +3236,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<bool>("NhanTelegram")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("NhanZalo")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -3266,6 +3269,12 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("XacThucAD")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ZaloUserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

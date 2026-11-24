@@ -13,6 +13,11 @@ public class AppUser : IdentityUser
     public string? TelegramChatId { get; set; }
     public bool NhanEmail { get; set; } = true;
     public bool NhanTelegram { get; set; } = true;
+    /// <summary>Zalo user_id (người dùng đã quan tâm OA của bệnh viện).</summary>
+    public string? ZaloUserId { get; set; }
+    public bool NhanZalo { get; set; } = true;
+    /// <summary>Đăng nhập bằng mật khẩu tên miền (Active Directory) thay cho mật khẩu cục bộ.</summary>
+    public bool XacThucAD { get; set; }
 }
 
 /// <summary>Các vai trò trong hệ thống.</summary>

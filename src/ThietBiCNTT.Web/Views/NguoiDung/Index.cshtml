@@ -17,7 +17,7 @@
     @foreach (var u in Model)
     {
         <tr class="@(u.DangHoatDong ? "" : "text-muted")">
-            <td class="fw-semibold font-monospace">@u.UserName</td><td>@u.HoTen</td>
+            <td class="fw-semibold font-monospace">@u.UserName @if (u.TwoFactorEnabled) { <i class="bi bi-shield-lock text-success" title="Xác thực 2 lớp"></i> } @if (u.XacThucAD) { <span class="badge bg-light text-dark border" title="Đăng nhập bằng AD">AD</span> }</td><td>@u.HoTen</td>
             <td class="small">@VaiTro.TenHienThi(roles[u.Id])</td><td class="small">@u.KhoaPhong?.Ten</td>
             <td class="small">@u.Email<div>@u.PhoneNumber</div></td>
             <td>@if (u.DangHoatDong) { <span class="badge bg-success">Hoạt động</span> } else { <span class="badge bg-secondary">Đã khoá</span> }</td>

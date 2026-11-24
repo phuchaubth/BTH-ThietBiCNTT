@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using ThietBiCNTT.Domain.Common;
 using ThietBiCNTT.Domain.Entities;
 using ThietBiCNTT.Domain.Enums;
@@ -594,5 +595,31 @@ public class BaoCaoDinhKyTests
     {
         var x = new ThietBiCNTT.Infrastructure.Services.DongTco("PC", "PC-1", null, null, null, 1, 10_000_000, 3_000_000, 500_000, 1_000_000, 500_000, 2, 2.5);
         Assert.Equal(5_000_000, x.VanHanh); Assert.Equal(15_000_000, x.Tong); Assert.Equal(6_000_000, x.MoiNam); Assert.Equal(30, x.TyLeSua);
+    }
+}
+
+public class BaoMatKeToanTests
+{
+    [Fact]
+    public void KyKeToan_MacDinhThangTruoc_DenTinhCaNgay()
+    {
+        var (t, d) = ThietBiCNTT.Web.Controllers.KeToanController.Ky(new DateTime(2026, 10, 1), new DateTime(2026, 10, 31));
+        Assert.Equal(new DateTime(2026, 10, 1), t); Assert.Equal(new DateTime(2026, 11, 1), d);
+        var (t2, d2) = ThietBiCNTT.Web.Controllers.KeToanController.Ky(null, null);
+        Assert.Equal(1, t2.Day); Assert.Equal(t2.AddMonths(1), d2);
+        var (t3, d3) = ThietBiCNTT.Web.Controllers.KeToanController.Ky(new DateTime(2026, 5, 10), new DateTime(2026, 5, 1)); // đảo ngược
+        Assert.Equal(new DateTime(2026, 5, 1), t3); Assert.Equal(new DateTime(2026, 5, 11), d3);
+    }
+
+    [Fact]
+    public async Task Ldap_ChuaCauHinh_BaoLoi_MatKhauRong_TuChoi()
+    {
+        var log = Microsoft.Extensions.Logging.Abstractions.NullLogger<ThietBiCNTT.Infrastructure.Identity.LdapService>.Instance;
+        var khong = new ThietBiCNTT.Infrastructure.Identity.LdapService(new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(), log);
+        await Assert.ThrowsAsync<DomainException>(() => khong.KiemTraAsync("u", "p"));
+        var cfg = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Ldap:Server"] = "dc.invalid", ["Ldap:TenMien"] = "bth.local" }).Build();
+        var co = new ThietBiCNTT.Infrastructure.Identity.LdapService(cfg, log);
+        Assert.False(await co.KiemTraAsync("u", ""));          // bind ẩn danh phải bị chặn trước khi gọi máy chủ
+        Assert.Equal("u@bth.local", co.Upn("u")); Assert.Equal("a@x.vn", co.Upn("a@x.vn"));
     }
 }

@@ -20,6 +20,8 @@ public class NguoiDungVm
     public string VaiTro { get; set; } = ThietBiCNTT.Infrastructure.Identity.VaiTro.NhanVien;
     public bool DangHoatDong { get; set; } = true;
     public string? MatKhau { get; set; }
+    public bool XacThucAD { get; set; }
+    public bool Co2FA { get; set; }
 }
 
 /// <summary>Quản lý tài khoản người dùng (chỉ Quản trị).</summary>
@@ -48,7 +50,7 @@ public class NguoiDungController(UserManager<AppUser> users, AppDbContext db) : 
         return View("Form", new NguoiDungVm
         {
             Id = u.Id, UserName = u.UserName!, HoTen = u.HoTen, Email = u.Email, DienThoai = u.PhoneNumber,
-            KhoaPhongId = u.KhoaPhongId, DangHoatDong = u.DangHoatDong,
+            KhoaPhongId = u.KhoaPhongId, DangHoatDong = u.DangHoatDong, XacThucAD = u.XacThucAD, Co2FA = u.TwoFactorEnabled,
             VaiTro = (await users.GetRolesAsync(u)).FirstOrDefault() ?? VaiTro.NhanVien
         });
     }
@@ -60,7 +62,9 @@ public class NguoiDungController(UserManager<AppUser> users, AppDbContext db) : 
         if (vm.VaiTro is VaiTro.TruongKhoa or VaiTro.NhanVien && vm.KhoaPhongId is null)
             ModelState.AddModelError(nameof(vm.KhoaPhongId), "Trưởng khoa / Nhân viên phải thuộc một khoa/phòng.");
         if (string.IsNullOrWhiteSpace(vm.UserName) || string.IsNullOrWhiteSpace(vm.HoTen)) ModelState.AddModelError("", "Nhập tên đăng nhập và họ tên.");
-        if (vm.Id is null && string.IsNullOrWhiteSpace(vm.MatKhau)) ModelState.AddModelError(nameof(vm.MatKhau), "Nhập mật khẩu ban đầu.");
+        if (vm.Id is null && string.IsNullOrWhiteSpace(vm.MatKhau) && !vm.XacThucAD) ModelState.AddModelError(nameof(vm.MatKhau), "Nhập mật khẩu ban đầu.");
+        // Tài khoản AD: mật khẩu cục bộ ngẫu nhiên (không dùng), đăng nhập bằng mật khẩu tên miền
+        if (vm.XacThucAD && vm.Id is null && string.IsNullOrWhiteSpace(vm.MatKhau)) vm.MatKhau = "Ad#" + Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
         if (vm.Id == UserId() && (!vm.DangHoatDong || vm.VaiTro != VaiTro.QuanTri))
             ModelState.AddModelError("", "Không tự khoá hoặc tự bỏ quyền Quản trị của chính mình.");
         if (!ModelState.IsValid) { await Nap(); return View("Form", vm); }
@@ -103,7 +107,22 @@ public class NguoiDungController(UserManager<AppUser> users, AppDbContext db) : 
     private static void Gan(AppUser u, NguoiDungVm vm)
     {
         u.HoTen = vm.HoTen.Trim(); u.Email = vm.Email; u.PhoneNumber = vm.DienThoai;
-        u.KhoaPhongId = vm.KhoaPhongId; u.DangHoatDong = vm.DangHoatDong;
+        u.KhoaPhongId = vm.KhoaPhongId; u.DangHoatDong = vm.DangHoatDong; u.XacThucAD = vm.XacThucAD;
+    }
+
+    /// <summary>Đặt lại xác thực 2 lớp (người dùng mất điện thoại và hết mã khôi phục).</summary>
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DatLai2FA(string id)
+    {
+        var u = await users.FindByIdAsync(id);
+        if (u is null) return NotFound();
+        await users.SetTwoFactorEnabledAsync(u, false);
+        await users.ResetAuthenticatorKeyAsync(u);
+        await users.UpdateSecurityStampAsync(u);
+        db.NhatKyHeThongs.Add(new NhatKyHeThong { ThoiGian = DateTime.Now, NguoiDung = User.Identity?.Name, HanhDong = "Sua", DoiTuong = "NguoiDung", DoiTuongId = u.UserName, ChiTiet = "Đặt lại xác thực 2 lớp" });
+        await db.SaveChangesAsync();
+        TempData["ok"] = $"Đã đặt lại xác thực 2 lớp của {u.UserName} — người dùng cài lại ứng dụng xác thực ở lần đăng nhập tới.";
+        return RedirectToAction(nameof(Edit), new { id });
     }
 
     private string? UserId() => users.GetUserId(User);

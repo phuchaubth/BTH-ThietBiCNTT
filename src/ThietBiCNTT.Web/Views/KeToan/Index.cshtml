@@ -1,0 +1,30 @@
+@model SoLieuKeToan
+@{ ViewData["Title"] = "Số liệu kế toán"; var q = $"tu={Model.Tu:yyyy-MM-dd}&den={Model.Den.AddDays(-1):yyyy-MM-dd}"; }
+<partial name="_TabsBaoCao" />
+<div class="page-head"><h1>Số liệu chuyển kế toán</h1>
+    <div class="actions"><a class="btn btn-sm btn-outline-success" href="/KeToan/Xuat?@q"><i class="bi bi-file-earmark-excel"></i> Excel (3 bảng)</a></div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <label class="small" for="tu">Từ</label><input id="tu" type="date" name="tu" value="@Model.Tu.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+    <label class="small" for="den">đến</label><input id="den" type="date" name="den" value="@Model.Den.AddDays(-1).ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+    <button class="btn btn-sm btn-primary">Xem</button>
+    <span class="small text-muted ms-2">Phần mềm kế toán có thể lấy tự động qua API <code>GET /api/v1/ketoan/tanggiam</code> (phạm vi baocao.doc).</span>
+</form>
+@{
+    void Bang(string ten, string loai, decimal tong, string[] cot, IEnumerable<object?[]> dong, int[] cotTien)
+    {
+        var ds = dong.ToList();
+        <div class="card mb-3"><div class="card-header d-flex align-items-center">@ten <span class="badge bg-secondary ms-2">@ds.Count</span>
+            <span class="ms-3 small text-muted">Tổng: <b>@tong.ToString("N0") đ</b></span>
+            <a class="btn btn-sm btn-link ms-auto" href="/KeToan/Csv?loai=@loai&@q">CSV</a></div>
+        <div class="table-responsive"><table class="table table-sm mb-0 small">
+            <thead><tr>@foreach (var c in cot) { <th>@c</th> }</tr></thead>
+            <tbody>@foreach (var r in ds.Take(300)) { <tr>@for (var i = 0; i < r.Length; i++) {
+                <td class="@(cotTien.Contains(i) ? "text-end" : "")">@(r[i] switch { decimal m => m.ToString("N0"), DateTime d => d.ToString("dd/MM/yyyy"), DateOnly d => d.ToString("dd/MM/yyyy"), var v => v?.ToString() })</td> }</tr> }
+            @if (ds.Count == 0) { <tr><td colspan="@cot.Length" class="text-center text-muted">Không có.</td></tr> }</tbody>
+        </table></div></div>
+    }
+}
+@{ Bang("Ghi tăng tài sản", "tang", Model.GhiTang.Sum(x => x.NguyenGia), BaoCaoExcel.CotTang, Model.GhiTang.Select(BaoCaoExcel.Dong), [4]); }
+@{ Bang("Ghi giảm tài sản (thanh lý hoàn tất)", "giam", Model.GhiGiam.Sum(x => x.NguyenGia), BaoCaoExcel.CotGiam, Model.GhiGiam.Select(BaoCaoExcel.Dong), [3, 4, 10]); }
+@{ Bang("Thực chi CNTT", "chi", Model.ThucChi.Sum(x => x.SoTien), BaoCaoExcel.CotChi, Model.ThucChi.Select(BaoCaoExcel.Dong), [5]); }
+<p class="small text-muted">Số liệu phục vụ đối chiếu; sổ sách chính thức do Phòng Tài chính – Kế toán quản lý. Giá trị thu hồi của một đợt thanh lý được phân bổ cho từng tài sản theo tỷ lệ giá trị còn lại.</p>

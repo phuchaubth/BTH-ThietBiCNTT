@@ -1285,19 +1285,20 @@ gantt
 
 | Hạng mục | Mã yêu cầu chính | Trạng thái | Việc còn lại |
 |---|---|---|---|
-| Hồ sơ tài sản, cấu hình, lịch sử thay đổi cấu hình, QR | FR-TS-01..08, 11, 12; FR-CH-01..03 | [Đã có] | Import Excel, trường tuỳ chỉnh, đánh mã thông minh, hồ sơ vận hành (FR-TS-09, 15..17) |
+| Hồ sơ tài sản, cấu hình, lịch sử thay đổi cấu hình, QR, import Excel, agent cấu hình | FR-TS-01..09, 11, 12; FR-CH-01..09 | [Đã có] | Trường tuỳ chỉnh, đánh mã thông minh theo quy tắc cấu hình, hồ sơ vận hành (FR-TS-15..17) |
 | Phiếu sửa chữa (báo hỏng → tiếp nhận → xử lý → hoàn thành → nghiệm thu) | FR-WR-01..04, FR-WO-01..05, FR-WO-12 | [Đã có] | Giờ công, linh kiện, chi phí chi tiết, gửi hãng, tự đóng (FR-WO-06..11, 13) |
-| SLA theo ưu tiên & khoa trọng yếu | FR-WO-04, BR-WO-02 | [Đã có] | Escalation 3 cấp (FR-WO-14), tạm dừng SLA khi chờ |
+| SLA theo ưu tiên & khoa trọng yếu, tạm dừng khi chờ, escalation 3 cấp | FR-WO-04, FR-WO-14, BR-WO-02 | [Đã có] | — |
 | Chống trùng yêu cầu, bình luận trong phiếu, Kanban | FR-WR-05, FR-WO-19, FR-WO-15 | [Đã có] | Nhắc tên @, bình luận nội bộ/công khai (nếu chưa có) |
 | Kế hoạch bảo trì tự sinh lệnh | FR-PM-01, FR-PM-05 | [Một phần] | Theo chỉ số, checklist, thẩm định/xét duyệt, dự trù, lịch (FR-PM-02..04, 06..15) |
 | Điều chuyển có duyệt + bàn giao | FR-DC-01..06, 08 | [Đã có] | Điều chuyển ra ngoài BV (FR-DC-07) |
 | Thanh lý có hội đồng + quyết định + bắt buộc xoá dữ liệu | FR-TL-01, 03..09; BR-TL-01 | [Đã có] | Gợi ý TS cần thanh lý, tận dụng linh kiện (FR-TL-02, 10) |
 | Danh mục dùng chung | FR-HT-06 | [Đã có] | Lịch làm việc/ngày lễ phục vụ SLA giờ làm việc (nếu chưa có) |
-| Kho vật tư cơ bản (xuất kho theo phiếu) | FR-KHO-01, 04, 06 | [Một phần] | Nhiều kho, nhập, chuyển, tồn tối thiểu, truy vết; toàn bộ Mua sắm (FR-MS) |
-| Dashboard KPI (MTTR, % đúng SLA, sắp hết bảo hành, quá tuổi thọ) | FR-BC-01, 04, 08, 09 | [Một phần] | MTBF, downtime, PM/CM, TCO, báo cáo chuẩn xuất Excel/PDF |
+| Kho vật tư (nhiều kho, nhập/xuất/chuyển, thẻ kho, kiểm kê kho) và Mua sắm (PR → PO → nhận hàng) | FR-KHO-01..09, FR-MS-01..08 | [Đã có] | — |
+| Dashboard & báo cáo: KPI, MTBF, dừng máy, TCO, báo cáo tuỳ biến, gửi định kỳ, xuất Excel | FR-BC-01..13 (trừ PDF) | [Đã có] | Xuất PDF báo cáo chuẩn |
 | Phân quyền 5 vai trò | FR-HT-04, mục 4.11.3 | [Đã có] | Rà soát theo ma trận cập nhật (thêm Kiểm tra, PO, Ngân sách, Cảnh báo, API) |
 | Nhật ký thao tác | FR-HT-07 | [Đã có] | Ghi log xem thông tin nhạy cảm, xuất log |
-| Kiểm tra tài sản, Ngân sách, PR/PO, Cảnh báo tuỳ chỉnh, API mở, Sơ đồ mặt bằng, Kiểm kê, NCC-HĐ-BH | 4.12, 4.13, FR-MS, FR-HT-15, IF-09, FR-VT-05, 4.9, 4.6 | [Chưa] | Theo GĐ2–GĐ4 |
+| Kiểm tra tài sản, Ngân sách, API mở + webhook, Sơ đồ mặt bằng, Kiểm kê QR (cả ngoại tuyến), NCC-HĐ-BH, PWA, 2FA, AD, Zalo OA, số liệu kế toán | 4.12, 4.13, IF-07..10, FR-VT-05, 4.9, 4.6, NFR-SD-07, FR-HT-16, FR-HT-17 | [Đã có] | Kiểm thử trên hạ tầng thật (SQL Server, AD, Zalo OA, IIS) |
+| Quy tắc cảnh báo tuỳ chỉnh; liên kết HIS | FR-HT-15; IF-08 (phần HIS) | [Chưa] | Hiện cảnh báo theo bộ quy tắc cố định + tham số; HIS cần đặc tả giao tiếp từ nhà cung cấp |
 
 **Công việc xuyên suốt:** khảo sát chi tiết & thiết kế (trước GĐ1), chuẩn hoá dữ liệu Excel hiện có, in và dán tem QR, đào tạo theo vai trò (KTV, Trưởng khoa, Nhân viên), vận hành thử song song, hỗ trợ sau triển khai, hoàn thiện quy chế sử dụng hệ thống ban hành kèm.
 

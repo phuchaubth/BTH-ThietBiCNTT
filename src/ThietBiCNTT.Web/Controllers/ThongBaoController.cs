@@ -6,6 +6,7 @@ using ThietBiCNTT.Domain.Entities;
 using ThietBiCNTT.Infrastructure.Data;
 using ThietBiCNTT.Infrastructure.Identity;
 using ThietBiCNTT.Infrastructure.Services;
+using ThietBiCNTT.Web.Infrastructure;
 
 namespace ThietBiCNTT.Web.Controllers;
 
@@ -39,12 +40,77 @@ public class ThongBaoController(AppDbContext db) : Controller
 }
 
 /// <summary>Tài khoản của tôi: liên hệ, kênh nhận thông báo, Telegram.</summary>
-public class TaiKhoanController(UserManager<AppUser> users, AppDbContext db, ThongBaoService tb, HangDoiGuiService hangDoi) : Controller
+public class TaiKhoanController(UserManager<AppUser> users, AppDbContext db, ThongBaoService tb, HangDoiGuiService hangDoi, SignInManager<AppUser> signIn, ThamSoService thamSo) : Controller
 {
+    // ===== Xác thực 2 lớp (TOTP) =====
+    public async Task<IActionResult> XacThuc2Lop(bool batBuoc = false)
+    {
+        var u = await users.GetUserAsync(User);
+        if (u is null) return Challenge();
+        ViewData["batBuoc"] = batBuoc;
+        if (!u.TwoFactorEnabled)
+        {
+            var key = await users.GetAuthenticatorKeyAsync(u);
+            if (string.IsNullOrEmpty(key)) { await users.ResetAuthenticatorKeyAsync(u); key = await users.GetAuthenticatorKeyAsync(u); }
+            var ten = Uri.EscapeDataString("TTB CNTT");
+            var uri = $"otpauth://totp/{ten}:{Uri.EscapeDataString(u.UserName!)}?secret={key}&issuer={ten}&digits=6";
+            using var gen = new QRCoder.QRCodeGenerator();
+            ViewBag.Qr = "data:image/png;base64," + Convert.ToBase64String(new QRCoder.PngByteQRCode(gen.CreateQrCode(uri, QRCoder.QRCodeGenerator.ECCLevel.M)).GetGraphic(5));
+            ViewBag.Khoa = string.Join(" ", Enumerable.Range(0, (key!.Length + 3) / 4).Select(i => key.Substring(i * 4, Math.Min(4, key.Length - i * 4)))).ToLowerInvariant();
+        }
+        else ViewBag.SoMaKhoiPhuc = await users.CountRecoveryCodesAsync(u);
+        return View(u);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BatXacThuc2Lop(string ma)
+    {
+        var u = await users.GetUserAsync(User);
+        if (u is null) return Challenge();
+        var code = new string((ma ?? "").Where(char.IsDigit).ToArray());
+        if (!await users.VerifyTwoFactorTokenAsync(u, users.Options.Tokens.AuthenticatorTokenProvider, code))
+        { TempData["err"] = "Mã không đúng — kiểm tra giờ trên điện thoại (tự động) và nhập mã mới nhất."; return RedirectToAction(nameof(XacThuc2Lop)); }
+        await users.SetTwoFactorEnabledAsync(u, true);
+        TempData["maKhoiPhuc"] = string.Join(" ", (await users.GenerateNewTwoFactorRecoveryCodesAsync(u, 10))!);
+        db.NhatKyHeThongs.Add(new NhatKyHeThong { ThoiGian = DateTime.Now, NguoiDung = u.UserName, HanhDong = "Sua", DoiTuong = "NguoiDung", DoiTuongId = u.UserName, ChiTiet = "Bật xác thực 2 lớp" });
+        await db.SaveChangesAsync();
+        await signIn.RefreshSignInAsync(u);
+        TempData["ok"] = "Đã bật xác thực 2 lớp. Lưu lại các mã khôi phục bên dưới ở nơi an toàn.";
+        return RedirectToAction(nameof(XacThuc2Lop));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> TaoMaKhoiPhuc()
+    {
+        var u = await users.GetUserAsync(User);
+        if (u is null || !u.TwoFactorEnabled) return RedirectToAction(nameof(XacThuc2Lop));
+        TempData["maKhoiPhuc"] = string.Join(" ", (await users.GenerateNewTwoFactorRecoveryCodesAsync(u, 10))!);
+        TempData["ok"] = "Đã tạo bộ mã khôi phục mới — các mã cũ hết hiệu lực.";
+        return RedirectToAction(nameof(XacThuc2Lop));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> TatXacThuc2Lop(string ma)
+    {
+        var u = await users.GetUserAsync(User);
+        if (u is null) return Challenge();
+        if (thamSo.BatTat(TS.BatBuoc2FA) && User.LaCNTT()) { TempData["err"] = "Tài khoản Quản trị / CNTT bắt buộc dùng xác thực 2 lớp (tham số hệ thống)."; return RedirectToAction(nameof(XacThuc2Lop)); }
+        var code = new string((ma ?? "").Where(char.IsDigit).ToArray());
+        if (!await users.VerifyTwoFactorTokenAsync(u, users.Options.Tokens.AuthenticatorTokenProvider, code))
+        { TempData["err"] = "Mã không đúng."; return RedirectToAction(nameof(XacThuc2Lop)); }
+        await users.SetTwoFactorEnabledAsync(u, false);
+        await users.ResetAuthenticatorKeyAsync(u);
+        db.NhatKyHeThongs.Add(new NhatKyHeThong { ThoiGian = DateTime.Now, NguoiDung = u.UserName, HanhDong = "Sua", DoiTuong = "NguoiDung", DoiTuongId = u.UserName, ChiTiet = "Tắt xác thực 2 lớp" });
+        await db.SaveChangesAsync();
+        await signIn.RefreshSignInAsync(u);
+        TempData["ok"] = "Đã tắt xác thực 2 lớp.";
+        return RedirectToAction(nameof(XacThuc2Lop));
+    }
+
     public async Task<IActionResult> Index() => View(await users.GetUserAsync(User));
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Luu(string? email, string? dienThoai, string? telegramChatId, bool nhanEmail, bool nhanTelegram)
+    public async Task<IActionResult> Luu(string? email, string? dienThoai, string? telegramChatId, bool nhanEmail, bool nhanTelegram, string? zaloUserId, bool nhanZalo)
     {
         var u = await users.GetUserAsync(User);
         if (u is null) return Challenge();
@@ -55,6 +121,8 @@ public class TaiKhoanController(UserManager<AppUser> users, AppDbContext db, Tho
         u.Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim(); u.PhoneNumber = dienThoai?.Trim();
         u.TelegramChatId = string.IsNullOrWhiteSpace(telegramChatId) ? null : telegramChatId.Trim();
         u.NhanEmail = nhanEmail; u.NhanTelegram = nhanTelegram;
+        if (!string.IsNullOrWhiteSpace(zaloUserId) && !zaloUserId.Trim().All(char.IsDigit)) { TempData["err"] = "Zalo user_id là một dãy số."; return RedirectToAction(nameof(Index)); }
+        u.ZaloUserId = string.IsNullOrWhiteSpace(zaloUserId) ? null : zaloUserId.Trim(); u.NhanZalo = nhanZalo;
         await users.UpdateAsync(u);
         TempData["ok"] = "Đã lưu.";
         return RedirectToAction(nameof(Index));

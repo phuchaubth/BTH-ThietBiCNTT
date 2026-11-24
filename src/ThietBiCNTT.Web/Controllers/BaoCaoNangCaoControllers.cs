@@ -161,3 +161,43 @@ public class LichGuiBaoCaoController(AppDbContext db, BaoCaoDinhKyService svc) :
         ViewBag.DsMau = new SelectList(await db.BaoCaoMaus.Where(m => m.ChiaSe || m.NguoiTao == u).OrderBy(m => m.Ten).ToListAsync(), "Id", "Ten", l.BaoCaoMauId);
     }
 }
+
+/// <summary>Số liệu chuyển kế toán (IF-08): ghi tăng, ghi giảm, thực chi — Excel / CSV.</summary>
+[Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
+public class KeToanController(KeToanService kt, ThamSoService ts) : Controller
+{
+    /// <summary>Kỳ mặc định: tháng trước. <paramref name="den"/> là ngày cuối (tính cả ngày đó).</summary>
+    public static (DateTime Tu, DateTime Den) Ky(DateTime? tu, DateTime? den)
+    {
+        var dau = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var t = (tu ?? dau.AddMonths(-1)).Date; var d = (den ?? (tu is null ? dau.AddDays(-1) : t.AddMonths(1).AddDays(-1))).Date;
+        if (d < t) (t, d) = (d, t);
+        return (t, d.AddDays(1));
+    }
+
+    public async Task<IActionResult> Index(DateTime? tu, DateTime? den)
+    {
+        var (t, d) = Ky(tu, den);
+        return View(await kt.LapAsync(t, d));
+    }
+
+    public async Task<IActionResult> Xuat(DateTime? tu, DateTime? den)
+    {
+        var (t, d) = Ky(tu, den);
+        return File(BaoCaoExcel.KeToan(await kt.LapAsync(t, d), ts.Chuoi(TS.TenBenhVien)), Xlsx.Mime, $"KeToan_{t:yyyyMMdd}_{d.AddDays(-1):yyyyMMdd}.xlsx");
+    }
+
+    public async Task<IActionResult> Csv(string loai, DateTime? tu, DateTime? den)
+    {
+        var (t, d) = Ky(tu, den);
+        var s = await kt.LapAsync(t, d);
+        var (b, ten) = loai switch
+        {
+            "tang" => (BaoCaoExcel.Csv(BaoCaoExcel.CotTang, s.GhiTang.Select(BaoCaoExcel.Dong)), "GhiTang"),
+            "giam" => (BaoCaoExcel.Csv(BaoCaoExcel.CotGiam, s.GhiGiam.Select(BaoCaoExcel.Dong)), "GhiGiam"),
+            "chi" => (BaoCaoExcel.Csv(BaoCaoExcel.CotChi, s.ThucChi.Select(BaoCaoExcel.Dong)), "ThucChi"),
+            _ => ((byte[]?)null, "")
+        };
+        return b is null ? NotFound() : File(b, "text/csv; charset=utf-8", $"{ten}_{t:yyyyMMdd}_{d.AddDays(-1):yyyyMMdd}.csv");
+    }
+}

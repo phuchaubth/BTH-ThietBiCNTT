@@ -43,7 +43,11 @@ async function dangNhap(ctx, u) {
   // 3. Kiểm kê ngoại tuyến
   const ctx = await b.newContext(dt); const p = await dangNhap(ctx, 'ktv1');
   await p.goto(BASE + '/KiemKe/Create'); await p.fill('[name=Ten]', 'Kiểm kê ngoại tuyến'); await Promise.all([p.waitForNavigation(), p.locator('form button[type=submit], form .btn-primary').last().click()]);
-  const dot = p.url().match(/\/KiemKe\/Details\/(\d+)/)?.[1]; check(!!dot, 'mở đợt kiểm kê ' + dot);
+  let dot = p.url().match(/\/KiemKe\/Details\/(\d+)/)?.[1];
+  if (!dot) { // đã có đợt toàn viện đang mở (do kịch bản khác) → dùng đợt đó
+    await p.goto(BASE + '/KiemKe'); dot = (await p.content()).match(/\/KiemKe\/Quet\/(\d+)/)?.[1];
+  }
+  check(!!dot, 'có đợt kiểm kê đang mở #' + dot);
   await p.goto(BASE + `/KiemKe/Quet/${dot}`);
   await p.evaluate(() => navigator.serviceWorker.ready); await p.reload(); // để service worker kiểm soát & lưu trang quét
   check(await p.evaluate(() => !!navigator.serviceWorker.controller), 'service worker đang kiểm soát trang');

@@ -228,6 +228,20 @@ public class KhoBaoCaoApiController(AppDbContext db, BaoCaoService baoCao) : Api
     }
 }
 
+/// <summary>Số liệu kế toán tài sản (IF-08) — phần mềm kế toán gọi định kỳ.</summary>
+[Route("api/v1/ketoan")]
+public class KeToanApiController(KeToanService kt) : ApiV1Controller
+{
+    /// <summary>Ghi tăng, ghi giảm, thực chi trong kỳ (mặc định tháng trước). <c>den</c> tính cả ngày đó.</summary>
+    [HttpGet("tanggiam"), Authorize(Policy = "api:" + PhamViApi.BaoCaoDoc)]
+    public async Task<IActionResult> TangGiam(DateTime? tu, DateTime? den)
+    {
+        var (t, d) = KeToanController.Ky(tu, den);
+        if ((d - t).TotalDays > 1100) return Loi(400, "Kỳ tối đa 3 năm.");
+        return Ok(await kt.LapAsync(t, d));
+    }
+}
+
 /// <summary>Agent máy trạm gửi cấu hình (IF-07). Cài qua GPO, chạy định kỳ — xem deploy/agent.</summary>
 [Route("api/v1/agent")]
 public class AgentApiController(AgentService agent) : ApiV1Controller

@@ -57,6 +57,7 @@ builder.Services.AddControllersWithViews(o =>
 {
     // Mặc định mọi trang giao diện đều yêu cầu đăng nhập; API /api/v1 xác thực bằng khoá API.
     o.Conventions.Add(new DangNhapMacDinhConvention());
+    o.Filters.Add<BatBuoc2FAFilter>();
     // Đọc số trong form/query theo InvariantCulture (dấu chấm thập phân) dù hiển thị theo vi-VN.
     var i = o.ValueProviderFactories.IndexOf(o.ValueProviderFactories.OfType<Microsoft.AspNetCore.Mvc.ModelBinding.FormValueProviderFactory>().Single());
     o.ValueProviderFactories[i] = new InvariantValueProviderFactory();

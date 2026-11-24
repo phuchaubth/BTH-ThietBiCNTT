@@ -104,4 +104,35 @@ public static class BaoCaoExcel
             });
         return Luu(wb);
     }
+
+    public static readonly string[] CotTang = ["Mã tài sản", "Tên tài sản", "Loại", "Nguồn vốn", "Nguyên giá", "Ngày mua", "Ngày sử dụng", "Khoa/phòng", "Nhà cung cấp", "Số HĐ/hoá đơn"];
+    public static readonly string[] CotGiam = ["Mã tài sản", "Tên tài sản", "Loại", "Nguyên giá", "Giá trị còn lại", "Số đề xuất", "Số quyết định", "Ngày quyết định", "Ngày hoàn tất", "Hình thức", "Giá trị thu hồi (phân bổ)"];
+    public static readonly string[] CotChi = ["Ngày", "Nguồn", "Số chứng từ", "Nội dung", "Đối tượng", "Số tiền", "Khoản mục NS"];
+    public static object?[] Dong(DongGhiTang x) => [x.MaTaiSan, x.Ten, x.Loai, x.NguonVon, x.NguyenGia, x.NgayMua, x.NgaySuDung, x.KhoaPhong, x.NhaCungCap, x.SoChungTu];
+    public static object?[] Dong(DongGhiGiam x) => [x.MaTaiSan, x.Ten, x.Loai, x.NguyenGia, x.GiaTriConLai, x.SoDeXuat, x.SoQuyetDinh, x.NgayQuyetDinh, x.NgayHoanTat, x.HinhThuc, x.GiaTriThuHoiPhanBo];
+    public static object?[] Dong(DongThucChi x) => [x.Ngay, x.Nguon, x.SoChungTu, x.NoiDung, x.DoiTuong, x.SoTien, x.KhoanMuc];
+
+    public static byte[] KeToan(SoLieuKeToan s, string tenBenhVien)
+    {
+        using var wb = new XLWorkbook();
+        var phu = $"{tenBenhVien} · kỳ {s.Tu:dd/MM/yyyy} – {s.Den.AddDays(-1):dd/MM/yyyy} · lập {DateTime.Now:dd/MM/yyyy HH:mm}";
+        Sheet(wb, "GhiTang", "BẢNG KÊ TÀI SẢN GHI TĂNG", phu, CotTang, s.GhiTang.Select(Dong), ws => { ws.Column(5).Style.NumberFormat.Format = "#,##0"; ws.Columns(6, 7).Style.NumberFormat.Format = "dd/mm/yyyy"; });
+        Sheet(wb, "GhiGiam", "BẢNG KÊ TÀI SẢN GHI GIẢM (THANH LÝ)", phu, CotGiam, s.GhiGiam.Select(Dong), ws => { ws.Columns(4, 5).Style.NumberFormat.Format = "#,##0"; ws.Column(11).Style.NumberFormat.Format = "#,##0"; ws.Columns(8, 9).Style.NumberFormat.Format = "dd/mm/yyyy"; });
+        Sheet(wb, "ThucChi", "BẢNG KÊ THỰC CHI CNTT", phu, CotChi, s.ThucChi.Select(Dong), ws => { ws.Column(6).Style.NumberFormat.Format = "#,##0"; ws.Column(1).Style.NumberFormat.Format = "dd/mm/yyyy"; });
+        return Luu(wb);
+    }
+
+    /// <summary>CSV UTF-8 có BOM (mở đúng tiếng Việt trong Excel), ngày dạng yyyy-MM-dd, số không phân cách nghìn — dễ nhập vào phần mềm kế toán.</summary>
+    public static byte[] Csv(string[] cot, IEnumerable<object?[]> dong)
+    {
+        static string O(object? v) => v switch
+        {
+            null => "", DateTime d => d.ToString("yyyy-MM-dd"), DateOnly d => d.ToString("yyyy-MM-dd"),
+            decimal m => m.ToString(System.Globalization.CultureInfo.InvariantCulture), _ => v.ToString()!
+        } is var s && (s.Contains(',') || s.Contains('"') || s.Contains('\n')) ? "\"" + s.Replace("\"", "\"\"") + "\"" : s;
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(string.Join(",", cot.Select(c => O(c))));
+        foreach (var r in dong) sb.AppendLine(string.Join(",", r.Select(O)));
+        return [.. System.Text.Encoding.UTF8.GetPreamble(), .. System.Text.Encoding.UTF8.GetBytes(sb.ToString())];
+    }
 }

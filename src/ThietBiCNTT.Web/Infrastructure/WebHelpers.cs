@@ -119,8 +119,29 @@ public class AppClaimsFactory(Microsoft.AspNetCore.Identity.UserManager<AppUser>
         var id = await base.GenerateClaimsAsync(user);
         id.AddClaim(new Claim("HoTen", user.HoTen));
         if (user.KhoaPhongId is { } k) id.AddClaim(new Claim("KhoaPhongId", k.ToString()));
+        if (user.TwoFactorEnabled) id.AddClaim(new Claim("2fa", "1"));
+        if (user.XacThucAD) id.AddClaim(new Claim("ad", "1"));
         return id;
     }
+}
+
+/// <summary>
+/// Tham số BaoMat.BatBuoc2FAQuanTri: tài khoản Quản trị / Cán bộ CNTT chưa bật xác thực 2 lớp bị chuyển tới trang cài đặt
+/// trước khi dùng các chức năng khác.
+/// </summary>
+public class BatBuoc2FAFilter(ThamSoService ts) : Microsoft.AspNetCore.Mvc.Filters.IActionFilter
+{
+    public void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext c)
+    {
+        var u = c.HttpContext.User;
+        if (u.Identity?.IsAuthenticated != true || u.Identity.AuthenticationType != Microsoft.AspNetCore.Identity.IdentityConstants.ApplicationScheme) return;
+        if (u.HasClaim("2fa", "1") || !u.LaCNTT() || !ts.BatTat(TS.BatBuoc2FA)) return;
+        var ctl = c.RouteData.Values["controller"]?.ToString();
+        var act = c.RouteData.Values["action"]?.ToString() ?? "";
+        if (ctl == "Account" || (ctl == "TaiKhoan" && act.Contains("XacThuc2Lop"))) return;
+        c.Result = new Microsoft.AspNetCore.Mvc.RedirectResult("/TaiKhoan/XacThuc2Lop?batBuoc=true");
+    }
+    public void OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext c) { }
 }
 
 public static class PhamVi

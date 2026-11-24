@@ -30,6 +30,7 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
         var now = DateTime.Now;
         var email = !chiTrongUngDung && thamSo.BatTat(TS.EmailBat);
         var tele = !chiTrongUngDung && thamSo.BatTat(TS.TelegramBat);
+        var zalo = !chiTrongUngDung && thamSo.BatTat(TS.ZaloBat);
         var url = link is null ? null : (DiaChiGoc.Length > 0 ? DiaChiGoc + link : link);
         foreach (var u in ds)
         {
@@ -38,6 +39,8 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
                 db.TinNhanChos.Add(TaoTin(KenhGui.Email, u.Email!, tieuDe, NoiDungEmail(tieuDe, noiDung, url, u.HoTen), now));
             if (tele && u.NhanTelegram && !string.IsNullOrWhiteSpace(u.TelegramChatId))
                 db.TinNhanChos.Add(TaoTin(KenhGui.Telegram, u.TelegramChatId!, tieuDe, NoiDungTelegram(tieuDe, noiDung, url, mucDo), now));
+            if (zalo && u.NhanZalo && !string.IsNullOrWhiteSpace(u.ZaloUserId))
+                db.TinNhanChos.Add(TaoTin(KenhGui.Zalo, u.ZaloUserId!, tieuDe, NoiDungZalo(tieuDe, noiDung, url, mucDo), now));
         }
         var nhom = thamSo.Chuoi(TS.TelegramNhomCNTT);
         if (guiNhomCNTT && tele && nhom.Length > 0)
@@ -67,6 +70,13 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
     private static string NoiDungTelegram(string td, string? nd, string? url, MucDoThongBao m) =>
         (m == MucDoThongBao.KhanCap ? "🔴 " : m == MucDoThongBao.CanhBao ? "🟠 " : "🔵 ") + $"<b>{E(td)}</b>"
         + (nd is null ? "" : "\n" + E(nd)) + (url is null ? "" : $"\n<a href=\"{E(url)}\">Mở chi tiết</a>");
+
+    /// <summary>Zalo OA chỉ nhận văn bản thuần, tối đa 2000 ký tự.</summary>
+    private static string NoiDungZalo(string td, string? nd, string? url, MucDoThongBao m)
+    {
+        var s = (m == MucDoThongBao.KhanCap ? "🔴 " : m == MucDoThongBao.CanhBao ? "🟠 " : "🔵 ") + td + (nd is null ? "" : "\n" + nd) + (url is null ? "" : "\n" + url);
+        return s.Length > 2000 ? s[..1997] + "…" : s;
+    }
 
     /// <summary>Chỉ thoát ký tự đặc biệt HTML (giữ nguyên chữ tiếng Việt có dấu).</summary>
     private static string E(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");

@@ -27,6 +27,7 @@
 - PWA cài lên màn hình chính điện thoại (cần HTTPS): trang chủ /m và thanh menu dưới theo vai trò (cấu hình bằng tham số `Mobile.Menu.*`), quét QR mở hồ sơ / báo hỏng nhanh, "Chờ tôi xử lý" gom mọi việc cần duyệt/nghiệm thu; kiểm kê khi Wi-Fi chập chờn (lưu tạm trên máy, tự đồng bộ, giữ đúng giờ quét)
 - Sơ đồ mặt bằng tương tác: tải ảnh mặt bằng tầng/khoa, đặt – kéo – gỡ biểu tượng thiết bị, màu theo trạng thái, nhấp nháy khi có phiếu mở (nhanh khi quá hạn), tìm trên sơ đồ, tự làm mới; phạm vi theo khoa
 - Báo cáo nâng cao: TCO (nguyên giá + sửa chữa + bảo trì + hợp đồng bảo trì & bản quyền phân bổ) theo tài sản / loại / model / khoa; báo cáo tuỳ biến (chọn trường, lọc, nhóm, cộng, lưu mẫu cá nhân hoặc chia sẻ); tự gửi báo cáo hằng tuần/tháng qua email kèm Excel
+- Bảo mật & tích hợp: xác thực 2 lớp (ứng dụng xác thực + mã khôi phục, có thể bắt buộc với Quản trị/CNTT), đăng nhập bằng tài khoản AD (LDAPS), kênh thông báo Zalo OA (tự làm mới token), số liệu chuyển kế toán ghi tăng / ghi giảm / thực chi (Excel, CSV, API)
 - Webhook: phiếu tạo/đóng, tài sản đổi trạng thái/ghi giảm, nhận hàng — ký HMAC-SHA256, gửi lại tự động khi lỗi, gửi thử, xem nội dung đã gửi
 
 ## Tài liệu
@@ -45,7 +46,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

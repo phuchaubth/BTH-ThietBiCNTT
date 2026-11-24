@@ -34,7 +34,9 @@ public static class DependencyInjection
                 o.User.RequireUniqueEmail = false;
             })
             .AddEntityFrameworkStores<AppDbContext>()
+            .AddSignInManager<AppSignInManager>()
             .AddDefaultTokenProviders();
+        services.AddSingleton<LdapService>();
 
         services.AddMemoryCache();
         services.AddScoped<ThamSoService>();
@@ -54,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<TichHopService>();
         services.AddScoped<AgentService>();
         services.AddScoped<TcoService>();
+        services.AddScoped<KeToanService>();
         services.AddScoped<BaoCaoTuyBienService>();
         services.AddScoped<WebhookSender>();
         services.AddHttpClient("webhook", c => c.Timeout = TimeSpan.FromSeconds(10));
@@ -62,6 +65,9 @@ public static class DependencyInjection
         services.AddScoped<IKenhGui, EmailSender>();
         services.AddScoped<IKenhGui, TelegramSender>();
         services.AddHttpClient("telegram", c => c.Timeout = TimeSpan.FromSeconds(20));
+        services.AddHttpClient("zalo", c => c.Timeout = TimeSpan.FromSeconds(20));
+        services.AddSingleton<ZaloTokenStore>();
+        services.AddScoped<IKenhGui, ZaloSender>();
         return services;
     }
 

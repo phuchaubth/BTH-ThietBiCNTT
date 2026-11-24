@@ -85,6 +85,8 @@ public static class TS
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
     public const string ChoGhiNhoVoiKhoa = "BaoMat.ChoGhiNhoVoiKhoa";
+    public const string BatBuoc2FA = "BaoMat.BatBuoc2FAQuanTri";
+    public const string ZaloBat = "ThongBao.ZaloBat";
 }
 
 public static class ThamSoMacDinh
@@ -147,6 +149,7 @@ public static class ThamSoMacDinh
         T(114, "Thông báo", TS.SmtpUser, "Tài khoản đăng nhập SMTP", KieuThamSo.VanBan, ""),
         T(115, "Thông báo", TS.EmailGui, "Địa chỉ email gửi đi", KieuThamSo.VanBan, "", moTa: "VD thietbi@bth.org.vn"),
         T(120, "Thông báo", TS.TelegramBat, "Gửi thông báo qua Telegram", KieuThamSo.BatTat, "false", moTa: "Token bot đặt trong appsettings.Production.json (ThongBao:TelegramBotToken)."),
+        T(125, "Thông báo", TS.ZaloBat, "Gửi thông báo qua Zalo OA", KieuThamSo.BatTat, "false", moTa: "Access/refresh token của OA đặt trong appsettings.Production.json (ThongBao:Zalo*). Người dùng khai báo Zalo user_id ở trang Tài khoản."),
         T(121, "Thông báo", TS.TelegramNhomCNTT, "Chat ID nhóm Telegram Phòng CNTT", KieuThamSo.VanBan, "", moTa: "Nhóm nhận: yêu cầu mới, quá hạn SLA, kiểm tra bất thường. VD -1001234567890"),
         T(122, "Thông báo", TS.GioTongHop, "Giờ gửi bản tin tổng hợp hằng ngày", KieuThamSo.Gio, "07:30", moTa: "Gửi cho CNTT: phiếu quá hạn, bảo hành/hợp đồng sắp hết, vật tư dưới định mức, bảo trì đến hạn."),
         T(130, "Thông báo", TS.LeoThangCap2SauPhut, "Leo thang cấp 2 sau khi quá hạn", KieuThamSo.SoNguyen, "60", "phút", 0, 10080, moTa: "Cấp 1 (ngay khi quá hạn): KTV + toàn bộ Cán bộ CNTT. Cấp 2: người nhận dưới đây. 0 = tắt."),
@@ -173,6 +176,7 @@ public static class ThamSoMacDinh
 
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),
+        T(103, "Bảo mật", TS.BatBuoc2FA, "Bắt buộc xác thực 2 lớp với Quản trị & Cán bộ CNTT", KieuThamSo.BatTat, "false", moTa: "Bật: tài khoản Quản trị / CNTT chưa bật 2 lớp sẽ phải cài ứng dụng xác thực (Google/Microsoft Authenticator) ngay sau khi đăng nhập."),
         T(102, "Bảo mật", TS.ChoGhiNhoVoiKhoa, "Cho 'Ghi nhớ đăng nhập' với tài khoản khoa", KieuThamSo.BatTat, "false", moTa: "Nên tắt vì máy ở khoa dùng chung."),
     ];
 }

@@ -32,8 +32,10 @@ async function taoSoDo(p, ten, khoa) {
   const img = await k.locator('#anhSoDo').boundingBox();
   const dat = async (ma, fx, fy) => { await k.click(`#listChua [data-ma="${ma}"]`); await k.mouse.click(img.x + img.width * fx, img.y + img.height * fy); };
   const chua = await k.locator('#listChua [data-ma]').evaluateAll(xs => xs.map(x => x.dataset.ma));
-  check(chua.includes('PC-0001') && chua.every(m => m), `danh sách chưa đặt chỉ gồm tài sản khoa (${chua.length})`);
-  await dat('PC-0001', 0.15, 0.2); await dat('PC-0002', 0.6, 0.2); await dat('PC-0003', 0.85, 0.85);
+  check(chua.length >= 3 && chua.every(m => m), `danh sách thiết bị chưa đặt của khoa (${chua.length})`);
+  // Lấy 3 tài sản đang thuộc khoa (các kịch bản khác có thể đã điều chuyển / thanh lý PC-000x)
+  const [m1, m2, m3] = chua;
+  await dat(m1, 0.15, 0.2); await dat(m2, 0.6, 0.2); await dat(m3, 0.85, 0.85);
   check(await k.locator('.diem').count() === 3, 'đặt 3 thiết bị');
   // Kéo PC-0001 sang Quầy tiếp đón
   const d1 = k.locator('.diem[data-id]').first(); const bb = await d1.boundingBox();
@@ -44,16 +46,16 @@ async function taoSoDo(p, ten, khoa) {
   check(await k.locator('.diem').count() === 2, 'gỡ một thiết bị');
   await Promise.all([k.waitForNavigation(), k.click('#btnLuu')]);
   const diem = await (await k.request.get(BASE + `/SoDo/Diem/${id}`)).json();
-  const p1 = diem.find(d => d.ma === 'PC-0001');
-  check(diem.length === 2 && p1 && Math.abs(p1.x - 20) < 1.5 && Math.abs(p1.y - 80) < 1.5, `lưu vị trí sau khi kéo: PC-0001 (${p1?.x}, ${p1?.y})`);
-  const p2 = diem.find(d => d.ma === 'PC-0002');
-  console.log('   PC-0002:', p2.trangThai, 'phiếu mở', p2.phieuMo);
+  const p1 = diem.find(d => d.ma === m1);
+  check(diem.length === 2 && p1 && Math.abs(p1.x - 20) < 1.5 && Math.abs(p1.y - 80) < 1.5, `lưu vị trí sau khi kéo: ${m1} (${p1?.x}, ${p1?.y})`);
+  const p2 = diem.find(d => d.ma === m2);
+  console.log('   ' + m2 + ':', p2.trangThai, 'phiếu mở', p2.phieuMo);
   check(await k.locator(`.diem[data-id="${p2.taiSanId}"]`).evaluate(e => e.className).then(c => c.includes('bg-' + p2.mauTrangThai)), 'màu theo trạng thái tài sản');
   const coPhieu = diem.filter(d => d.phieuMo > 0);
   check(coPhieu.every(d => true) && (await k.locator('.diem.coPhieu').count()) === coPhieu.length, `thiết bị có phiếu mở nhấp nháy (${coPhieu.length})`);
   await k.locator('.diem').first().click();
   check((await k.locator('#thongTin').innerText()).includes('Hồ sơ'), 'chạm biểu tượng → thông tin + liên kết');
-  await k.fill('#loc', 'PC-0002'); check(await k.locator('.diem.mo').count() === 1, 'tìm trên sơ đồ làm mờ thiết bị khác');
+  await k.fill('#loc', m2); check(await k.locator('.diem.mo').count() === 1, 'tìm trên sơ đồ làm mờ thiết bị khác');
   // Toạ độ ngoài ảnh bị chặn
   const r = await k.evaluate(async id => { const fd = new FormData(); fd.append('__RequestVerificationToken', document.querySelector('input[name=__RequestVerificationToken]').value);
     fd.append('diem[0].TaiSanId', '1'); fd.append('diem[0].X', '150'); fd.append('diem[0].Y', '10');

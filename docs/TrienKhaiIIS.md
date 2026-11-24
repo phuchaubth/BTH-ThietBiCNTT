@@ -474,7 +474,13 @@ Agent là script PowerShell 5.1 có sẵn trên Windows 10/11 (không cài thêm
 
 Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, chỉ SYSTEM và Administrators đọc được. Người dùng thường không xem được khoá.
 
-## 13. Ứng dụng trên điện thoại (PWA)
+## 13. Bảo mật đăng nhập: xác thực 2 lớp & tài khoản AD
+
+- **Xác thực 2 lớp (TOTP):** mỗi người tự bật ở *Tài khoản của tôi → Xác thực 2 lớp* bằng Google/Microsoft Authenticator; nhận 10 mã khôi phục dùng một lần. Bật tham số `BaoMat.BatBuoc2FAQuanTri` để **bắt buộc** với Quản trị và Cán bộ CNTT (người chưa bật bị chuyển tới trang cài đặt ngay sau đăng nhập — gồm cả Quản trị đang thao tác). Mất điện thoại và hết mã: Quản trị vào *Người dùng → Sửa → Đặt lại 2 lớp*.
+  > Đồng hồ máy chủ phải đúng giờ (đồng bộ NTP với DC) — lệch quá 1–2 phút mã sẽ bị từ chối.
+- **Đăng nhập bằng tài khoản AD:** khai báo mục `Ldap` trong `appsettings.Production.json`, rồi đánh dấu *Đăng nhập bằng mật khẩu tên miền (AD)* cho từng người dùng (tên đăng nhập trùng sAMAccountName, hoặc nhập dạng `user@bth.local`). Mật khẩu kiểm tra trực tiếp với DC (LDAPS 636), không lưu trong hệ thống; vẫn áp dụng khoá tạm 15 phút sau 5 lần sai và bước 2 lớp nếu bật. Kiểm tra kết nối từ máy chủ web: `Test-NetConnection dc01.bth.local -Port 636`.
+
+## 14. Ứng dụng trên điện thoại (PWA)
 
 - **Bắt buộc HTTPS** (xem `docs/ChungChiHTTPS.md`): trình duyệt chỉ cho cài PWA, chạy service worker (kiểm kê ngoại tuyến) và mở camera quét QR trên HTTPS. Khi chưa có chứng chỉ, giao diện điện thoại vẫn dùng được qua trình duyệt nhưng không cài được và không quét camera.
 - Cài: mở `https://thietbi.bth.org.vn/m` → Android Chrome: *Thêm vào màn hình chính* (hoặc nút "Cài ứng dụng" trên trang); iPhone Safari: *Chia sẻ → Thêm vào MH chính*.
@@ -525,6 +531,8 @@ Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, ch�
 | `DinhKem:Path` | `App_Data\dinhkem` cạnh ứng dụng | Thư mục lưu ảnh/tệp đính kèm. Trên IIS đặt `D:\ThietBiCNTT\dinhkem` (script đã tạo & cấp quyền ghi) |
 | `ThongBao:SmtpPassword` | (trống) | Mật khẩu tài khoản SMTP gửi email thông báo |
 | `ThongBao:TelegramBotToken` | (trống) | Token bot Telegram (tạo bằng @BotFather). Máy chủ cần ra được `api.telegram.org:443` |
+| `ThongBao:ZaloAccessToken`, `ZaloRefreshToken`, `ZaloAppId`, `ZaloSecretKey` | (trống) | Zalo OA: token ban đầu + thông tin ứng dụng để tự làm mới token (cần ra được `openapi.zalo.me`, `oauth.zaloapp.com`) |
+| `Ldap:Server`, `Ldap:Port`, `Ldap:Ssl`, `Ldap:TenMien` | (trống), 636, true | Máy chủ AD cho tài khoản "Đăng nhập bằng AD" (LDAPS). Trống = tắt |
 | `App:DiaChiTruyCap` | (trống) | BTH: `https://thietbi.bth.org.vn`. Ghi vào tham số `DonVi.DiaChiTruyCap` khi tham số còn trống (link mã QR) |
 | `SeedSampleData` | `false` | Không bật trên máy chủ thật |
 | `Logging:LogLevel:*` | Information/Warning | Mức log |

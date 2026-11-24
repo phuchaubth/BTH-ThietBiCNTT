@@ -41,7 +41,8 @@ public class ThongBao
 public enum KenhGui
 {
     [Display(Name = "Email")] Email = 1,
-    [Display(Name = "Telegram")] Telegram
+    [Display(Name = "Telegram")] Telegram,
+    [Display(Name = "Zalo OA")] Zalo
 }
 
 public enum TrangThaiGui
