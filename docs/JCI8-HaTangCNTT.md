@@ -8,7 +8,7 @@
 | Phạm vi | **Chỉ hạ tầng CNTT**: hệ thống thông tin, máy chủ, lưu trữ, mạng, thiết bị đầu cuối, tiện ích phục vụ CNTT (UPS, điều hoà phòng máy chủ). Không bao gồm thiết bị y tế. |
 | Loại tài liệu | Đặc tả yêu cầu phần mềm bổ sung (SRS – Phụ lục GĐ3) |
 | Căn cứ tiêu chuẩn | *JCI Accreditation Standards for Hospitals, 8th Edition* (hiệu lực **01/01/2025**): chương **HCT – Health Care Technology** (mới), MOI, FMS, GLD, QPS, SQE; *Standards Interpretation FAQs* (cập nhật 04/2025) |
-| Phiên bản | 0.3 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường chương HCT và MOI) |
+| Phiên bản | 0.4 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường các chương HCT, MOI, GLD, QPS, SQE; còn chờ FMS) |
 | Ngày lập | 24/11/2026 |
 | Đơn vị chủ trì | Phòng Công nghệ thông tin |
 | Đơn vị phối hợp | Phòng Quản lý chất lượng (đầu mối JCI), Phòng Hành chính quản trị (điện, điều hoà) |
@@ -18,6 +18,7 @@
 | Phiên bản | Ngày | Người thực hiện | Nội dung thay đổi |
 |---|---|---|---|
 | 0.1 | 24/11/2026 | Phòng CNTT | Khởi tạo dự thảo: phân tích khoảng trống so với JCI 8, đặc tả 8 phân hệ mới |
+| 0.4 | 24/11/2026 | Phòng CNTT | Đối chiếu đến mức ME các chương **GLD, QPS, SQE**: báo cáo cho lãnh đạo **ít nhất hằng quý** và phải nêu mọi sự cố hệ thống/quy trình (GLD.04.01 ME2); hợp đồng dịch vụ phải ghi chỉ tiêu chất lượng, tần suất báo cáo, cách xử lý khi không đạt (GLD.05.00); hồ sơ phạm vi dịch vụ và kế hoạch của Phòng CNTT (GLD.06.00); bài tập giảm thiểu rủi ro chủ động hằng năm (QPS.04.01 ME3); hồ sơ đào tạo theo từng nhân viên (SQE.01.07 ME7); thêm FR-JC-09, FR-JC-10, FR-RR-09, bảng 2.1.6 |
 | 0.3 | 24/11/2026 | Phòng CNTT | Đối chiếu đến **mức ME** với bản chương HCT và MOI (kèm Intent) do Phòng QLCL cung cấp: chỉnh chu kỳ diễn tập/thử phục hồi theo HCT.01.04 (kiểm tra **ít nhất hằng năm**; sao lưu đơn giản **ít nhất hằng quý** và sau thay đổi lớn); bổ sung nội dung bắt buộc của kế hoạch và thông báo downtime; chương trình ứng phó tấn công mạng thử nghiệm hằng năm; đánh giá rủi ro an toàn thông tin hằng năm; yêu cầu thiết bị di động/nhắn tin bảo mật/cổng người bệnh; thêm FR-TD-09, FR-SL-09, FR-AN-09, FR-TC-07; bảng 2.1.5 |
 | 0.2 | 24/11/2026 | Phòng CNTT | Đối chiếu văn bản chính thức JCI 8: bổ sung chương **HCT** (HCT.01.00–01.05); sửa nhận định ở v0.1 (downtime thuộc **HCT.01.04**, an ninh mạng thuộc **HCT.01.05 + MOI.01.02**); điền mã tiêu chuẩn vào ma trận truy vết; đưa an ninh mạng và rủi ro lên GĐ3.2; thêm FR-HTT-12..14, FR-DT-13, FR-AN-08, FR-TD-08, FR-JC-08 |
 
@@ -82,8 +83,8 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 | MOI | Chương *Management of Information* – Quản lý thông tin |
 | FMS | Chương *Facility Management and Safety* – Quản lý cơ sở vật chất và an toàn |
 | GLD | Chương *Governance, Leadership, and Direction* – Quản trị, lãnh đạo và điều hành |
-| QPS | Chương *Quality Improvement and Patient Safety* – Cải tiến chất lượng và an toàn người bệnh |
-| SQE | Chương *Staff Qualifications and Education* – Trình độ và đào tạo nhân viên |
+| QPS | QPS.03.04, 04.00, 04.01 | 6, 4, 6 | Phân tích sâu sự cố, báo cáo rủi ro, cải tiến bền vững, bài tập rủi ro chủ động hằng năm | FR-JC-03, FR-HD, FR-RR-01..09 | Bộ chỉ số; CAPA kiểm chứng hiệu quả; biên bản bài tập rủi ro |
+| SQE | SQE.01.07 | 7 | Đào tạo liên tục; ghi nhận hoàn thành vào hồ sơ từng người | FR-DT-09 | Danh sách đào tạo theo từng nhân viên (xuất cho hồ sơ nhân sự) |
 | ME | *Measurable Element* – yếu tố đo lường của một tiêu chuẩn |
 | HTTT | Hệ thống thông tin (một ứng dụng/dịch vụ phục vụ nghiệp vụ, ví dụ HIS) |
 | Downtime | Thời gian hệ thống không sẵn sàng: **có kế hoạch** (bảo trì, nâng cấp) hoặc **đột xuất** (sự cố) |
@@ -116,7 +117,7 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 
 ### 2.1. Phân tích chương HCT và các tiêu chuẩn liên quan trong JCI 8
 
-> **Nguồn và giới hạn.** Nội dung dưới đây lấy từ văn bản tiêu chuẩn JCI 8 (bản chỉ gồm *câu tiêu chuẩn*), bảng "Summary of Changes to the Manual" và bộ FAQ do JCI công bố. Câu tiêu chuẩn được **dịch/tóm lược** sang tiếng Việt; bản tiếng Anh của JCI là bản có giá trị. **Từ v0.3, chương HCT và MOI đã được đối chiếu đến từng ME và phần Intent** (bản có kèm bản dịch tiếng Việt do Phòng QLCL cung cấp) – xem bảng 2.1.5. Các chương FMS, GLD, QPS, SQE mới ở mức câu tiêu chuẩn và số ME (mục 11, câu hỏi 4). Ký hiệu **(D)** là ME mà JCI yêu cầu **có văn bản/hồ sơ**. Nội dung ME trong tài liệu này là **tóm lược của Phòng CNTT**, không sao chép nguyên văn; bản của JCI là bản có giá trị.
+> **Nguồn và giới hạn.** Nội dung dưới đây lấy từ văn bản tiêu chuẩn JCI 8 (bản chỉ gồm *câu tiêu chuẩn*), bảng "Summary of Changes to the Manual" và bộ FAQ do JCI công bố. Câu tiêu chuẩn được **dịch/tóm lược** sang tiếng Việt; bản tiếng Anh của JCI là bản có giá trị. **Từ v0.3, chương HCT và MOI đã được đối chiếu đến từng ME và phần Intent** (bản có kèm bản dịch tiếng Việt do Phòng QLCL cung cấp) – xem bảng 2.1.5. **Từ v0.4, thêm GLD, QPS, SQE** (bảng 2.1.6). Riêng chương **FMS** mới ở mức câu tiêu chuẩn và số ME (mục 11, câu hỏi 4). Ký hiệu **(D)** là ME mà JCI yêu cầu **có văn bản/hồ sơ**. Nội dung ME trong tài liệu này là **tóm lược của Phòng CNTT**, không sao chép nguyên văn; bản của JCI là bản có giá trị.
 
 #### 2.1.1. Chương HCT (Health Care Technology) – chương mới của bản 8
 
@@ -151,10 +152,10 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 | FMS.02.00 | Lập và lưu **đánh giá rủi ro** về cơ sở vật chất & an toàn, **xếp thứ tự ưu tiên, đặt mục tiêu, cải thiện**. FAQ: ME 1 liệt kê **tám chương trình** phải đánh giá rủi ro hằng năm | Đợt đánh giá rủi ro hằng năm (FR-RR-05). *Cần kiểm tra ME 1 xem tám chương trình có gồm tiện ích (điện, điều hoà…) phục vụ phòng máy chủ không* |
 | FMS.08.00 / 08.01 | Chương trình quản lý **hệ thống tiện ích**; tiện ích thiết yếu (điện, nước, khí y tế) **luôn sẵn sàng** và **nguồn thay thế được kiểm tra, đánh giá** | UPS, máy phát, điều hoà phòng máy chủ: lịch thử nguồn thay thế bằng phiếu kiểm tra (4.12) và gắn vào phụ thuộc có dự phòng (FR-HTT-08) |
 | FMS.10.00 | Trước **xây dựng, cải tạo, phá dỡ hoặc hoạt động bảo trì ảnh hưởng chăm sóc người bệnh**: đánh giá rủi ro trước | Phiếu thay đổi/bảo trì ảnh hưởng HTTT bắt buộc đánh giá rủi ro trước khi thực hiện (FR-TD-08) |
-| GLD.04.01 | Lãnh đạo **báo cáo** thông tin cải tiến chất lượng và an toàn cho cơ quan quản trị | Báo cáo định kỳ cho Lãnh đạo (FR-JC-04) |
-| GLD.05.00 | Lãnh đạo chịu trách nhiệm **xem xét, lựa chọn, giám sát hợp đồng** lâm sàng và phi lâm sàng, kiểm tra việc tuân thủ | Đánh giá nhà cung cấp hằng năm (FR-JC-07, nâng lên M) |
-| QPS.03.00–03.04, QPS.04.00–04.01 | Thu thập, phân tích dữ liệu, phát hiện xu hướng bất lợi, duy trì cải tiến; **chương trình quản lý rủi ro** do người đủ năng lực giám sát | Bộ chỉ số (FR-JC-03), CAPA (mục 5), sổ rủi ro (4.4) |
-| SQE.01.07 | Nhân viên tham gia giáo dục và đào tạo | Danh sách đào tạo (FR-DT-09) |
+| GLD.04.01 | Lãnh đạo **báo cáo** thông tin chất lượng và an toàn cho cơ quan quản trị: **ít nhất hằng quý, bằng văn bản**, gồm mọi sự cố hệ thống/quy trình, hành động đã làm và theo dõi (ME2 – D); cơ quan quản trị phê duyệt chương trình hằng năm (ME1) | Báo cáo quý cho Lãnh đạo (FR-JC-04) |
+| GLD.05.00 | Lãnh đạo chịu trách nhiệm **xem xét, lựa chọn, giám sát hợp đồng** lâm sàng và phi lâm sàng. 6 ME: người phụ trách hợp đồng; mô tả bằng văn bản phạm vi dịch vụ (D); trưởng bộ phận tham gia; giám sát tuân thủ và giữ liên tục khi gia hạn/chấm dứt; hợp đồng nêu **dữ liệu chất lượng phải báo cáo, tần suất, cách xử lý khi không đạt** (D); dữ liệu đó được đưa vào chương trình theo dõi chất lượng (D) | Quản lý hợp đồng dịch vụ CNTT mở rộng (FR-JC-07, FR-JC-09) |
+| QPS.03.00–03.04, QPS.04.00–04.01 | Thu thập và phân tích dữ liệu; **phân tích sâu khi có sự cố hoặc xu hướng bất lợi** (QPS.03.04 ME2 – D); báo cáo rủi ro cho cơ quan quản trị (ME5 – D); cải tiến có dữ liệu chứng minh hiệu quả và bền vững (QPS.04.00 ME2 – D); **bài tập giảm thiểu rủi ro chủ động ít nhất mỗi năm** trên một quy trình rủi ro ưu tiên (QPS.04.01 ME3 – D) | Bộ chỉ số (FR-JC-03), CAPA (mục 5), sổ rủi ro (4.4), FR-RR-09 |
+| SQE.01.07 | Nhân viên được đào tạo liên tục; **nhu cầu đào tạo xác định từ dữ liệu chất lượng và an toàn** (ME3); **hoàn thành đào tạo được ghi vào hồ sơ nhân sự của từng người** (ME7 – D) | Hồ sơ đào tạo theo từng nhân viên (FR-DT-09) |
 
 #### 2.1.5. Đối chiếu mức yếu tố đo lường (ME) – chương HCT và MOI
 
@@ -206,6 +207,32 @@ Bổ sung cho hệ thống QLTB-CNTT các chức năng giúp Phòng CNTT **thự
 4. Intent nêu mốc thực hành: **dùng bộ biểu mẫu giấy khi downtime đột xuất kéo dài quá ngưỡng (ví dụ 30 phút)**, định nghĩa dữ liệu phải **nhập lại dạng có cấu trúc / quét / chép lại**, và **quy trình quản lý giấy tờ dùng trong downtime** để giữ bảo mật → FR-DT-01.
 5. Downtime do tấn công mạng cần **kế hoạch khác biệt** với downtime thường; chương trình ứng phó tấn công mạng phải **thử nghiệm hằng năm** → FR-AN-09.
 6. Bản sao lưu nên lưu ở **vị trí vật lý ngoại tuyến** (Intent HCT.01.05) → đã có ở FR-SL-01 (cờ "ngoài cơ sở/ngoại tuyến").
+
+#### 2.1.6. Đối chiếu mức yếu tố đo lường (ME) – chương GLD, QPS, SQE
+
+| ME | Yêu cầu (tóm lược) | Chức năng đáp ứng |
+|---|---|---|
+| GLD.04.00 ME5 **(D)** | Lãnh đạo định nghĩa **bằng văn bản** sự kiện an toàn người bệnh, kể cả sự cố nghiêm trọng (sentinel event) | FR-DT-04 (cờ "ảnh hưởng an toàn người bệnh" để chuyển cho hệ thống báo cáo sự cố của bệnh viện) |
+| GLD.04.01 ME2 **(D)** | **Ít nhất hằng quý**, lãnh đạo gửi cơ quan quản trị báo cáo bằng văn bản gồm: mọi sự cố hệ thống hoặc quy trình; số lượng và loại sự cố nghiêm trọng; người bệnh/gia đình được thông báo chưa; mọi hành động cải thiện an toàn (chủ động và theo sự cố); theo dõi hành động | **FR-JC-04** (chu kỳ quý là mặc định bắt buộc; nội dung có đủ các mục này) |
+| GLD.04.01 (Intent) | Nếu cơ quan quản trị chậm phản hồi, bệnh viện **ghi lại các nỗ lực liên hệ** nhiều lần, nhiều cách | FR-JC-04 (ghi nhận lần gửi, lần nhắc, kết quả) |
+| GLD.05.00 ME1, ME3 | Chỉ định người giám sát hợp đồng; trưởng bộ phận tham gia xem xét, lựa chọn, giám sát | FR-JC-07, FR-JC-09 |
+| GLD.05.00 ME2 **(D)** | Mô tả bằng văn bản **bản chất và phạm vi** dịch vụ cung cấp qua hợp đồng | Hợp đồng đã có trường phạm vi (SRS 4.6); FR-JC-09 |
+| GLD.05.00 ME4 | Giám sát tuân thủ hợp đồng; **giữ liên tục dịch vụ khi gia hạn hoặc chấm dứt** | FR-JC-09 (kế hoạch thay thế khi hết hạn; cảnh báo hợp đồng sắp hết hạn đã có) |
+| GLD.05.00 ME5 **(D)** | Hợp đồng nêu **dữ liệu chất lượng/hiệu năng phải báo cáo, tần suất, cơ chế báo cáo, cách bệnh viện xử lý khi không đạt** | FR-JC-09 |
+| GLD.05.00 ME6 **(D)** | Dữ liệu chất lượng từ nhà thầu được **đưa vào chương trình theo dõi chất lượng** của bệnh viện | FR-JC-09, FR-JC-03 |
+| GLD.06.00 ME1 | Mỗi bộ phận do người đủ trình độ, đào tạo, kinh nghiệm phụ trách (có tham chiếu **HCT.01.00 ME2**) | FR-HTT-12 |
+| GLD.06.00 ME2 | Trưởng bộ phận **đề xuất** không gian, thiết bị, nhân lực, **công nghệ** và nguồn lực khác, có quy trình xử lý thiếu hụt | **FR-JC-10** |
+| GLD.06.00 ME3 **(D)** | Tài liệu bộ phận mô tả dịch vụ **hiện tại và dự kiến** | **FR-JC-10** |
+| QPS.03.04 ME2 **(D)** | **Phân tích sâu / có hệ thống** khi có sự cố hoặc xu hướng bất lợi | FR-DT-08 (rút kinh nghiệm), FR-AN-03, FR-HD |
+| QPS.03.04 ME5 **(D)** | Báo cáo dữ liệu rủi ro an toàn người bệnh cho cơ quan quản trị | FR-JC-04 |
+| QPS.03.04 ME6 | Khuyến khích nhân viên báo cáo sự cố | Biểu mẫu báo hỏng hiện có, FR-AN-01 |
+| QPS.04.00 ME2, ME4 **(D)** | Có dữ liệu chứng minh cải tiến **hiệu quả và bền vững**; ghi nhận và xem xét cải tiến thành công | FR-HD-04 (kiểm chứng hiệu quả), FR-JC-03 (xu hướng) |
+| QPS.04.01 ME2 | Lãnh đạo xác định và xếp thứ tự rủi ro có tác động lớn nhất | FR-RR-01, 02 |
+| QPS.04.01 ME3 **(D)** | **Ít nhất mỗi năm** thực hiện **bài tập giảm thiểu rủi ro chủ động** trên một quy trình rủi ro ưu tiên | **FR-RR-09** |
+| QPS.04.01 ME4 **(D)** | Thiết kế lại quy trình rủi ro cao dựa trên kết quả bài tập | FR-RR-09, FR-HD |
+| SQE.01.07 ME3–ME4 | Xác định nhu cầu đào tạo từ **dữ liệu chất lượng và an toàn**; chương trình đào tạo dựa trên đó | FR-DT-09 (gợi ý nhu cầu đào tạo từ sự cố, downtime, tấn công mạng, diễn tập không đạt) |
+| SQE.01.07 ME6 | Cấp đủ **thời gian và nguồn lực** cho nhân viên tham gia đào tạo | Ngoài phạm vi phần mềm |
+| SQE.01.07 ME7 **(D)** | **Ghi nhận hoàn thành đào tạo** của từng nhân viên vào hồ sơ nhân sự | FR-DT-09 (xuất danh sách theo từng nhân viên để Phòng Tổ chức cán bộ lưu hồ sơ) |
 
 #### 2.1.4. Điều chỉnh so với v0.1
 
@@ -368,7 +395,7 @@ flowchart TB
 
 | Mã | Chức năng | Mô tả | Ưu tiên |
 |---|---|---|---|
-| FR-DT-04 | Ghi nhận downtime đột xuất | Tạo sự kiện: HTTT bị ảnh hưởng (một hoặc nhiều), thời điểm bắt đầu, mức độ (ngừng hoàn toàn / suy giảm), khoa bị ảnh hưởng (gợi ý từ FR-HTT-05), có kích hoạt kế hoạch downtime không. Có thể tạo từ phiếu sửa chữa/lệnh công việc (liên kết hai chiều) hoặc tạo trực tiếp | M |
+| FR-DT-04 | Ghi nhận downtime đột xuất | **Cờ "ảnh hưởng an toàn người bệnh / sự cố an toàn"** (GLD.04.00 ME5): đánh dấu để báo cáo vào hệ thống báo cáo sự cố của bệnh viện và đưa vào báo cáo quý (FR-JC-04). Tạo sự kiện: HTTT bị ảnh hưởng (một hoặc nhiều), thời điểm bắt đầu, mức độ (ngừng hoàn toàn / suy giảm), khoa bị ảnh hưởng (gợi ý từ FR-HTT-05), có kích hoạt kế hoạch downtime không. Có thể tạo từ phiếu sửa chữa/lệnh công việc (liên kết hai chiều) hoặc tạo trực tiếp | M |
 | FR-DT-05 | Downtime có kế hoạch | Đăng ký trước: HTTT, khung giờ dự kiến, lý do (liên kết phiếu thay đổi 4.5 nếu có), khoa bị ảnh hưởng. Hệ thống gửi thông báo tới Trưởng khoa bị ảnh hưởng trước N giờ (tham số, mặc định 48 giờ) và nhắc lại trước 1 giờ. **Nội dung thông báo bắt buộc có ba mục** (Intent HCT.01.04): hệ thống/ứng dụng ngừng và khoa bị ảnh hưởng; giờ bắt đầu và thời gian dự kiến ngừng; lý do và những thay đổi dự kiến sau khi hoàn tất (ví dụ bảo trì thường kỳ không đổi gì, hay nâng cấp) | M |
 | FR-DT-06 | Nhật ký diễn biến | Dòng thời gian trong sự kiện: thông báo khoa, kích hoạt quy trình giấy, liên hệ nhà cung cấp, khôi phục từng phần, kết thúc; mỗi dòng có người ghi và thời điểm | M |
 | FR-DT-07 | Kết thúc & nhập bù | Ghi thời điểm khôi phục; hệ thống tính thời lượng và so với RTO (đạt/vượt); checklist nhập bù dữ liệu theo khoa, mỗi khoa xác nhận đã nhập bù xong | M |
@@ -378,7 +405,7 @@ flowchart TB
 
 | Mã | Chức năng | Mô tả | Ưu tiên |
 |---|---|---|---|
-| FR-DT-09 | Ghi nhận đào tạo | **(MOI.01.04, SQE.01.07)** Buổi đào tạo với nội dung: quy trình downtime / sử dụng hệ thống thông tin / **an toàn thông tin và an ninh mạng** (nhận biết lừa đảo, mật khẩu, báo sự cố). Ghi kế hoạch/HTTT liên quan, khoa, ngày, người giảng, danh sách người tham dự (nhập tay hoặc nhập Excel), tài liệu. Báo cáo tỷ lệ khoa/nhân viên đã được đào tạo | M |
+| FR-DT-09 | Ghi nhận đào tạo | **(MOI.01.04, SQE.01.07)** Gợi ý **nhu cầu đào tạo từ dữ liệu** (sự cố, downtime, tấn công mạng, diễn tập không đạt – SQE.01.07 ME3). Buổi đào tạo với nội dung: quy trình downtime / sử dụng hệ thống thông tin / **an toàn thông tin và an ninh mạng** (nhận biết lừa đảo, mật khẩu, báo sự cố). Ghi kế hoạch/HTTT liên quan, khoa, ngày, người giảng, danh sách người tham dự (nhập tay hoặc nhập Excel), tài liệu. Báo cáo tỷ lệ khoa/nhân viên đã được đào tạo; **xuất bản ghi hoàn thành đào tạo theo từng nhân viên** để Phòng Tổ chức cán bộ lưu vào hồ sơ nhân sự (SQE.01.07 ME7) | M |
 | FR-DT-10 | Lịch diễn tập | Tự sinh đợt diễn tập theo chu kỳ của mức trọng yếu (4.1.3); nhắc trước 30 ngày và khi quá hạn | M |
 | FR-DT-11 | Thực hiện diễn tập | Hình thức: thảo luận trên bàn (*tabletop*) / mô phỏng tại khoa / ngừng thật có kế hoạch. Ghi kịch bản, khoa tham gia, người quan sát, thời gian từng bước, kết quả đánh giá theo phiếu mẫu (dùng lại khung phiếu kiểm tra 4.12), ảnh, biên bản ký | M |
 | FR-DT-12 | Kết luận diễn tập | Đạt / Đạt có khuyến nghị / Không đạt; phát hiện → CAPA; nếu Không đạt → lịch diễn tập lại trong 90 ngày (tham số). Một downtime đột xuất thực tế có rút kinh nghiệm đầy đủ được phép ghi nhận thay cho một đợt diễn tập (người duyệt xác nhận) | M |
@@ -475,6 +502,7 @@ flowchart LR
 | FR-RR-05 | Đợt đánh giá rủi ro hằng năm | Tạo đợt đánh giá (năm, thành phần tham gia); sao chép sổ rủi ro đang mở để chấm lại; bổ sung rủi ro mới; chốt đợt → sinh **báo cáo đánh giá rủi ro hằng năm** (danh sách theo mức, thay đổi so với năm trước, 10 rủi ro hàng đầu, kế hoạch hành động) có ký duyệt | M |
 | FR-RR-06 | Bản đồ nhiệt | Biểu đồ ma trận 5×5 số rủi ro theo ô, trước/sau biện pháp; lọc theo nhóm/HTTT | S |
 | FR-RR-07 | Xem xét định kỳ | Rủi ro mức Cao/Rất cao phải xem xét lại mỗi quý (tham số); đến hạn nhắc người chịu trách nhiệm | S |
+| FR-RR-09 | Bài tập giảm thiểu rủi ro chủ động | **(QPS.04.01 ME3, ME4 – D)** Mỗi năm chọn **ít nhất một quy trình rủi ro ưu tiên** (ví dụ ngừng HIS, tấn công mã độc tống tiền, mất nguồn phòng máy chủ) để phân tích chủ động các điểm có thể hỏng, hậu quả và biện pháp; ghi kết quả và việc thiết kế lại quy trình (CAPA). Diễn tập downtime hoặc diễn tập tấn công mạng đã chốt có thể được gắn làm bài tập này | S |
 | FR-RR-08 | Đánh giá rủi ro an ninh mạng và an toàn thông tin | **(HCT.01.00, HCT.01.05, MOI.01.02 ME 1)** Đợt đánh giá riêng (hoặc nhóm trong đợt hằng năm) do **người giám sát CNTT y tế** (FR-HTT-12) chủ trì: rủi ro mất, đánh cắp, hư hỏng, phá huỷ dữ liệu, mã độc tống tiền, tấn công mạng; kết quả dẫn tới biện pháp, CAPA và cập nhật chính sách (FR-AN-08) | M |
 
 #### 4.4.2. Quy tắc nghiệp vụ
@@ -601,10 +629,12 @@ stateDiagram-v2
 | FR-JC-01 | Danh mục tiêu chuẩn JCI | Danh mục cấu hình được: chương, mã tiêu chuẩn, mã ME, nội dung tóm tắt (do Phòng QLCL nhập theo bản chính thức); mỗi ME liên kết với một hoặc nhiều "nguồn bằng chứng" của hệ thống (ví dụ: biên bản thử phục hồi, kế hoạch downtime hiệu lực) và tài liệu chính sách tải lên | M |
 | FR-JC-02 | Tự đánh giá mức đáp ứng | Mỗi ME: hệ thống tính trạng thái bằng chứng tự động theo quy tắc (ví dụ "100% HTTT Tối quan trọng có thử phục hồi Đạt trong 6 tháng") → Đủ / Một phần / Thiếu; người phụ trách đánh giá bổ sung (Đạt / Đạt một phần / Không đạt) và ghi chú | M |
 | FR-JC-03 | Bộ chỉ số hạ tầng CNTT | Xem bảng 4.8.2; xu hướng theo tháng, so với mục tiêu (tham số) | M |
-| FR-JC-04 | Báo cáo định kỳ cho Lãnh đạo | Báo cáo tháng/quý (tham số) tự sinh: chỉ số, sự kiện downtime lớn, sự cố an ninh, rủi ro Cao/Rất cao, CAPA quá hạn, hạng mục cần Lãnh đạo quyết định (chấp nhận rủi ro, nguồn lực). Trưởng phòng CNTT bổ sung nhận xét → gửi (email + chuông) → Lãnh đạo xác nhận đã xem / ghi ý kiến chỉ đạo; ý kiến chỉ đạo có thể chuyển thành CAPA | M |
+| FR-JC-04 | Báo cáo định kỳ cho Lãnh đạo | **(GLD.04.01 ME2, QPS.03.04 ME5)** Báo cáo **ít nhất hằng quý** (bắt buộc; có thể thêm báo cáo tháng) tự sinh, gồm: chỉ số; **mọi sự cố hệ thống/quy trình** (sự kiện downtime, sự cố an ninh, sao lưu lỗi, thử phục hồi/diễn tập không đạt); số sự cố nghiêm trọng và việc đã thông báo người bệnh/gia đình hay chưa (nhập tay); hành động cải thiện đã làm và theo dõi (CAPA); rủi ro Cao/Rất cao; hạng mục cần Lãnh đạo quyết định (chấp nhận rủi ro, nguồn lực). Trưởng phòng CNTT bổ sung nhận xét → gửi (email + chuông) → Lãnh đạo xác nhận đã xem / ghi ý kiến chỉ đạo; ý kiến chỉ đạo có thể chuyển thành CAPA. Ghi nhận **lần gửi, lần nhắc, kết quả** để chứng minh nỗ lực liên hệ khi cơ quan quản trị chậm phản hồi | M |
 | FR-JC-05 | Xuất hồ sơ bằng chứng | Chọn chương/tiêu chuẩn và khoảng thời gian → xuất gói (ZIP): mục lục theo ME, các biên bản/báo cáo xuất PDF/Excel, tệp đính kèm gốc | S |
 | FR-JC-06 | Chế độ truy vết (tracer) | Từ một HTTT, xem toàn bộ chuỗi bằng chứng trên một trang: kế hoạch downtime → đào tạo → diễn tập → sự kiện → sao lưu → thử phục hồi → rủi ro → thay đổi → rà soát quyền; dùng khi đoàn đánh giá phỏng vấn | M |
-| FR-JC-07 | Đánh giá nhà cung cấp hằng năm **(GLD.05.00)** | Với hợp đồng hỗ trợ HTTT (4.6): phiếu đánh giá (thời gian phản hồi, chất lượng xử lý, tuân thủ hợp đồng, bảo mật), dữ liệu gợi ý từ phiếu "gửi hãng" và SLA; kết luận tiếp tục / cảnh báo / thay thế | M |
+| FR-JC-07 | Đánh giá nhà cung cấp hằng năm **(GLD.05.00)** | Với hợp đồng hỗ trợ HTTT (4.6): phiếu đánh giá (thời gian phản hồi, chất lượng xử lý, tuân thủ hợp đồng, bảo mật), dữ liệu gợi ý từ phiếu "gửi hãng" và SLA; kết luận tiếp tục / cảnh báo / thay thế; có người giám sát hợp đồng được chỉ định (ME1) và trưởng bộ phận sử dụng tham gia đánh giá (ME3) | M |
+| FR-JC-09 | Hợp đồng dịch vụ CNTT theo GLD.05.00 | **(ME2, ME4, ME5, ME6 – D)** Bổ sung cho hợp đồng loại Bảo trì / Thuê ngoài / hỗ trợ HTTT: **mô tả bằng văn bản phạm vi dịch vụ**; **chỉ tiêu chất lượng và hiệu năng nhà thầu phải báo cáo** (ví dụ thời gian phản hồi, thời gian khắc phục, tỷ lệ sẵn sàng), **tần suất và cách báo cáo**, **cách bệnh viện xử lý khi không đạt**; ghi nhận dữ liệu nhà thầu báo cáo từng kỳ và đưa vào bộ chỉ số (FR-JC-03); **kế hoạch giữ liên tục dịch vụ** khi hợp đồng gia hạn hoặc chấm dứt (cảnh báo hợp đồng sắp hết hạn đã có ở SRS 4.6). Hợp đồng thiếu các mục này hiển thị cảnh báo trên báo cáo JC | M |
+| FR-JC-10 | Hồ sơ phạm vi dịch vụ & kế hoạch của Phòng CNTT | **(GLD.06.00 ME2, ME3 – D)** Tài liệu mô tả dịch vụ CNTT **hiện tại và dự kiến**, người phụ trách và trình độ (liên kết FR-HTT-12), đề xuất nguồn lực (nhân lực, thiết bị, công nghệ, không gian) và quy trình xử lý khi thiếu hụt; có phiên bản, phê duyệt và hạn rà soát hằng năm (dùng chung cơ chế tài liệu FR-DT-02) | S |
 | FR-JC-08 | Danh mục tiêu chuẩn mặc định JCI 8 | Hệ thống nạp sẵn danh mục các tiêu chuẩn ở mục 2.1 (mã, tóm lược tiếng Việt, số ME) làm dữ liệu khởi tạo của FR-JC-01; Phòng QLCL bổ sung nội dung từng ME và "Intent" từ sách tiêu chuẩn đầy đủ | M |
 
 #### 4.8.2. Bộ chỉ số
@@ -749,8 +779,10 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 | FMS | FMS.02.00 | 4 | Đánh giá rủi ro hằng năm, ưu tiên, mục tiêu, cải thiện | FR-RR-01..07 | Báo cáo đánh giá rủi ro hằng năm có ký duyệt |
 | FMS | FMS.08.00, 08.01 | 5, 3 | Tiện ích thiết yếu luôn sẵn sàng; nguồn thay thế được kiểm tra | Đã có: SRS 4.1, 4.4, 4.12; FR-HTT-06..08 | Danh mục UPS/điều hoà/máy phát; kết quả kiểm tra phòng máy chủ; lịch sử bảo trì |
 | FMS | FMS.10.00 | 3 | Đánh giá rủi ro trước bảo trì ảnh hưởng chăm sóc | FR-TD-01..08 | Phiếu thay đổi có đánh giá rủi ro và phê duyệt |
-| GLD | GLD.04.01 | – | Lãnh đạo nhận báo cáo chất lượng và an toàn | FR-JC-04 | Báo cáo định kỳ; ý kiến chỉ đạo |
-| GLD | GLD.05.00 | 6 | Xem xét, giám sát hợp đồng | Đã có: SRS 4.6; FR-JC-07 | Đánh giá nhà cung cấp hằng năm |
+| GLD | GLD.04.00 | 7 | Định nghĩa sự kiện an toàn, phân tích sự cố nghiêm trọng | FR-DT-04, FR-DT-08 | Cờ ảnh hưởng an toàn người bệnh; rút kinh nghiệm |
+| GLD | GLD.04.01 | 3 | Báo cáo chất lượng và an toàn ít nhất hằng quý cho cơ quan quản trị | FR-JC-04 | Báo cáo quý; lịch sử gửi, nhắc, xác nhận |
+| GLD | GLD.05.00 | 6 | Giám sát hợp đồng: phạm vi, chỉ tiêu chất lượng, xử lý khi không đạt, giữ liên tục | Đã có: SRS 4.6; FR-JC-07, FR-JC-09 | Hợp đồng đủ trường theo ME; dữ liệu nhà thầu báo cáo; đánh giá hằng năm |
+| GLD | GLD.06.00 | 4 | Trưởng bộ phận đủ trình độ; đề xuất nguồn lực; tài liệu dịch vụ hiện tại và dự kiến | FR-HTT-12, FR-JC-10 | Hồ sơ người phụ trách; tài liệu phạm vi dịch vụ có phê duyệt |
 | QPS | QPS.03.00–03.04, 04.00, 04.01 | – | Đo lường, xu hướng, cải tiến, quản lý rủi ro | FR-JC-03, mục 5 (CAPA), FR-RR | Bộ chỉ số; CAPA có kiểm chứng hiệu quả |
 | SQE | SQE.01.07 | – | Nhân viên tham gia giáo dục, đào tạo | FR-DT-09 | Danh sách đào tạo |
 | HCT | HCT.02.00 | 6 | Laser, đốt điện, bức xạ quang học | **Ngoài phạm vi** | – |
@@ -785,8 +817,8 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 |---|---|---|---|
 | 1 | Danh sách HTTT trọng yếu và RTO/RPO từng hệ thống | Bảng 4.1.3 (Tối quan trọng: RTO 4 giờ, RPO 15 phút) – cấu hình được | Lãnh đạo + Trưởng phòng CNTT |
 | 2 | Kết quả sao lưu nhập tay hay tự động; phần mềm sao lưu đang dùng | GĐ3.1 nhập tay (và qua phiếu kiểm tra hằng ngày); API tự động ở GĐ3.3 | Phòng CNTT |
-| 3 | Nơi nhận báo cáo định kỳ (Ban Giám đốc / Hội đồng QLCL) và chu kỳ | Báo cáo quý gửi Ban Giám đốc, đồng gửi Phòng QLCL | Lãnh đạo |
-| 4 | Nội dung ME và Intent của các chương **FMS, GLD, QPS, SQE** (chương HCT và MOI đã có – bảng 2.1.5) | Truy vết ở mức tiêu chuẩn cho các chương này (mục 9) | Phòng QLCL |
+| 3 | "Cơ quan quản trị" nhận báo cáo quý theo GLD.04.01 là ai (Ban Giám đốc, Hội đồng QLCL hay cơ quan chủ quản) và người nhận trực tiếp báo cáo CNTT; **chu kỳ tối thiểu là hằng quý theo tiêu chuẩn** | Báo cáo quý gửi Ban Giám đốc, đồng gửi Phòng QLCL | Lãnh đạo |
+| 4 | Nội dung ME và Intent của chương **FMS** (các chương HCT, MOI, GLD, QPS, SQE đã có – bảng 2.1.5, 2.1.6) | Truy vết ở mức tiêu chuẩn cho FMS (mục 9) | Phòng QLCL |
 | 11 | Chu kỳ diễn tập (tối đa 12 tháng mọi mức) và thử phục hồi (3 tháng với hệ thống trọng yếu) có phù hợp năng lực nhân sự không | Theo bảng 4.1.3; điều chỉnh được trong Tham số hệ thống | Trưởng phòng CNTT |
 | 5 | Ai duyệt kế hoạch downtime HTTT Tối quan trọng | Trưởng phòng CNTT + một Phó Giám đốc phụ trách | Lãnh đạo |
 | 6 | Thời hạn báo cáo sự cố an ninh mạng cho cơ quan chức năng | Tham số, Phòng CNTT nhập theo văn bản hiện hành | Phòng CNTT (pháp chế góp ý) |
