@@ -1,0 +1,35 @@
+@{ ViewData["Title"] = "Quét QR thiết bị"; }
+<h1 class="h5 mb-3"><i class="bi bi-qr-code-scan"></i> Quét tem QR thiết bị</h1>
+<div id="reader" class="mb-3 rounded overflow-hidden bg-dark" style="min-height:260px"></div>
+<div class="d-flex gap-2 mb-3">
+    <button class="btn btn-primary flex-grow-1" id="btnCam"><i class="bi bi-camera"></i> Mở camera</button>
+    <button class="btn btn-outline-secondary d-none flex-grow-1" id="btnTat">Tắt camera</button>
+</div>
+<form id="frmTay" class="input-group mb-3"><input id="maTay" class="form-control" placeholder="Hoặc nhập mã tài sản (VD PC-0012)" aria-label="Mã tài sản" autocapitalize="characters" /><button class="btn btn-outline-primary">Mở</button></form>
+<div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="baoHong" /><label class="form-check-label" for="baoHong">Quét để <b>báo hỏng</b> thiết bị này</label></div>
+<div id="loi" class="alert alert-danger small d-none"></div>
+@section Scripts {
+<script src="~/lib/html5-qrcode/html5-qrcode.min.js"></script>
+<script>
+(function () {
+    let qr = null, xong = false;
+    const loi = m => { const e = document.getElementById('loi'); e.textContent = m; e.classList.remove('d-none'); };
+    function tachMa(s) { s = (s || '').trim(); const i = s.toLowerCase().lastIndexOf('/qr/'); if (i >= 0) s = decodeURIComponent(s.slice(i + 4).split(/[?#]/)[0]); return s.trim().toUpperCase(); }
+    async function mo(s) {
+        const ma = tachMa(s); if (!ma || xong) return; xong = true;
+        if (navigator.vibrate) navigator.vibrate(60);
+        if (qr) { try { await qr.stop(); } catch { } }
+        location.href = document.getElementById('baoHong').checked ? '/m/BaoHong?ma=' + encodeURIComponent(ma) : '/qr/' + encodeURIComponent(ma);
+    }
+    document.getElementById('frmTay').onsubmit = e => { e.preventDefault(); mo(document.getElementById('maTay').value); };
+    document.getElementById('btnCam').onclick = async () => {
+        try {
+            qr = qr || new Html5Qrcode('reader');
+            await qr.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 230, height: 230 } }, t => mo(t), () => { });
+            document.getElementById('btnCam').classList.add('d-none'); document.getElementById('btnTat').classList.remove('d-none');
+        } catch (e) { loi('Không mở được camera: ' + e + '. Camera trên điện thoại cần HTTPS và quyền truy cập camera — có thể nhập mã tay.'); }
+    };
+    document.getElementById('btnTat').onclick = async () => { if (qr) await qr.stop(); document.getElementById('btnTat').classList.add('d-none'); document.getElementById('btnCam').classList.remove('d-none'); };
+})();
+</script>
+}

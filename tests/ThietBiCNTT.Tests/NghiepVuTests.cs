@@ -549,3 +549,18 @@ public class AgentTests
         Assert.False(new MayTramAgent { LanCuoi = now.AddDays(-8) }.KhongGui(now, 0));
     }
 }
+
+public class DiDongTests
+{
+    [Fact]
+    public void ThoiDiemQuet_DungGioMayQuet_NeuHopLy()
+    {
+        var now = new DateTime(2026, 11, 24, 10, 0, 0);
+        long Ms(DateTime t) => new DateTimeOffset(t).ToUnixTimeMilliseconds();
+        Assert.Equal(now, ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(null, now));
+        Assert.Equal(now.AddHours(-2), ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(Ms(now.AddHours(-2)), now));
+        Assert.Equal(now, ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(Ms(now.AddDays(-8)), now));   // quá cũ
+        Assert.Equal(now, ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(Ms(now.AddHours(1)), now));   // giờ máy sai (tương lai)
+        Assert.Equal(now, ThietBiCNTT.Web.Controllers.KiemKeController.ThoiDiemQuet(Ms(now.AddMinutes(2)), now)); // lệch nhẹ → kẹp về hiện tại
+    }
+}

@@ -474,6 +474,14 @@ Agent là script PowerShell 5.1 có sẵn trên Windows 10/11 (không cài thêm
 
 Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, chỉ SYSTEM và Administrators đọc được. Người dùng thường không xem được khoá.
 
+## 13. Ứng dụng trên điện thoại (PWA)
+
+- **Bắt buộc HTTPS** (xem `docs/ChungChiHTTPS.md`): trình duyệt chỉ cho cài PWA, chạy service worker (kiểm kê ngoại tuyến) và mở camera quét QR trên HTTPS. Khi chưa có chứng chỉ, giao diện điện thoại vẫn dùng được qua trình duyệt nhưng không cài được và không quét camera.
+- Cài: mở `https://thietbi.bth.org.vn/m` → Android Chrome: *Thêm vào màn hình chính* (hoặc nút "Cài ứng dụng" trên trang); iPhone Safari: *Chia sẻ → Thêm vào MH chính*.
+- Menu dưới cùng theo vai trò chỉnh ở *Tham số hệ thống → Giao diện di động*.
+- Máy dùng chung: đăng xuất sẽ xoá trang đã lưu ngoại tuyến; ngoài màn hình quét kiểm kê, không trang nghiệp vụ nào được lưu trên máy.
+- Khi cập nhật phiên bản có thay đổi giao diện, tăng hằng `PHIEN_BAN` trong `wwwroot/sw.js` để máy người dùng tải lại thư viện/tệp tĩnh.
+
 ---
 
 ## Phụ lục A – Cài đặt IIS thủ công (không dùng script)

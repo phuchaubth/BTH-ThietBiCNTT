@@ -69,6 +69,11 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Agent cấu hình | `Agent.CanhBaoKhongGuiNgay` | Cảnh báo máy không gửi cấu hình sau | Số nguyên | 7 ngày |
 | Agent cấu hình | `Agent.GhiLichSuDoiIP` | Ghi lịch sử khi chỉ đổi IP | Bật/Tắt | false |
 | Agent cấu hình | `Agent.TuGhepTheoHostname` | Tự ghép theo hostname / MAC | Bật/Tắt | true |
+| Giao diện di động | `Mobile.Menu.NhanVien` | Menu điện thoại – Nhân viên (≤ 5 mã) | Văn bản | baohong,yeucau,quetqr,thongbao |
+| Giao diện di động | `Mobile.Menu.TruongKhoa` | Menu điện thoại – Trưởng khoa | Văn bản | baohong,yeucau,duyet,kiemke,thongbao |
+| Giao diện di động | `Mobile.Menu.CanBoCNTT` | Menu điện thoại – Cán bộ CNTT / KTV | Văn bản | viec,quetqr,kiemtra,kiemke,thongbao |
+| Giao diện di động | `Mobile.Menu.LanhDao` | Menu điện thoại – Lãnh đạo | Văn bản | tongquan,duyet,baocao,ngansach,thongbao |
+| Giao diện di động | `Mobile.Menu.QuanTri` | Menu điện thoại – Quản trị | Văn bản | viec,quetqr,duyet,tongquan,thongbao |
 | Ngân sách | `NganSach.BatBuocKhoanMuc` | Bắt buộc chọn khoản mục ngân sách khi gửi duyệt đề xuất | Bật/Tắt | false |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |

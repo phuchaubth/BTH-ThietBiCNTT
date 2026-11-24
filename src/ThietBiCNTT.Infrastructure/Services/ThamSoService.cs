@@ -79,6 +79,8 @@ public static class TS
     public const string AgentKhongGuiNgay = "Agent.CanhBaoKhongGuiNgay";
     public const string AgentGhiDoiIp = "Agent.GhiLichSuDoiIP";
     public const string AgentTuGhepHostname = "Agent.TuGhepTheoHostname";
+    // Giao diện di động (FR-HT-16)
+    public static string MobileMenu(string vaiTro) => "Mobile.Menu." + vaiTro;
     // Bảo mật
     public const string PhienKhoaPhut = "BaoMat.PhienKhoaPhut";
     public const string PhienCNTTGio = "BaoMat.PhienCNTTGio";
@@ -90,6 +92,8 @@ public static class ThamSoMacDinh
     private static ThamSoHeThong T(int thuTu, string nhom, string ma, string ten, KieuThamSo kieu, string macDinh,
         string? donVi = null, decimal? min = null, decimal? max = null, string? moTa = null) =>
         new() { ThuTu = thuTu, Nhom = nhom, Ma = ma, Ten = ten, Kieu = kieu, GiaTri = macDinh, GiaTriMacDinh = macDinh, DonVi = donVi, ToiThieu = min, ToiDa = max, MoTa = moTa };
+
+    private const string MaMenu = "Tối đa 5 mục, theo thứ tự, cách nhau dấu phẩy. Mã: baohong, yeucau, viec, quetqr, kiemtra, kiemke, duyet, thongbao, tongquan, baocao, taisan, kho, muasam, ngansach. Mục 1 cũng là ô đầu tiên ở trang chủ điện thoại (/m).";
 
     public static IReadOnlyList<ThamSoHeThong> DanhSach() =>
     [
@@ -160,6 +164,12 @@ public static class ThamSoMacDinh
         T(154, "Agent cấu hình", TS.AgentKhongGuiNgay, "Cảnh báo máy không gửi cấu hình sau", KieuThamSo.SoNguyen, "7", "ngày", 0, 365, "0 = tắt."),
         T(155, "Agent cấu hình", TS.AgentGhiDoiIp, "Ghi lịch sử khi chỉ đổi địa chỉ IP", KieuThamSo.BatTat, "false", moTa: "Tắt: IP (DHCP) vẫn được cập nhật nhưng không ghi lịch sử, không thông báo."),
         T(156, "Agent cấu hình", TS.AgentTuGhepHostname, "Tự ghép máy với tài sản theo hostname / MAC", KieuThamSo.BatTat, "true", moTa: "Luôn ghép theo mã tài sản khai báo (registry) và serial BIOS. Tắt nếu hostname đặt không thống nhất."),
+
+        T(160, "Giao diện di động", TS.MobileMenu("NhanVien"), "Menu điện thoại – Nhân viên", KieuThamSo.VanBan, "baohong,yeucau,quetqr,thongbao", moTa: MaMenu),
+        T(161, "Giao diện di động", TS.MobileMenu("TruongKhoa"), "Menu điện thoại – Trưởng khoa/phòng", KieuThamSo.VanBan, "baohong,yeucau,duyet,kiemke,thongbao", moTa: MaMenu),
+        T(162, "Giao diện di động", TS.MobileMenu("CanBoCNTT"), "Menu điện thoại – Cán bộ CNTT / KTV", KieuThamSo.VanBan, "viec,quetqr,kiemtra,kiemke,thongbao", moTa: MaMenu),
+        T(163, "Giao diện di động", TS.MobileMenu("LanhDao"), "Menu điện thoại – Lãnh đạo", KieuThamSo.VanBan, "tongquan,duyet,baocao,ngansach,thongbao", moTa: MaMenu),
+        T(164, "Giao diện di động", TS.MobileMenu("QuanTri"), "Menu điện thoại – Quản trị", KieuThamSo.VanBan, "viec,quetqr,duyet,tongquan,thongbao", moTa: MaMenu),
 
         T(100, "Bảo mật", TS.PhienKhoaPhut, "Tự đăng xuất (Nhân viên, Trưởng khoa) sau", KieuThamSo.SoNguyen, "30", "phút không thao tác", 5, 480),
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),

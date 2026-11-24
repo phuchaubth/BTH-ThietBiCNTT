@@ -13,7 +13,8 @@ using ThietBiCNTT.Web.Infrastructure;
 
 namespace ThietBiCNTT.Web.Controllers;
 
-public record QuetVm(int DotId, string Ma, int? KhoaThucTeId, TrangThaiTaiSan? TinhTrang, string? GhiChu);
+/// <param name="LucQuet">Thời điểm quét trên máy (ms Unix) — có khi đồng bộ kết quả quét lúc mất mạng.</param>
+public record QuetVm(int DotId, string Ma, int? KhoaThucTeId, TrangThaiTaiSan? TinhTrang, string? GhiChu, long? LucQuet = null);
 
 /// <summary>Kiểm kê tài sản bằng quét QR.</summary>
 [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao + "," + VaiTro.TruongKhoa)]
@@ -103,7 +104,7 @@ public class KiemKeController(AppDbContext db, SoPhieuService soPhieu) : Control
         await db.ChiTietKiemKes.Where(c => c.DotKiemKeId == dot.Id && (ts != null ? c.TaiSanId == ts.Id : c.TaiSanId == null && c.MaQuet == ma)).LoadAsync();
         try
         {
-            var (ct, daKiem) = dot.GhiNhan(ma, ts, vm.KhoaThucTeId, vm.TinhTrang, User.Identity!.Name!, DateTime.Now, vm.GhiChu);
+            var (ct, daKiem) = dot.GhiNhan(ma, ts, vm.KhoaThucTeId, vm.TinhTrang, User.Identity!.Name!, ThoiDiemQuet(vm.LucQuet, DateTime.Now), vm.GhiChu);
             await db.SaveChangesAsync();
             var khoaThucTe = vm.KhoaThucTeId is { } k ? (await db.KhoaPhongs.FindAsync(k))?.Ten : null;
             return Json(new
@@ -115,6 +116,14 @@ public class KiemKeController(AppDbContext db, SoPhieuService soPhieu) : Control
             });
         }
         catch (DomainException ex) { return Json(new { ok = false, loi = ex.Message }); }
+    }
+
+    /// <summary>Thời điểm quét: dùng giờ máy quét nếu hợp lý (trong 7 ngày qua, không vượt hiện tại quá 5 phút), ngược lại dùng giờ máy chủ.</summary>
+    public static DateTime ThoiDiemQuet(long? lucQuetMs, DateTime now)
+    {
+        if (lucQuetMs is not { } ms) return now;
+        var t = DateTimeOffset.FromUnixTimeMilliseconds(ms).LocalDateTime;
+        return t > now.AddMinutes(5) || t < now.AddDays(-7) ? now : (t > now ? now : t);
     }
 
     /// <summary>Lấy mã tài sản từ nội dung QR (URL …/qr/{ma}) hoặc mã nhập tay.</summary>

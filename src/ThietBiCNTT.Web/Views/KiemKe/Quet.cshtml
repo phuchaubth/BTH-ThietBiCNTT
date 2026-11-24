@@ -9,6 +9,7 @@
     .kq-SaiViTri { background: #fff6e5; border-color: #b45309 !important; }
     .kq-Thua { background: #e3f1fb; border-color: #0b4f7a !important; }
     .kq-loi { background: #fdeeee; border-color: #c62828 !important; }
+    .kq-cho { background: #f1f1f4; border-color: #6c757d !important; }
 </style>
 }
 <div class="small text-muted mb-1"><a asp-action="Details" asp-route-id="@Model.Id">@Model.Ma</a> › Quét</div>
@@ -38,7 +39,7 @@
     </div>
     <div class="col-lg-6">
         <div id="ketqua" class="card card-body border-2 mb-3 text-center text-muted">Chưa quét</div>
-        <div class="card"><div class="card-header d-flex">Vừa quét <span class="ms-auto small fw-normal" id="dem">0 lượt</span></div>
+        <div class="card"><div class="card-header d-flex">Vừa quét <span class="badge bg-secondary ms-2 d-none" id="cho" title="Lượt quét lưu tạm khi mất mạng, sẽ tự gửi"><b>0</b> chờ đồng bộ</span><span class="ms-auto small fw-normal" id="dem">0 lượt</span></div>
             <ul class="list-group list-group-flush" id="lichsu"></ul></div>
     </div>
 </div>
@@ -53,19 +54,64 @@
 
     function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
 
+    // ===== Ngoại tuyến (FR-KK-07): mất mạng → lưu tạm trên máy, tự đồng bộ khi có mạng =====
+    const KHO = 'kk-cho-' + dotId;
+    const docCho = () => { try { return JSON.parse(localStorage.getItem(KHO) || '[]'); } catch { return []; } };
+    const ghiCho = ds => { try { localStorage.setItem(KHO, JSON.stringify(ds)); } catch { } capNhatCho(); };
+    function capNhatCho() {
+        const n = docCho().length, e = document.getElementById('cho');
+        e.classList.toggle('d-none', n === 0); e.querySelector('b').textContent = n;
+    }
+    function goiTin(x) {
+        const fd = new FormData();
+        fd.append('__RequestVerificationToken', token); fd.append('DotId', dotId); fd.append('Ma', x.ma);
+        fd.append('KhoaThucTeId', x.khoa); fd.append('TinhTrang', x.tinhTrang); fd.append('GhiChu', x.ghiChu); fd.append('LucQuet', x.luc);
+        return fd;
+    }
+    async function goi(x) {
+        const r = await fetch('@Url.Action("QuetMa")', { method: 'POST', body: goiTin(x), credentials: 'same-origin' });
+        if (r.redirected || r.status === 400) { const e = new Error('Phiên đăng nhập hết hạn — đăng nhập lại để gửi tiếp.'); e.phien = true; throw e; }
+        if (!r.ok) throw new Error('Lỗi máy chủ (' + r.status + ')');
+        return r.json();
+    }
+    let dangDongBo = false;
+    async function dongBo() {
+        if (dangDongBo || !navigator.onLine) return;
+        let ds = docCho(); if (!ds.length) return;
+        dangDongBo = true; let ok = 0, loiNv = 0;
+        try {
+            while (ds.length) {
+                const d = await goi(ds[0]);           // lỗi mạng → dừng, giữ hàng đợi
+                if (d.ok) ok++; else loiNv++;
+                ds.shift(); ghiCho(ds);
+            }
+            hien('kq-Khop', '<b>Đã đồng bộ ' + ok + ' lượt quét lưu tạm</b>' + (loiNv ? '<div class="small">' + loiNv + ' lượt không ghi nhận (mã/khoa không hợp lệ)</div>' : ''));
+        } catch (e) { if (e.phien) hien('kq-loi', esc(e.message)); }
+        finally { dangDongBo = false; }
+    }
+    window.addEventListener('online', dongBo);
+    setInterval(dongBo, 20000);
+
     async function gui(ma) {
         ma = (ma || '').trim();
         const now = Date.now();
         if (!ma || dangGui || (ma === maCuoi && now - lucCuoi < 3000)) return;   // chống quét lặp liên tục cùng mã
         dangGui = true; maCuoi = ma; lucCuoi = now;
-        const fd = new FormData();
-        fd.append('__RequestVerificationToken', token); fd.append('DotId', dotId); fd.append('Ma', ma);
-        fd.append('KhoaThucTeId', document.getElementById('khoa').value);
-        fd.append('TinhTrang', document.getElementById('tinhtrang').value); fd.append('GhiChu', document.getElementById('ghichu').value);
+        const x = { ma, khoa: document.getElementById('khoa').value, tinhTrang: document.getElementById('tinhtrang').value, ghiChu: document.getElementById('ghichu').value, luc: now };
         try {
-            const r = await fetch('@Url.Action("QuetMa")', { method: 'POST', body: fd, credentials: 'same-origin' });
-            if (r.redirected || !r.ok) throw new Error('Phiên đăng nhập hết hạn hoặc lỗi máy chủ (' + r.status + ')');
-            const d = await r.json();
+            let d;
+            try { d = await goi(x); }
+            catch (e) {
+                if (e.phien) throw e;
+                // Mất mạng / máy chủ không phản hồi → lưu tạm
+                const ds = docCho(); ds.push(x); ghiCho(ds);
+                hien('kq-cho', '<div class="fs-4 fw-bold">' + esc(ma) + '</div><div class="fw-semibold">Đã lưu tạm trên máy (mất kết nối)</div><div class="small">Sẽ tự gửi khi có mạng.</div>');
+                rung([40, 40]);
+                const li = document.createElement('li'); li.className = 'list-group-item small d-flex text-muted';
+                li.innerHTML = '<b class="me-2">' + esc(ma) + '</b><span class="ms-auto">lưu tạm</span>'; ls.prepend(li);
+                document.getElementById('ghichu').value = ''; document.getElementById('tinhtrang').value = '';
+                return;
+            }
             if (!d.ok) { hien('kq-loi', '<b>Không ghi nhận</b><div>' + esc(d.loi) + '</div>'); rung([80, 60, 80]); return; }
             const lop = d.daKiem ? 'kq-Thua' : 'kq-' + d.ketQua;
             let html = '<div class="fs-4 fw-bold">' + esc(d.ma) + '</div><div>' + esc(d.ten) + '</div>' +
@@ -79,12 +125,14 @@
             li.innerHTML = '<b class="me-2">' + esc(d.ma) + '</b><span class="text-truncate">' + esc(d.ten) + '</span><span class="ms-auto">' + (d.daKiem ? 'đã kiểm' : esc(d.ketQuaTen)) + '</span>';
             ls.prepend(li); while (ls.children.length > 30) ls.lastChild.remove();
             document.getElementById('ghichu').value = ''; document.getElementById('tinhtrang').value = '';
+            dongBo();
         } catch (e) { hien('kq-loi', esc(e.message)); }
         finally { dangGui = false; }
     }
     function hien(lop, html) { kq.className = 'card card-body border-2 mb-3 text-center ' + lop; kq.innerHTML = html; }
     function rung(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
+    capNhatCho(); dongBo();
     document.getElementById('frmTay').addEventListener('submit', e => { e.preventDefault(); const i = document.getElementById('maTay'); gui(i.value); i.value = ''; i.focus(); });
     document.getElementById('btnCam').addEventListener('click', async () => {
         try {

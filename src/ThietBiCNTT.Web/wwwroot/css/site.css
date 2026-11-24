@@ -43,3 +43,20 @@ dl.info dd { margin-bottom: .6rem; }
   .sidebar.open { left: 0; }
 }
 @media print { body { background: #fff; } .content { padding: 0; } .card { border: 0; box-shadow: none; } }
+
+/* ===== Giao diện điện thoại: thanh menu dưới, ô chức năng ===== */
+.menu-didong { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; background: #fff; border-top: 1px solid #dee2e6;
+  padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 8px rgba(0,0,0,.05); }
+.menu-didong a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; font-size: .7rem; color: #6c757d; text-decoration: none; min-width: 0; }
+.menu-didong a i { font-size: 1.3rem; line-height: 1; }
+.menu-didong a span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.menu-didong a.active { color: var(--accent); font-weight: 600; }
+@media (max-width: 991.98px) { .content { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); } }
+.o-didong { display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; padding: .9rem; border-radius: .6rem; background: #fff;
+  border: 1px solid #e3e7ec; text-decoration: none; color: inherit; position: relative; }
+.o-didong:active { background: #eef4ff; }
+.o-didong i { font-size: 1.7rem; color: var(--accent); }
+.o-didong .so { position: absolute; top: .6rem; right: .7rem; }
+.o-didong.chinh { background: var(--accent); color: #fff; border-color: var(--accent); }
+.o-didong.chinh i { color: #fff; }
+.o-didong.chinh.baohong { background: #dc3545; border-color: #dc3545; }

@@ -10,6 +10,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Quản lý TTB CNTT</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0f2d4a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TTB CNTT" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -81,6 +87,7 @@
             @if (TempData["err"] is string err) { <div class="alert alert-danger alert-dismissible"><i class="bi bi-x-circle"></i> @err<button class="btn-close" data-bs-dismiss="alert"></button></div> }
             @RenderBody()
         </main>
+        @if (User.Identity?.IsAuthenticated == true) { @await Component.InvokeAsync("MenuDiDong") }
     </div>
 </div>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>

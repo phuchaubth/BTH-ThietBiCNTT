@@ -1,0 +1,9 @@
+@model List<MucDiDong>
+@{ var duongDan = Context.Request.Path + Context.Request.QueryString; }
+<nav class="menu-didong d-lg-none d-print-none" aria-label="Menu điện thoại">
+    @foreach (var m in Model)
+    {
+        var chon = m.Url == "/" ? duongDan == "/" : duongDan.ToString().StartsWith(m.Url, StringComparison.OrdinalIgnoreCase);
+        <a href="@m.Url" class="@(chon ? "active" : "")"><i class="bi @m.Icon"></i><span>@m.Ten</span></a>
+    }
+</nav>

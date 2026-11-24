@@ -22,13 +22,15 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
     }
 
     /// <summary>Người dùng hiện tại có quyền duyệt cấp đang chờ của phiếu không.</summary>
-    private bool CoQuyenDuyet(PhieuDieuChuyen p) => p.TrangThai == TrangThaiDieuChuyen.ChoDuyet && p.CapHienTai switch
+    private bool CoQuyenDuyet(PhieuDieuChuyen p) => CoQuyenDuyet(p, User);
+
+    public static bool CoQuyenDuyet(PhieuDieuChuyen p, System.Security.Claims.ClaimsPrincipal u) => p.TrangThai == TrangThaiDieuChuyen.ChoDuyet && p.CapHienTai switch
     {
-        PhieuDieuChuyen.CapTruongKhoa => User.IsInRole(VaiTro.QuanTri) || (User.IsInRole(VaiTro.TruongKhoa) && User.KhoaPhongId() == p.TuKhoaPhongId),
-        PhieuDieuChuyen.CapCNTT => User.LaCNTT(),
-        PhieuDieuChuyen.CapLanhDao => User.IsInRole(VaiTro.LanhDao) || User.IsInRole(VaiTro.QuanTri),
+        PhieuDieuChuyen.CapTruongKhoa => u.IsInRole(VaiTro.QuanTri) || (u.IsInRole(VaiTro.TruongKhoa) && u.KhoaPhongId() == p.TuKhoaPhongId),
+        PhieuDieuChuyen.CapCNTT => u.LaCNTT(),
+        PhieuDieuChuyen.CapLanhDao => u.IsInRole(VaiTro.LanhDao) || u.IsInRole(VaiTro.QuanTri),
         _ => false
-    } && !string.Equals(p.NguoiTao, User.Identity?.Name, StringComparison.OrdinalIgnoreCase);
+    } && !string.Equals(p.NguoiTao, u.Identity?.Name, StringComparison.OrdinalIgnoreCase);
 
     public async Task<IActionResult> Index(TrangThaiDieuChuyen? trangThai, bool choToiDuyet = false)
     {
