@@ -26,7 +26,7 @@ public class DongNhanVm { public int Id { get; set; } public decimal SoLuong { g
 
 /// <summary>Mua sắm: đề xuất → duyệt → đơn hàng → nhận hàng.</summary>
 [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
-public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
+public class MuaSamController(AppDbContext db, MuaSamService ms, NganSachService ns) : Controller
 {
     // ===== Đề xuất =====
     public async Task<IActionResult> Index(TrangThaiDeXuat? trangThai, bool choToi = false, int page = 1)
@@ -48,12 +48,13 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
     public async Task<IActionResult> DeXuat(int id)
     {
         var dx = await db.DeXuatMuaSams.AsNoTracking().Include(x => x.Dongs).ThenInclude(d => d.VatTu).Include(x => x.Dongs).ThenInclude(d => d.LoaiThietBi)
-            .Include(x => x.BuocDuyets).Include(x => x.PhieuSuaChua).FirstOrDefaultAsync(x => x.Id == id);
+            .Include(x => x.BuocDuyets).Include(x => x.PhieuSuaChua).Include(x => x.KhoanMucNganSach).FirstOrDefaultAsync(x => x.Id == id);
         if (dx is null) return NotFound();
         ViewBag.DuocDuyet = await ms.DuocDuyetAsync(dx, User.Identity?.Name);
         ViewBag.NguoiDuyet = dx.TrangThai == TrangThaiDeXuat.ChoDuyet ? await ms.NguoiDuyetCapAsync(dx.CapHienTai) : new List<string>();
         ViewBag.DonHangs = await db.DongDonHangs.AsNoTracking().Where(d => d.DongDeXuat!.DeXuatMuaSamId == id).Select(d => d.DonMuaHang!).Distinct().ToListAsync();
         ViewBag.Nguong = ms.NguongLanhDao;
+        ViewBag.NganSach = dx.KhoanMucNganSachId is { } km ? await ns.MotAsync(km) : null;
         return View(dx);
     }
 
@@ -82,20 +83,20 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
         {
             if (input.Id == 0)
             {
-                dx = new DeXuatMuaSam { TieuDe = input.TieuDe, CanCu = input.CanCu, LyDo = input.LyDo, PhieuSuaChuaId = input.PhieuSuaChuaId, Dongs = dongs };
+                dx = new DeXuatMuaSam { TieuDe = input.TieuDe, CanCu = input.CanCu, LyDo = input.LyDo, PhieuSuaChuaId = input.PhieuSuaChuaId, KhoanMucNganSachId = input.KhoanMucNganSachId, Dongs = dongs };
                 await ms.LapDeXuatAsync(dx);
             }
             else
             {
                 dx = await db.DeXuatMuaSams.Include(x => x.Dongs).FirstOrDefaultAsync(x => x.Id == input.Id) ?? throw new DomainException("Không tìm thấy đề xuất.");
                 if (dx.TrangThai is not (TrangThaiDeXuat.Nhap or TrangThaiDeXuat.TuChoi)) throw new DomainException("Chỉ sửa đề xuất nháp hoặc bị từ chối.");
-                dx.TieuDe = input.TieuDe; dx.CanCu = input.CanCu; dx.LyDo = input.LyDo; dx.PhieuSuaChuaId = input.PhieuSuaChuaId;
+                dx.TieuDe = input.TieuDe; dx.CanCu = input.CanCu; dx.LyDo = input.LyDo; dx.PhieuSuaChuaId = input.PhieuSuaChuaId; dx.KhoanMucNganSachId = input.KhoanMucNganSachId;
                 db.DongDeXuats.RemoveRange(dx.Dongs); dx.Dongs = dongs;
                 dx.KiemTraDong();
                 await db.SaveChangesAsync();
             }
-            if (guiDuyet) await ms.GuiDuyetAsync(dx, User.Identity?.Name);
-            TempData["ok"] = guiDuyet ? $"Đã gửi duyệt đề xuất {dx.SoPhieu}." : $"Đã lưu nháp {dx.SoPhieu}.";
+            var canhBao = guiDuyet ? await ms.GuiDuyetAsync(dx, User.Identity?.Name) : null;
+            TempData["ok"] = (guiDuyet ? $"Đã gửi duyệt đề xuất {dx.SoPhieu}." : $"Đã lưu nháp {dx.SoPhieu}.") + (canhBao is null ? "" : " ⚠ " + canhBao);
             return RedirectToAction(nameof(DeXuat), new { id = dx.Id });
         }
         catch (DomainException ex)
@@ -111,7 +112,7 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
     {
         var dx = await db.DeXuatMuaSams.Include(x => x.Dongs).FirstOrDefaultAsync(x => x.Id == id);
         if (dx is null) return NotFound();
-        try { await ms.GuiDuyetAsync(dx, User.Identity?.Name); TempData["ok"] = $"Đã gửi duyệt — chờ {DeXuatMuaSam.TenCap(dx.CapHienTai)}."; }
+        try { var cb = await ms.GuiDuyetAsync(dx, User.Identity?.Name); TempData["ok"] = $"Đã gửi duyệt — chờ {DeXuatMuaSam.TenCap(dx.CapHienTai)}." + (cb is null ? "" : " ⚠ " + cb); }
         catch (DomainException ex) { TempData["err"] = ex.Message; }
         return RedirectToAction(nameof(DeXuat), new { id });
     }
@@ -123,8 +124,9 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
         if (dx is null) return NotFound();
         try
         {
-            await ms.DuyetAsync(dx, User.Identity!.Name!, User.HoTen(), dongY, yKien);
-            TempData["ok"] = !dongY ? "Đã từ chối đề xuất." : dx.TrangThai == TrangThaiDeXuat.DaDuyet ? "Đã duyệt — đề xuất hoàn tất phê duyệt." : $"Đã duyệt — chuyển {DeXuatMuaSam.TenCap(dx.CapHienTai)}.";
+            var cb = await ms.DuyetAsync(dx, User.Identity!.Name!, User.HoTen(), dongY, yKien);
+            TempData["ok"] = (!dongY ? "Đã từ chối đề xuất." : dx.TrangThai == TrangThaiDeXuat.DaDuyet ? "Đã duyệt — đề xuất hoàn tất phê duyệt." : $"Đã duyệt — chuyển {DeXuatMuaSam.TenCap(dx.CapHienTai)}.")
+                + (cb is null ? "" : " ⚠ " + cb);
         }
         catch (DomainException ex) { TempData["err"] = ex.Message; }
         return RedirectToAction(nameof(DeXuat), new { id });
@@ -184,6 +186,7 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
         if (deXuatId is not null) q = q.Where(d => d.DeXuatMuaSamId == deXuatId);
         ViewBag.Dongs = await q.OrderBy(d => d.DeXuatMuaSamId).ThenBy(d => d.Id).ToListAsync();
         ViewBag.DsNcc = new SelectList(await db.NhaCungCaps.OrderBy(n => n.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.DsKhoanMuc = await DsKhoanMuc();
         ViewBag.DsHopDong = new SelectList(await db.HopDongs.OrderByDescending(h => h.Id).Select(h => new { h.Id, Ten = h.SoHopDong + " – " + h.Ten }).ToListAsync(), "Id", "Ten");
         return View(new DonMuaHang { HanGiao = DateOnly.FromDateTime(DateTime.Today.AddDays(14)) });
     }
@@ -192,7 +195,7 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
     public async Task<IActionResult> LapDon(DonMuaHang input, List<DongDatVm> dong)
     {
         var dh = new DonMuaHang { NhaCungCapId = input.NhaCungCapId, HopDongId = input.HopDongId, CanCu = input.CanCu, HanGiao = input.HanGiao,
-            ThueSuat = input.ThueSuat, BaoHanhThang = input.BaoHanhThang, GhiChu = input.GhiChu };
+            ThueSuat = input.ThueSuat, BaoHanhThang = input.BaoHanhThang, GhiChu = input.GhiChu, KhoanMucNganSachId = input.KhoanMucNganSachId };
         try
         {
             await ms.LapDonHangAsync(dh, dong.Where(d => d.Chon).Select(d => new DongDatHang(d.Id, d.SoLuong, d.DonGia)));
@@ -241,7 +244,7 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
     {
         var q = db.DonMuaHangs.Include(x => x.NhaCungCap).Include(x => x.HopDong).Include(x => x.Dongs).ThenInclude(d => d.VatTu)
             .Include(x => x.Dongs).ThenInclude(d => d.LoaiThietBi).Include(x => x.Dongs).ThenInclude(d => d.DongDeXuat).ThenInclude(d => d!.DeXuatMuaSam)
-            .Include(x => x.PhieuNhans).ThenInclude(p => p.PhieuKho).AsSplitQuery();
+            .Include(x => x.PhieuNhans).ThenInclude(p => p.PhieuKho).Include(x => x.KhoanMucNganSach).AsSplitQuery();
         return (chiDoc ? q.AsNoTracking() : q).FirstOrDefaultAsync(x => x.Id == id);
     }
 
@@ -250,5 +253,10 @@ public class MuaSamController(AppDbContext db, MuaSamService ms) : Controller
         ViewBag.VatTus = await db.VatTus.AsNoTracking().OrderBy(v => v.Ma).ToListAsync();
         ViewBag.LoaiTBs = await db.LoaiThietBis.AsNoTracking().OrderBy(v => v.Ten).ToListAsync();
         ViewBag.DangMua = await ms.DangMuaAsync();
+        ViewBag.DsKhoanMuc = await DsKhoanMuc();
     }
+
+    private async Task<SelectList> DsKhoanMuc() =>
+        new((await ns.SuDungAsync()).Where(x => x.KhoanMuc.DungDuoc && x.KhoanMuc.Nam >= DateTime.Today.Year - 1)
+            .Select(x => new { x.KhoanMuc.Id, Ten = $"{x.KhoanMuc.Nam} · {x.KhoanMuc.Ma} – {x.KhoanMuc.Ten} (còn {x.ConLai:N0} đ)" }), "Id", "Ten");
 }

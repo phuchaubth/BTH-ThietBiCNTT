@@ -1,0 +1,10 @@
+@model SuDungNganSach
+@{
+    var dt = Model.DuToan <= 0 ? 1 : Model.DuToan;
+    var tc = Math.Min(100, Model.ThucChi * 100 / dt); var ck = Math.Min(100 - tc, Model.CamKet * 100 / dt);
+    var nguong = (int)(ViewData["nguong"] ?? 80);
+}
+<div class="progress" style="height:10px" role="progressbar" aria-label="Đã dùng @Model.TyLe.ToString("0.#")%" title="Thực chi @Model.ThucChi.ToString("N0") · cam kết @Model.CamKet.ToString("N0")">
+    <div class="progress-bar @(Model.TyLe >= 100 ? "bg-danger" : Model.TyLe >= nguong ? "bg-warning" : "bg-success")" style="width:@tc.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+    <div class="progress-bar bg-info bg-opacity-50" style="width:@ck.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+</div>

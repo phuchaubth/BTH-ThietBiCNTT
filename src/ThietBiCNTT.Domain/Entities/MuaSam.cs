@@ -44,6 +44,7 @@ public class DeXuatMuaSam : BaseEntity
     [Display(Name = "Phiếu sửa chữa liên quan")] public int? PhieuSuaChuaId { get; set; }
     public PhieuSuaChua? PhieuSuaChua { get; set; }
     [Display(Name = "Khoản mục ngân sách")] public int? KhoanMucNganSachId { get; set; }
+    public KhoanMucNganSach? KhoanMucNganSach { get; set; }
     public bool TuDong { get; set; }
     public TrangThaiDeXuat TrangThai { get; set; } = TrangThaiDeXuat.Nhap;
     public int CapHienTai { get; set; }
@@ -165,6 +166,7 @@ public class DonMuaHang : BaseEntity
     public TrangThaiDonHang TrangThai { get; set; } = TrangThaiDonHang.Nhap;
     public DateTime? NgayDatHang { get; set; }
     [Display(Name = "Khoản mục ngân sách")] public int? KhoanMucNganSachId { get; set; }
+    public KhoanMucNganSach? KhoanMucNganSach { get; set; }
     public List<DongDonHang> Dongs { get; set; } = [];
     public List<PhieuNhanHang> PhieuNhans { get; set; } = [];
 

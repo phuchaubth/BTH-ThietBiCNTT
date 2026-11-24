@@ -13,7 +13,7 @@ public record DongNhanHang(int DongDonHangId, decimal SoLuong, IReadOnlyList<str
 
 /// <summary>Mua sắm: đề xuất (PR) → duyệt nhiều cấp → đơn hàng (PO) → nhận hàng (nhập kho / tạo tài sản).</summary>
 public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo, ThongBaoService tb, KhoService kho,
-    LichSuService lichSu, UserManager<AppUser> users)
+    LichSuService lichSu, UserManager<AppUser> users, NganSachService nganSach)
 {
     private static readonly TrangThaiDeXuat[] DeXuatMo = [TrangThaiDeXuat.Nhap, TrangThaiDeXuat.ChoDuyet, TrangThaiDeXuat.DaDuyet, TrangThaiDeXuat.DatMotPhan];
     private static readonly TrangThaiDonHang[] DonMo = [TrangThaiDonHang.Nhap, TrangThaiDonHang.DaDatHang, TrangThaiDonHang.NhanMotPhan];
@@ -56,12 +56,15 @@ public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
         }
     }
 
-    public async Task GuiDuyetAsync(DeXuatMuaSam dx, string? nguoi)
+    /// <summary>Gửi duyệt; trả về cảnh báo ngân sách (nếu có).</summary>
+    public async Task<string?> GuiDuyetAsync(DeXuatMuaSam dx, string? nguoi)
     {
+        var canhBao = await nganSach.KiemTraDeXuatAsync(dx, chan: false);
         dx.GuiDuyet(NguongLanhDao, DsTen(TS.MuaSamNguoiDuyetVatTu).Count > 0);
         await db.SaveChangesAsync();
         await BaoChoDuyet(dx, nguoi);
         await db.SaveChangesAsync();
+        return canhBao;
     }
 
     private async Task BaoChoDuyet(DeXuatMuaSam dx, string? boQua) =>
@@ -69,9 +72,11 @@ public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
             $"Đề xuất mua sắm {dx.SoPhieu} chờ duyệt ({DeXuatMuaSam.TenCap(dx.CapHienTai)})",
             $"{dx.TieuDe}\nDự toán: {dx.TongDuToan:N0} đ", $"/MuaSam/DeXuat/{dx.Id}", boQua: boQua);
 
-    public async Task DuyetAsync(DeXuatMuaSam dx, string nguoi, string ten, bool dongY, string? yKien)
+    /// <summary>Duyệt một cấp; trả về cảnh báo ngân sách (nếu có). Chặn khi bật tham số chặn vượt dự toán.</summary>
+    public async Task<string?> DuyetAsync(DeXuatMuaSam dx, string nguoi, string ten, bool dongY, string? yKien)
     {
         if (!await DuocDuyetAsync(dx, nguoi)) throw new DomainException($"Bạn không thuộc danh sách duyệt cấp {DeXuatMuaSam.TenCap(dx.CapHienTai)}.");
+        var canhBao = dongY ? await nganSach.KiemTraDeXuatAsync(dx, chan: true) : null;
         dx.Duyet(nguoi, ten, dongY, yKien, DateTime.Now);
         await db.SaveChangesAsync();
         if (dx.TrangThai == TrangThaiDeXuat.ChoDuyet) await BaoChoDuyet(dx, nguoi);
@@ -84,6 +89,7 @@ public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
                 yKien, $"/MuaSam/DeXuat/{dx.Id}", ok ? MucDoThongBao.ThongTin : MucDoThongBao.CanhBao, boQua: nguoi);
         }
         await db.SaveChangesAsync();
+        return canhBao;
     }
 
     // ===== Đơn hàng =====

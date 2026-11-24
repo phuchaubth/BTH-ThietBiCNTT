@@ -420,3 +420,49 @@ public class MuaSamTests
         dx.KiemTraDong();
     }
 }
+
+public class NganSachTests
+{
+    private static readonly DateTime Now = new(2026, 11, 24, 9, 0, 0);
+
+    [Fact]
+    public void PhanBoQuy_PhaiBangDuToan_VaKhongTuDuyet()
+    {
+        var k = new KhoanMucNganSach { Ma = "VT", DuToan = 100, Quy1 = 40, Quy2 = 40, NguoiTao = "ktv1" };
+        Assert.Throws<DomainException>(() => k.Duyet("lanhdao", Now)); // 80 ≠ 100
+        k.Quy3 = 20;
+        Assert.Throws<DomainException>(() => k.Duyet("ktv1", Now));
+        k.Duyet("lanhdao", Now);
+        Assert.True(k.DungDuoc);
+    }
+
+    [Fact]
+    public void DieuChinh_CanDuyet_KhongAm_KhongTuDuyet()
+    {
+        var k = new KhoanMucNganSach { DuToan = 100, NguoiTao = "a" };
+        Assert.Throws<DomainException>(() => k.DeNghiDieuChinh(10, "x", "a", Now)); // chưa duyệt
+        k.Duyet("b", Now);
+        Assert.Throws<DomainException>(() => k.DeNghiDieuChinh(-150, "giảm", "a", Now));
+        Assert.Throws<DomainException>(() => k.DeNghiDieuChinh(50, " ", "a", Now));
+        var d = k.DeNghiDieuChinh(50, "Bổ sung", "a", Now);
+        Assert.Equal(100, k.DuToanHieuLuc); // chưa duyệt thì chưa có hiệu lực
+        Assert.Throws<DomainException>(() => k.DuyetDieuChinh(d, true, "a", Now));
+        k.DuyetDieuChinh(d, true, "b", Now);
+        Assert.Equal(150, k.DuToanHieuLuc);
+        Assert.Throws<DomainException>(() => k.DuyetDieuChinh(d, true, "b", Now));
+        k.KhoaSo();
+        Assert.Throws<DomainException>(() => k.DeNghiDieuChinh(1, "x", "a", Now));
+    }
+
+    [Fact]
+    public void SuDung_ConLai_VaTyLe()
+    {
+        var k = new KhoanMucNganSach { DuToan = 1000 };
+        var sd = new SuDungNganSach(k, 100, 200, 300, 50, 50);
+        Assert.Equal(300, sd.CamKet);
+        Assert.Equal(400, sd.ThucChi);
+        Assert.Equal(300, sd.ConLai);
+        Assert.Equal(70, sd.TyLe);
+        Assert.Equal(999, new SuDungNganSach(new KhoanMucNganSach(), 0, 0, 1, 0, 0).TyLe);
+    }
+}

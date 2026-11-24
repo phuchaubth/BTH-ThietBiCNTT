@@ -49,6 +49,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<DonMuaHang> DonMuaHangs => Set<DonMuaHang>();
     public DbSet<DongDonHang> DongDonHangs => Set<DongDonHang>();
     public DbSet<PhieuNhanHang> PhieuNhanHangs => Set<PhieuNhanHang>();
+    public DbSet<KhoanMucNganSach> KhoanMucNganSachs => Set<KhoanMucNganSach>();
+    public DbSet<DieuChinhNganSach> DieuChinhNganSachs => Set<DieuChinhNganSach>();
+    public DbSet<ChiNganSach> ChiNganSachs => Set<ChiNganSach>();
     public DbSet<HopDongTaiSan> HopDongTaiSans => Set<HopDongTaiSan>();
     public DbSet<BanQuyenPhanMem> BanQuyenPhanMems => Set<BanQuyenPhanMem>();
     public DbSet<CapPhatBanQuyen> CapPhatBanQuyens => Set<CapPhatBanQuyen>();
@@ -168,6 +171,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasMany(x => x.Dongs).WithOne(x => x.DonMuaHang).HasForeignKey(x => x.DonMuaHangId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.PhieuNhans).WithOne(x => x.DonMuaHang).HasForeignKey(x => x.DonMuaHangId).OnDelete(DeleteBehavior.Cascade);
         });
+        b.Entity<KhoanMucNganSach>(e =>
+        {
+            e.HasIndex(x => new { x.Nam, x.Ma }).IsUnique();
+            e.HasMany(x => x.DieuChinhs).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.KhoanChis).WithOne().HasForeignKey(x => x.KhoanMucNganSachId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ChiNganSach>().HasIndex(x => new { x.KhoanMucNganSachId, x.Ngay });
         b.Entity<DongDonHang>(e => { e.Property(x => x.SoLuong).HasPrecision(18, 2); e.Property(x => x.SoLuongDaNhan).HasPrecision(18, 2); });
         b.Entity<HopDongTaiSan>(e =>
         {

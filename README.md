@@ -19,6 +19,7 @@
 **Giai đoạn 3:**
 - Kho vật tư: nhiều kho, phiếu nhập / xuất / chuyển, thẻ kho, giá bình quân gia quyền, kiểm kê kho có duyệt
 - Mua sắm: đề xuất (duyệt Trưởng phòng CNTT → P. Vật tư → Lãnh đạo theo ngưỡng giá trị; tự lập từ vật tư dưới định mức) → đơn mua hàng (in đơn, xác nhận đặt theo ngưỡng, cảnh báo quá hạn giao) → nhận hàng từng phần (vật tư tự nhập kho, thiết bị tự tạo hồ sơ tài sản kèm serial, bảo hành)
+- Ngân sách CNTT: dự toán năm theo khoản mục (phân bổ quý), duyệt / điều chỉnh có duyệt / khoá sổ; tự tính cam kết (đề xuất đã duyệt, đơn hàng chưa nhận) và thực chi (nhận hàng, sửa chữa thuê ngoài, chi ghi tay); cảnh báo khi duyệt đề xuất vượt ngân sách (tuỳ chọn chặn), bản tin khi chạm ngưỡng 80% / 100%; báo cáo dự toán – thực hiện xuất Excel
 
 ## Tài liệu
 
@@ -36,7 +37,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

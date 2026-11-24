@@ -16,6 +16,7 @@ else
         <div class="col-md-3"><label asp-for="HanGiao" class="form-label"></label><input asp-for="HanGiao" type="date" class="form-control" /></div>
         <div class="col-md-3"><label asp-for="ThueSuat" class="form-label"></label><input asp-for="ThueSuat" type="number" step="any" min="0" max="100" class="form-control" id="thue" /></div>
         <div class="col-md-3"><label asp-for="BaoHanhThang" class="form-label"></label><input asp-for="BaoHanhThang" type="number" min="0" max="120" class="form-control" /></div>
+        <div class="col-md-3"><label asp-for="KhoanMucNganSachId" class="form-label"></label><select asp-for="KhoanMucNganSachId" asp-items="ViewBag.DsKhoanMuc" class="form-select"><option value="">— Theo đề xuất —</option></select></div>
         <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
     </div></div>
     <div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">

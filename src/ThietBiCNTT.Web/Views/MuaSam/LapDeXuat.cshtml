@@ -10,7 +10,9 @@
     <div class="card mb-3"><div class="card-body row g-3">
         <div class="col-md-8"><label asp-for="TieuDe" class="form-label"></label><input asp-for="TieuDe" class="form-control" required /></div>
         <div class="col-md-4"><label asp-for="CanCu" class="form-label"></label><select asp-for="CanCu" asp-items="@EnumExtensions.ToSelectList<CanCuDeXuat>(Model.CanCu)" class="form-select"></select></div>
-        <div class="col-12"><label asp-for="LyDo" class="form-label"></label><textarea asp-for="LyDo" class="form-control" rows="2"></textarea></div>
+        <div class="col-md-8"><label asp-for="LyDo" class="form-label"></label><textarea asp-for="LyDo" class="form-control" rows="2"></textarea></div>
+        <div class="col-md-4"><label asp-for="KhoanMucNganSachId" class="form-label"></label><select asp-for="KhoanMucNganSachId" asp-items="ViewBag.DsKhoanMuc" class="form-select"><option value="">— Không gắn —</option></select>
+            <div class="form-text">Chỉ hiện khoản mục đã duyệt; số còn lại = dự toán − cam kết − thực chi.</div></div>
         @if (Model.PhieuSuaChuaId is not null) { <div class="col-12 small text-muted">Gắn với phiếu sửa chữa #@Model.PhieuSuaChuaId</div> }
     </div></div>
     <div class="card mb-3"><div class="card-header d-flex gap-2 align-items-center">Hàng hoá đề xuất

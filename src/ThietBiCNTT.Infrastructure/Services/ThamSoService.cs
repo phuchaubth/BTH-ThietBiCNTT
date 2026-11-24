@@ -48,6 +48,10 @@ public static class TS
     public const string MuaSamNguoiDuyetVatTu = "MuaSam.NguoiDuyetVatTu";
     public const string MuaSamNguongLanhDao = "MuaSam.NguongDuyetLanhDao";
     public const string MuaSamTuDongDeXuat = "MuaSam.TuDongDeXuatTonThap";
+    // Ngân sách
+    public const string NganSachNguongCanhBao = "NganSach.NguongCanhBaoPhanTram";
+    public const string NganSachChanVuot = "NganSach.ChanVuotDuToan";
+    public const string NganSachBatBuocKhoanMuc = "NganSach.BatBuocKhoanMuc";
     // Thanh lý
     public const string ThanhLyBatBuocThaoOCung = "ThanhLy.BatBuocThaoOCung";
     // Thông báo & cảnh báo
@@ -113,6 +117,9 @@ public static class ThamSoMacDinh
         T(84, "Mua sắm", TS.MuaSamNguoiDuyetCNTT, "Người duyệt cấp 1 (Trưởng phòng CNTT)", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập, cách nhau bởi dấu phẩy. Cũng là người xác nhận đặt hàng dưới ngưỡng Lãnh đạo."),
         T(85, "Mua sắm", TS.MuaSamNguoiDuyetVatTu, "Người duyệt cấp 2 (Phòng Vật tư - TTB)", KieuThamSo.VanBan, "", moTa: "Để trống = bỏ qua cấp này."),
         T(86, "Mua sắm", TS.MuaSamNguongLanhDao, "Ngưỡng giá trị cần Lãnh đạo duyệt", KieuThamSo.SoNguyen, "50000000", "đ", 0, null, "Đề xuất / đơn hàng có tổng giá trị ≥ ngưỡng phải qua Lãnh đạo (vai trò Lãnh đạo)."),
+        T(92, "Ngân sách", TS.NganSachNguongCanhBao, "Cảnh báo khi khoản mục đã dùng (cam kết + thực chi) đạt", KieuThamSo.SoNguyen, "80", "% dự toán", 1, 100, "Cảnh báo lần nữa khi chạm 100%. Hiển thị ở bản tin hằng ngày và khi duyệt đề xuất."),
+        T(93, "Ngân sách", TS.NganSachChanVuot, "Chặn duyệt đề xuất vượt dự toán còn lại", KieuThamSo.BatTat, "false", moTa: "Tắt: chỉ cảnh báo, người duyệt vẫn quyết định."),
+        T(94, "Ngân sách", TS.NganSachBatBuocKhoanMuc, "Bắt buộc chọn khoản mục ngân sách khi gửi duyệt đề xuất", KieuThamSo.BatTat, "false"),
         T(87, "Mua sắm", TS.MuaSamTuDongDeXuat, "Tự lập đề xuất nháp khi vật tư dưới định mức", KieuThamSo.BatTat, "true", moTa: "Hằng ngày (cùng giờ bản tin tổng hợp). Số lượng gợi ý = tồn tối đa − tồn hiện tại − đang đặt."),
 
         T(90, "Thanh lý", TS.ThanhLyBatBuocThaoOCung, "Bắt buộc tháo ổ cứng trước khi hoàn tất", KieuThamSo.BatTat, "true", moTa: "Áp dụng cho loại thiết bị có lưu trữ dữ liệu (QĐ-03)."),

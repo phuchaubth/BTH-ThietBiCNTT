@@ -60,6 +60,9 @@ public static class Badge
         Domain.Entities.TrangThaiDonHang.DaDatHang => "primary",
         Domain.Entities.TrangThaiDonHang.NhanMotPhan => "info",
         Domain.Entities.TrangThaiDonHang.DaNhanDu => "success",
+        Domain.Entities.TrangThaiNganSach.DuThao => "warning text-dark",
+        Domain.Entities.TrangThaiNganSach.DaDuyet => "success",
+        Domain.Entities.TrangThaiNganSach.DaKhoa => "dark",
         _ => "secondary"
     };
 

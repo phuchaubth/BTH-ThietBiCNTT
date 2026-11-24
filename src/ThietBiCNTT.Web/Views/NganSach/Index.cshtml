@@ -1,0 +1,36 @@
+@model List<SuDungNganSach>
+@{
+    ViewData["Title"] = "Ngân sách"; var nam = (int)ViewData["nam"]!; var dsNam = (List<int>)ViewBag.DsNam; var nguong = (int)ViewBag.Nguong;
+    decimal Tong(Func<SuDungNganSach, decimal> f) => Model.Sum(f);
+}
+<div class="page-head"><h1>Ngân sách CNTT năm @nam</h1>
+    <div class="actions">
+        <a asp-action="Xuat" asp-route-nam="@nam" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a>
+        @if (User.LaCNTT()) { <a asp-action="Sua" asp-route-nam="@nam" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm khoản mục</a> }
+    </div>
+</div>
+<form method="get" class="d-flex gap-2 mb-3"><select name="nam" class="form-select form-select-sm" style="width:120px" onchange="this.form.submit()" aria-label="Năm">
+    @foreach (var n in dsNam) { <option value="@n" selected="@(n == nam)">@n</option> }</select></form>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="small text-muted">Dự toán hiệu lực</div><div class="fs-5 fw-semibold">@Tong(x => x.DuToan).ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="small text-muted">Cam kết</div><div class="fs-5 fw-semibold text-info">@Tong(x => x.CamKet).ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="small text-muted">Thực chi</div><div class="fs-5 fw-semibold">@Tong(x => x.ThucChi).ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="small text-muted">Còn lại</div><div class="fs-5 fw-semibold @(Tong(x => x.ConLai) < 0 ? "text-danger" : "text-success")">@Tong(x => x.ConLai).ToString("N0")</div></div></div></div>
+</div>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Mã</th><th>Khoản mục</th><th>Trạng thái</th><th class="text-end">Dự toán</th><th class="text-end">Cam kết</th><th class="text-end">Thực chi</th><th class="text-end">Còn lại</th><th style="width:16%">Đã dùng</th></tr></thead>
+    <tbody>
+    @foreach (var x in Model)
+    {
+        <tr><td class="fw-semibold text-nowrap"><a asp-action="ChiTiet" asp-route-id="@x.KhoanMuc.Id">@x.KhoanMuc.Ma</a></td>
+            <td>@x.KhoanMuc.Ten<div class="small text-muted">@x.KhoanMuc.NhomChi.Ten()</div></td>
+            <td>@Html.Raw(Badge.Html(x.KhoanMuc.TrangThai))</td>
+            <td class="text-end">@x.DuToan.ToString("N0")@if (x.KhoanMuc.TongDieuChinh != 0) { <div class="small text-muted">điều chỉnh @x.KhoanMuc.TongDieuChinh.ToString("+#,0;-#,0")</div> }</td>
+            <td class="text-end">@x.CamKet.ToString("N0")</td><td class="text-end">@x.ThucChi.ToString("N0")</td>
+            <td class="text-end fw-semibold @(x.ConLai < 0 ? "text-danger" : "")">@x.ConLai.ToString("N0")</td>
+            <td>@await Html.PartialAsync("_ThanhTien", x, new ViewDataDictionary(ViewData) { ["nguong"] = nguong })<div class="small @(x.TyLe >= 100 ? "text-danger fw-semibold" : x.TyLe >= nguong ? "text-warning-emphasis" : "text-muted")">@x.TyLe.ToString("0.#")%</div></td></tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Chưa lập dự toán năm @nam.</td></tr> }
+    </tbody>
+</table></div></div>
+<p class="small text-muted mt-2">Cam kết = đề xuất đã duyệt chưa đặt hàng + đơn hàng chưa nhận (gồm thuế). Thực chi = giá trị nhận hàng + chi phí sửa chữa thuê ngoài (khoản mục được đánh dấu) + khoản chi ghi tay. Cảnh báo khi đã dùng ≥ @nguong%.</p>

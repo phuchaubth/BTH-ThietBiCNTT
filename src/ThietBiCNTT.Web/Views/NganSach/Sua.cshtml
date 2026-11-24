@@ -1,0 +1,22 @@
+@model KhoanMucNganSach
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm khoản mục ngân sách" : "Sửa khoản mục " + Model.Ma; }
+<div class="small text-muted mb-1"><a asp-action="Index" asp-route-nam="@Model.Nam">Ngân sách</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Sua" method="post" class="card"><div class="card-body row g-3">
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-2"><label asp-for="Nam" class="form-label"></label><input asp-for="Nam" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="Ma" class="form-label"></label><input asp-for="Ma" class="form-control" placeholder="VD: VT-LK" /></div>
+    <div class="col-md-7"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="NhomChi" class="form-label"></label><select asp-for="NhomChi" asp-items="@EnumExtensions.ToSelectList<NhomChiNganSach>(Model.NhomChi)" class="form-select"></select></div>
+    <div class="col-md-4"><label asp-for="DuToan" class="form-label"></label><input asp-for="DuToan" type="number" step="1" min="0" class="form-control" /></div>
+    <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input asp-for="GomChiPhiSuaNgoai" class="form-check-input" /><label asp-for="GomChiPhiSuaNgoai" class="form-check-label"></label>
+        <div class="form-text">Chi phí thuê ngoài của phiếu sửa chữa hoàn thành trong năm tự tính vào khoản mục này.</div></div></div>
+    <div class="col-md-3"><label asp-for="Quy1" class="form-label"></label><input asp-for="Quy1" type="number" step="1" min="0" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="Quy2" class="form-label"></label><input asp-for="Quy2" type="number" step="1" min="0" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="Quy3" class="form-label"></label><input asp-for="Quy3" type="number" step="1" min="0" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="Quy4" class="form-label"></label><input asp-for="Quy4" type="number" step="1" min="0" class="form-control" /></div>
+    <div class="col-12 form-text mt-0">Phân bổ quý không bắt buộc; nếu nhập thì tổng 4 quý phải bằng dự toán năm.</div>
+    <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu dự thảo</button> <a asp-action="Index" asp-route-nam="@Model.Nam" class="btn btn-link">Huỷ</a></div>
+</div></form>

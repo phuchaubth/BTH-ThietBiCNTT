@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<BaoCaoService>();
         services.AddScoped<KhoService>();
         services.AddScoped<MuaSamService>();
+        services.AddScoped<NganSachService>();
         services.AddScoped<CanhBaoService>();
         services.AddScoped<HangDoiGuiService>();
         services.AddScoped<IKenhGui, EmailSender>();

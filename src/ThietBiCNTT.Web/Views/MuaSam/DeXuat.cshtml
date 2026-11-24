@@ -1,7 +1,7 @@
 @model DeXuatMuaSam
 @{
     ViewData["Title"] = Model.SoPhieu; var duocDuyet = (bool)ViewBag.DuocDuyet; var nguoiDuyet = (List<string>)ViewBag.NguoiDuyet;
-    var donHangs = (List<DonMuaHang>)ViewBag.DonHangs; var nguong = (decimal)ViewBag.Nguong; var cntt = User.LaCNTT();
+    var donHangs = (List<DonMuaHang>)ViewBag.DonHangs; var nguong = (decimal)ViewBag.Nguong; var cntt = User.LaCNTT(); var ns = (SuDungNganSach?)ViewBag.NganSach;
 }
 <div class="small text-muted mb-1"><a asp-action="Index">Mua sắm</a> › @Model.SoPhieu</div>
 <div class="page-head"><h1>Đề xuất @Model.SoPhieu</h1> @Html.Raw(Badge.Html(Model.TrangThai))
@@ -26,6 +26,18 @@
     <div class="col-md-6"><dt>Quy trình duyệt</dt><dd>
         @if (Model.CapCuoi == 0) { <span class="text-muted">Chưa gửi duyệt · Dự toán ≥ @nguong.ToString("N0") đ cần Lãnh đạo duyệt</span> }
         else { @string.Join(" → ", Model.CacCap().Select(DeXuatMuaSam.TenCap)) }</dd></div>
+    <div class="col-12"><dt>Ngân sách</dt><dd>
+        @if (ns is null) { <span class="text-muted">Không gắn khoản mục ngân sách</span> }
+        else
+        {
+            var canDung = Model.Dongs.Sum(d => d.ConLai * d.DonGiaDuKien);
+            var daTinh = Model.TrangThai is TrangThaiDeXuat.DaDuyet or TrangThaiDeXuat.DatMotPhan;
+            var conLai = ns.ConLai + (daTinh ? canDung : 0);
+            <a asp-controller="NganSach" asp-action="ChiTiet" asp-route-id="@ns.KhoanMuc.Id">@ns.KhoanMuc.Nam · @ns.KhoanMuc.Ma – @ns.KhoanMuc.Ten</a>
+            <div class="small">Dự toán @ns.DuToan.ToString("N0") · cam kết @ns.CamKet.ToString("N0") · thực chi @ns.ThucChi.ToString("N0") ·
+                <b class="@(conLai < canDung ? "text-danger" : "text-success")">còn @conLai.ToString("N0") đ</b> @(daTinh ? "(chưa trừ đề xuất này)" : "") —
+                đề xuất cần @canDung.ToString("N0") đ @if (conLai < canDung) { <span class="badge bg-danger">Vượt ngân sách</span> }</div>
+        }</dd></div>
     @if (Model.TrangThai == TrangThaiDeXuat.ChoDuyet) { <div class="col-md-6"><dt>Đang chờ</dt><dd>@DeXuatMuaSam.TenCap(Model.CapHienTai) <span class="text-muted small">(@string.Join(", ", nguoiDuyet))</span></dd></div> }
 </dl></div></div>
 <div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">

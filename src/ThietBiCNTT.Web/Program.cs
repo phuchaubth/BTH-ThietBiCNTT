@@ -77,6 +77,7 @@ if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath
 CanhBaoService.TongHopBoSung.Add(KiemTraTongHop.DongAsync);
 CanhBaoService.TongHopBoSung.Add(HopDongTongHop.DongAsync);
 CanhBaoService.TongHopBoSung.Add(MuaSamTongHop.DongAsync);
+CanhBaoService.TongHopBoSung.Add(NganSachTongHop.DongAsync);
 
 var app = builder.Build();
 

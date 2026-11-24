@@ -170,7 +170,7 @@ public static class DbSeeder
             if (t.TrangThai == TrangThaiTaiSan.DangSuDung)
             {
                 p.TiepNhan("ktv1", HinhThucXuLy.TuSua, ngay.AddMinutes(rnd.Next(10, 120)));
-                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), 0, ngay.AddHours(rnd.Next(1, 30)));
+                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), n % 5 == 0 ? 1_200_000 : 0, ngay.AddHours(rnd.Next(1, 30)));
                 if (rnd.Next(3) > 0) p.NghiemThu("Điều dưỡng trưởng", rnd.Next(3, 6), null, p.NgayHoanThanh!.Value.AddHours(2));
             }
             else if (t.TrangThai == TrangThaiTaiSan.DangSuaChua)
@@ -186,6 +186,21 @@ public static class DbSeeder
                 Checklist = "Đo điện áp ắc quy\nTest chuyển nguồn\nGhi nhận thời gian lưu điện", KyThuatVien = "ktv1" });
         await db.SaveChangesAsync();
         await TaoMauKiemTraMau(db, loai, khoa);
+        await TaoNganSachMau(db);
+    }
+
+    private static async Task TaoNganSachMau(AppDbContext db)
+    {
+        var nam = DateTime.Today.Year; var duyet = DateTime.Today.AddDays(-30);
+        KhoanMucNganSach K(string ma, string ten, NhomChiNganSach nhom, decimal duToan, bool suaNgoai = false) => new()
+        { Ma = ma, Ten = ten, Nam = nam, NhomChi = nhom, DuToan = duToan, GomChiPhiSuaNgoai = suaNgoai, TrangThai = TrangThaiNganSach.DaDuyet,
+          NguoiTao = "admin", NguoiDuyet = "lanhdao", NgayDuyet = duyet, GhiChu = "Dữ liệu mẫu" };
+        db.KhoanMucNganSachs.AddRange(
+            K("TB-MS", "Mua sắm thiết bị CNTT bổ sung, thay thế", NhomChiNganSach.MuaSamThietBi, 1_500_000_000),
+            K("VT-LK", "Vật tư, linh kiện thay thế sửa chữa", NhomChiNganSach.VatTuLinhKien, 200_000_000),
+            K("SC-TN", "Sửa chữa thuê ngoài, gửi hãng", NhomChiNganSach.SuaChuaThueNgoai, 100_000_000, suaNgoai: true),
+            K("PM-BQ", "Gia hạn bản quyền phần mềm", NhomChiNganSach.PhanMem, 300_000_000));
+        await db.SaveChangesAsync();
     }
 
     private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)

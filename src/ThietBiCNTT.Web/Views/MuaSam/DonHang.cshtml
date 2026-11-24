@@ -23,6 +23,7 @@
     <div class="col-md-4"><dt>Hạn giao</dt><dd>@Model.HanGiao?.ToString("dd/MM/yyyy")</dd></div>
     <div class="col-md-4"><dt>Thuế GTGT · bảo hành</dt><dd>@Model.ThueSuat.ToString("0.##")% · @Model.BaoHanhThang tháng</dd></div>
     <div class="col-md-4"><dt>Đặt hàng</dt><dd>@Model.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")</dd></div>
+    <div class="col-md-4"><dt>Khoản mục ngân sách</dt><dd>@if (Model.KhoanMucNganSach is not null) { <a asp-controller="NganSach" asp-action="ChiTiet" asp-route-id="@Model.KhoanMucNganSachId">@Model.KhoanMucNganSach.Nam · @Model.KhoanMucNganSach.Ma</a> } else { <span class="text-muted">—</span> }</dd></div>
     @if (!string.IsNullOrEmpty(Model.GhiChu)) { <div class="col-12"><dt>Điều khoản / ghi chú</dt><dd style="white-space:pre-line">@Model.GhiChu</dd></div> }
 </dl></div></div>
 <form asp-action="NhanHang" asp-route-id="@Model.Id" method="post">

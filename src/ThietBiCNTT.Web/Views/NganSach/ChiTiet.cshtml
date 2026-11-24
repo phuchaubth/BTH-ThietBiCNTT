@@ -1,0 +1,102 @@
+@model SuDungNganSach
+@{
+    var k = Model.KhoanMuc; ViewData["Title"] = k.Ma; var nguong = (int)ViewBag.Nguong;
+    var dxs = (List<DeXuatMuaSam>)ViewBag.DeXuats; var dhs = (List<DonMuaHang>)ViewBag.DonHangs; var sn = (List<PhieuSuaChua>)ViewBag.SuaNgoai;
+    var cntt = User.LaCNTT(); var duyet = User.LaDuyet(); var toi = User.Identity?.Name;
+}
+<div class="small text-muted mb-1"><a asp-action="Index" asp-route-nam="@k.Nam">Ngân sách @k.Nam</a> › @k.Ma</div>
+<div class="page-head"><h1>@k.Ma – @k.Ten</h1> @Html.Raw(Badge.Html(k.TrangThai))
+    <div class="actions">
+        @if (k.TrangThai == TrangThaiNganSach.DuThao)
+        {
+            if (cntt) { <a asp-action="Sua" asp-route-id="@k.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a>
+                <form asp-action="Xoa" asp-route-id="@k.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá khoản mục?')"><button class="btn btn-sm btn-outline-danger">Xoá</button></form> }
+            if (duyet) { <form asp-action="Duyet" asp-route-id="@k.Id" method="post" class="d-inline"><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i> Duyệt dự toán</button></form> }
+        }
+        @if (k.TrangThai == TrangThaiNganSach.DaDuyet && duyet)
+        { <form asp-action="KhoaSo" asp-route-id="@k.Id" method="post" class="d-inline" onsubmit="return confirm('Khoá sổ: không ghi chi, không gắn đề xuất mới. Tiếp tục?')"><button class="btn btn-sm btn-outline-dark"><i class="bi bi-lock"></i> Khoá sổ</button></form> }
+    </div>
+</div>
+<div class="card mb-3"><div class="card-body">
+    <dl class="row info mb-2">
+        <div class="col-md-3"><dt>Năm · nhóm chi</dt><dd>@k.Nam · @k.NhomChi.Ten()</dd></div>
+        <div class="col-md-3"><dt>Dự toán duyệt</dt><dd>@k.DuToan.ToString("N0") đ @(k.TongDieuChinh == 0 ? "" : $"({k.TongDieuChinh:+#,0;-#,0})")</dd></div>
+        <div class="col-md-3"><dt>Người lập · duyệt</dt><dd>@k.NguoiTao @(k.NguoiDuyet is null ? "" : $"· {k.NguoiDuyet} {k.NgayDuyet:dd/MM/yyyy}")</dd></div>
+        <div class="col-md-3"><dt>Phân bổ quý</dt><dd>@(k.Quy1 is null && k.Quy2 is null && k.Quy3 is null && k.Quy4 is null ? "—" : $"{k.Quy1:N0} / {k.Quy2:N0} / {k.Quy3:N0} / {k.Quy4:N0}")</dd></div>
+        @if (!string.IsNullOrEmpty(k.GhiChu)) { <div class="col-12"><dt>Ghi chú / căn cứ</dt><dd>@k.GhiChu</dd></div> }
+    </dl>
+    <div class="row text-center g-2 mb-2">
+        <div class="col"><div class="small text-muted">Dự toán hiệu lực</div><div class="fw-semibold">@Model.DuToan.ToString("N0")</div></div>
+        <div class="col"><div class="small text-muted">Cam kết</div><div class="fw-semibold text-info">@Model.CamKet.ToString("N0")</div></div>
+        <div class="col"><div class="small text-muted">Thực chi</div><div class="fw-semibold">@Model.ThucChi.ToString("N0")</div></div>
+        <div class="col"><div class="small text-muted">Còn lại</div><div class="fw-semibold @(Model.ConLai < 0 ? "text-danger" : "text-success")">@Model.ConLai.ToString("N0")</div></div>
+        <div class="col"><div class="small text-muted">Đã dùng</div><div class="fw-semibold @(Model.TyLe >= 100 ? "text-danger" : Model.TyLe >= nguong ? "text-warning-emphasis" : "")">@Model.TyLe.ToString("0.#")%</div></div>
+    </div>
+    @await Html.PartialAsync("_ThanhTien", Model, new ViewDataDictionary(ViewData) { ["nguong"] = nguong })
+</div></div>
+<div class="row g-3 mb-3">
+    <div class="col-lg-6"><div class="card h-100"><div class="card-header">Điều chỉnh dự toán</div>
+        <ul class="list-group list-group-flush">
+        @foreach (var d in k.DieuChinhs.OrderByDescending(d => d.NgayDeNghi))
+        {
+            <li class="list-group-item small d-flex gap-2 align-items-start"><div class="flex-grow-1">
+                <b class="@(d.SoTien < 0 ? "text-danger" : "text-success")">@d.SoTien.ToString("+#,0;-#,0") đ</b> · @d.LyDo
+                <div class="text-muted">@d.NguoiDeNghi @d.NgayDeNghi.ToString("dd/MM/yyyy") @(d.DaDuyet ? $"· duyệt bởi {d.NguoiDuyet}" : d.TuChoi ? $"· {d.NguoiDuyet} từ chối" : "· chờ duyệt")</div></div>
+                @if (!d.DaDuyet && !d.TuChoi && duyet && !string.Equals(toi, d.NguoiDeNghi, StringComparison.OrdinalIgnoreCase))
+                { <form asp-action="DuyetDieuChinh" asp-route-id="@k.Id" method="post" class="text-nowrap"><input type="hidden" name="dieuChinhId" value="@d.Id" />
+                    <button name="dongY" value="true" class="btn btn-sm btn-success">Duyệt</button> <button name="dongY" value="false" class="btn btn-sm btn-outline-danger">Từ chối</button></form> }
+            </li>
+        }
+        @if (k.DieuChinhs.Count == 0) { <li class="list-group-item small text-muted">Chưa có.</li> }
+        </ul>
+        @if (k.TrangThai == TrangThaiNganSach.DaDuyet)
+        {
+            <form asp-action="DieuChinh" asp-route-id="@k.Id" method="post" class="card-body border-top row g-2 align-items-end">
+                <div class="col-sm-3"><label class="form-label small" for="giam">Loại</label><select name="giam" id="giam" class="form-select form-select-sm"><option value="false">Tăng</option><option value="true">Giảm</option></select></div>
+                <div class="col-sm-4"><label class="form-label small" for="soTienDc">Số tiền</label><input name="soTien" id="soTienDc" type="number" step="1" min="1" class="form-control form-control-sm" required /></div>
+                <div class="col-sm-5"><label class="form-label small" for="lyDoDc">Lý do / căn cứ</label><input name="lyDo" id="lyDoDc" class="form-control form-control-sm" required /></div>
+                <div class="col-12"><button class="btn btn-sm btn-outline-primary">Đề nghị điều chỉnh</button></div>
+            </form>
+        }
+    </div></div>
+    <div class="col-lg-6"><div class="card h-100"><div class="card-header">Khoản chi ghi tay</div>
+        <div class="table-responsive"><table class="table table-sm mb-0">
+            <thead><tr><th>Ngày</th><th>Nội dung</th><th>Chứng từ</th><th class="text-end">Số tiền</th><th></th></tr></thead>
+            <tbody>@foreach (var c in k.KhoanChis.OrderByDescending(c => c.Ngay)) {
+                <tr><td class="small">@c.Ngay.ToString("dd/MM/yyyy")</td><td class="small">@c.NoiDung<div class="text-muted">@c.NguoiNhap</div></td><td class="small">@c.SoChungTu</td><td class="text-end">@c.SoTien.ToString("N0")</td>
+                    <td>@if (cntt && k.DungDuoc) { <form asp-action="XoaChi" asp-route-id="@k.Id" method="post" onsubmit="return confirm('Xoá khoản chi?')"><input type="hidden" name="chiId" value="@c.Id" /><button class="btn btn-sm btn-link text-danger p-0" aria-label="Xoá"><i class="bi bi-x-lg"></i></button></form> }</td></tr> }
+            @if (k.KhoanChis.Count == 0) { <tr><td colspan="5" class="small text-muted">Chưa có.</td></tr> }
+            </tbody>
+        </table></div>
+        @if (cntt && k.DungDuoc)
+        {
+            <form asp-action="ThemChi" asp-route-id="@k.Id" method="post" class="card-body border-top row g-2 align-items-end">
+                <div class="col-sm-3"><label class="form-label small" for="ngayChi">Ngày</label><input name="ngay" id="ngayChi" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" required /></div>
+                <div class="col-sm-3"><label class="form-label small" for="soTienChi">Số tiền</label><input name="soTien" id="soTienChi" type="number" step="1" min="1" class="form-control form-control-sm" required /></div>
+                <div class="col-sm-2"><label class="form-label small" for="ctChi">Chứng từ</label><input name="soChungTu" id="ctChi" class="form-control form-control-sm" /></div>
+                <div class="col-sm-4"><label class="form-label small" for="ndChi">Nội dung</label><input name="noiDung" id="ndChi" class="form-control form-control-sm" required /></div>
+                <div class="col-12"><button class="btn btn-sm btn-outline-primary">Ghi khoản chi</button></div>
+            </form>
+        }
+    </div></div>
+</div>
+<div class="card mb-3"><div class="card-header">Đề xuất mua sắm gắn khoản mục</div><div class="table-responsive"><table class="table table-sm mb-0">
+    <thead><tr><th>Số</th><th>Nội dung</th><th>Trạng thái</th><th class="text-end">Dự toán</th><th class="text-end">Cam kết còn lại</th></tr></thead>
+    <tbody>@foreach (var x in dxs) {
+        <tr><td><a asp-controller="MuaSam" asp-action="DeXuat" asp-route-id="@x.Id">@x.SoPhieu</a></td><td>@x.TieuDe</td><td>@Html.Raw(Badge.Html(x.TrangThai))</td><td class="text-end">@x.TongDuToan.ToString("N0")</td>
+            <td class="text-end">@(x.TrangThai is TrangThaiDeXuat.DaDuyet or TrangThaiDeXuat.DatMotPhan ? x.Dongs.Sum(d => d.ConLai * d.DonGiaDuKien).ToString("N0") : "—")</td></tr> }
+    @if (dxs.Count == 0) { <tr><td colspan="5" class="small text-muted">Chưa có.</td></tr> }
+    </tbody></table></div></div>
+<div class="card mb-3"><div class="card-header">Đơn mua hàng</div><div class="table-responsive"><table class="table table-sm mb-0">
+    <thead><tr><th>Số đơn</th><th>Nhà cung cấp</th><th>Trạng thái</th><th class="text-end">Tổng (gồm thuế)</th><th class="text-end">Đã nhận (thực chi)</th></tr></thead>
+    <tbody>@foreach (var x in dhs) {
+        <tr><td><a asp-controller="MuaSam" asp-action="DonHang" asp-route-id="@x.Id">@x.SoPhieu</a></td><td>@x.NhaCungCap?.Ten</td><td>@Html.Raw(Badge.Html(x.TrangThai))</td><td class="text-end">@x.TongTien.ToString("N0")</td><td class="text-end">@x.PhieuNhans.Sum(p => p.GiaTri).ToString("N0")</td></tr> }
+    @if (dhs.Count == 0) { <tr><td colspan="5" class="small text-muted">Chưa có.</td></tr> }
+    </tbody></table></div></div>
+@if (sn.Count > 0)
+{
+    <div class="card"><div class="card-header">Chi phí sửa chữa thuê ngoài năm @k.Nam</div><div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Phiếu</th><th>Thiết bị</th><th>Hoàn thành</th><th class="text-end">Chi phí thuê ngoài</th></tr></thead>
+        <tbody>@foreach (var p in sn) { <tr><td><a asp-controller="PhieuSuaChua" asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a></td><td>@p.TaiSan?.MaTaiSan</td><td>@p.NgayHoanThanh?.ToString("dd/MM/yyyy")</td><td class="text-end">@p.ChiPhiThueNgoai.ToString("N0")</td></tr> }</tbody>
+    </table></div></div>
+}

@@ -57,6 +57,9 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Mua sắm | `MuaSam.NguoiDuyetVatTu` | Người duyệt cấp 2 (Phòng Vật tư - TTB); trống = bỏ qua cấp | Văn bản | (trống) |
 | Mua sắm | `MuaSam.NguongDuyetLanhDao` | Ngưỡng giá trị đề xuất / đơn hàng cần Lãnh đạo | Số nguyên | 50000000 đ |
 | Mua sắm | `MuaSam.TuDongDeXuatTonThap` | Tự lập đề xuất nháp khi vật tư dưới định mức (hằng ngày) | Bật/Tắt | true |
+| Ngân sách | `NganSach.NguongCanhBaoPhanTram` | Cảnh báo khi khoản mục đã dùng (cam kết + thực chi) đạt | Số nguyên | 80 % dự toán |
+| Ngân sách | `NganSach.ChanVuotDuToan` | Chặn duyệt đề xuất vượt dự toán còn lại (tắt = chỉ cảnh báo) | Bật/Tắt | false |
+| Ngân sách | `NganSach.BatBuocKhoanMuc` | Bắt buộc chọn khoản mục ngân sách khi gửi duyệt đề xuất | Bật/Tắt | false |
 | Thanh lý | `ThanhLy.BatBuocThaoOCung` | Bắt buộc tháo ổ cứng trước khi hoàn tất | Bật/Tắt | true |
 | Bảo mật | `BaoMat.PhienKhoaPhut` | Tự đăng xuất (Nhân viên, Trưởng khoa) sau | Số nguyên | 30 phút không thao tác |
 | Bảo mật | `BaoMat.PhienCNTTGio` | Thời gian giữ phiên (CNTT, KTV, Lãnh đạo) | Số nguyên | 8 giờ |
