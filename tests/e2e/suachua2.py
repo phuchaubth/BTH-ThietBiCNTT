@@ -10,6 +10,7 @@ a=U("admin"); k=U("ktv1"); k2=U("ktv2")
 a.post("/ThamSo/Luu",{"giaTri[SuaChua.DonGiaGioCong]":"80000"},page=a.get("/ThamSo")[1])
 now=datetime.datetime.now()
 pid,khoa,tsid=q("select Id, KhoaPhongId, TaiSanId from PhieuSuaChuas where TrangThai=1 and LoaiCongViec=1 and ThietBiTamId is null order by Id desc limit 1")[0]
+DB.execute("update PhieuSuaChuas set NgayYeuCau=? where Id=?",((now-datetime.timedelta(hours=6)).strftime("%Y-%m-%d %H:%M:%S"),pid)); DB.commit()
 pg=k.get(f"/PhieuSuaChua/Details/{pid}")[1]
 check('action="/PhieuSuaChua/GhiGioCong/' not in pg, "phiếu mới chưa tiếp nhận: chưa ghi giờ công")
 k.post(f"/PhieuSuaChua/TiepNhan/{pid}",{"kyThuatVien":"ktv1","hinhThuc":"TuSua"},page=pg)

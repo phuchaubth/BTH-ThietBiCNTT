@@ -85,7 +85,7 @@ _,_,m,_=k.post(f"/PhieuSuaChua/TamDung/{pid}",{"lyDo":"ChoLinhKien"}); check("t�
 b=k.get(f"/PhieuSuaChua/Details/{pid}")[1]; check("tạm dừng SLA" in b, "Chi tiết hiển thị 'tạm dừng SLA'")
 _,_,m,_=k.post(f"/PhieuSuaChua/BatDau/{pid}",{}); check("Hạn SLA mới" in m, "Tiếp tục xử lý → "+m)
 vt=re.search(r"<option value=\"(\d+:\d+)\">", k.get(f"/PhieuSuaChua/Details/{pid}")[1]).group(1); _,_,m,_=k.post(f"/PhieuSuaChua/ThemVatTu/{pid}",{"vatTu":vt,"soLuong":"1"}); check(m.startswith("success"), "Xuất kho vật tư: "+m)
-_,_,m,_=k.post(f"/PhieuSuaChua/HoanThanh/{pid}",{"nguyenNhan":"Lỗi driver","bienPhap":"Cài lại driver","gioCong":"0.5","chiPhiThueNgoai":"0"}); check(m.startswith("success"), "Hoàn thành: "+m)
+_,_,m,_=k.post(f"/PhieuSuaChua/HoanThanh/{pid}",{"nguyenNhan":"Lỗi driver","nhomNguyenNhan":"PhanMem","bienPhap":"Cài lại driver","gioCong":"0.5","chiPhiThueNgoai":"0"}); check(m.startswith("success"), "Hoàn thành: "+m)
 _,_,m,_=k.post(f"/PhieuSuaChua/NghiemThu/{pid}",{"danhGia":"5"}); check("Chỉ người báo hỏng" in m, "KTV không tự nghiệm thu: "+m)
 _,_,m,_=users["ktv2"].post(f"/PhieuSuaChua/NghiemThu/{pid}",{"danhGia":"5"}); check(not m.startswith("success"), "KTV khác không nghiệm thu được")
 _,_,m,_=nv.post(f"/PhieuSuaChua/NghiemThu/{pid}",{"danhGia":"5","yKien":"Tốt"}); check(m.startswith("success"), "Người báo nghiệm thu: "+m)

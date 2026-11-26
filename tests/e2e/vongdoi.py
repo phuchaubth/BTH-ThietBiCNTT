@@ -13,9 +13,11 @@ ts=q("""select t.Id, t.MaTaiSan from TaiSans t join LoaiThietBis l on l.Id=t.Loa
   and not exists(select 1 from PhieuSuaChuas p where p.TaiSanId=t.Id and p.TrangThai not in (6,7,8))
   and not exists(select 1 from ChiTietDieuChuyens c join PhieuDieuChuyens d on d.Id=c.PhieuDieuChuyenId where c.TaiSanId=t.Id and d.TrangThai in (1,2,3)) limit 1""",cc)
 if not ts:
-    DB.execute("update PhieuSuaChuas set TrangThai=8 where TaiSanId in (select t.Id from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where t.KhoaPhongId=? and l.CoLuuTruDuLieu=1) and TrangThai not in (6,7,8)",(cc,)); DB.commit()
-    DB.execute("update TaiSans set TrangThai=2 where Id=(select t.Id from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where t.KhoaPhongId=? and l.CoLuuTruDuLieu=1 limit 1)",(cc,)); DB.commit()
-    ts=q("select t.Id, t.MaTaiSan from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where t.KhoaPhongId=? and t.TrangThai=2 and l.CoLuuTruDuLieu=1 limit 1",cc)
+    # trạng thái do các bộ kiểm thử trước để lại: chọn máy không nằm trong phiếu điều chuyển mở, đóng phiếu sửa chữa của nó
+    ts=q("""select t.Id, t.MaTaiSan from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where t.KhoaPhongId=? and l.CoLuuTruDuLieu=1 and t.TrangThai not in (5,6)
+      and not exists(select 1 from ChiTietDieuChuyens c join PhieuDieuChuyens d on d.Id=c.PhieuDieuChuyenId where c.TaiSanId=t.Id and d.TrangThai in (1,2,3)) limit 1""",cc)
+    DB.execute("update PhieuSuaChuas set TrangThai=8 where TaiSanId=? and TrangThai not in (6,7,8)",(ts[0][0],))
+    DB.execute("update TaiSans set TrangThai=2 where Id=?",(ts[0][0],)); DB.commit()
 tsid,ma=ts[0]
 # 1. Điều chuyển ra ngoài
 pg=k2.get(f"/DieuChuyen/Create?tuKhoa={cc}")[1]
@@ -24,7 +26,7 @@ check('name="RaNgoai"' not in tk.get("/DieuChuyen/Create")[1], "trưởng khoa k
 st,loc,m,b=k2.post("/DieuChuyen/Create",{"TuKhoaPhongId":cc,"RaNgoai":"true","LyDo":"Hỗ trợ tuyến dưới","taiSanIds":tsid,"guiDuyet":"true"},page=pg)
 check(st==200 and "Nhập đơn vị nhận" in html.unescape(b), "ra ngoài phải nhập đơn vị nhận")
 st,loc,m,b=k2.post("/DieuChuyen/Create",{"TuKhoaPhongId":cc,"RaNgoai":"true","DonViNhanNgoai":"Trung tâm Y tế huyện Hàm Thuận Bắc","LyDo":"Hỗ trợ tuyến dưới theo chỉ đạo Sở","taiSanIds":tsid,"guiDuyet":"true"},page=pg)
-print("lập:", m); did=int(loc.rsplit("/",1)[1])
+print("lập:", m, re.findall(r'text-danger[^>]*>\s*<ul>(.*?)</ul>', html.unescape(b), re.S)[:1]); did=int(loc.rsplit("/",1)[1])
 r=q("select RaNgoai, DenKhoaPhongId, CapCuoi, CapHienTai from PhieuDieuChuyens where Id=?",did)[0]
 check(r[0]==1 and r[1] is None and r[2]==3 and "3 cấp" in m, "phiếu ra ngoài luôn duyệt 3 cấp (đến Lãnh đạo) dù giá trị nhỏ")
 for u in (tk,k,ld):

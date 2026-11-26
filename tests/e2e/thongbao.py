@@ -20,7 +20,7 @@ ts=re.findall(r'/TaiSan/Details/(\d+)">', nv.get("/TaiSan")[1])[-1]
 st,loc,m,_=nv.post("/PhieuSuaChua/Create",{"TaiSanId":ts,"MoTaSuCo":"E2E thông báo: máy không lên nguồn","UuTien":"Cao","XacNhanTrung":"true"})
 pid=loc.rsplit("/",1)[1]; print("báo hỏng:", m)
 k=U("ktv1"); print("giao ktv2:", k.post(f"/PhieuSuaChua/TiepNhan/{pid}",{"kyThuatVien":"ktv2","hinhThuc":"TuSua"})[2])
-k2=U("ktv2"); print("hoàn thành:", k2.post(f"/PhieuSuaChua/HoanThanh/{pid}",{"bienPhap":"Thay nguồn","gioCong":"1","chiPhiThueNgoai":"0"})[2])
+k2=U("ktv2"); print("hoàn thành:", k2.post(f"/PhieuSuaChua/HoanThanh/{pid}",{"bienPhap":"Thay nguồn","gioCong":"1","chiPhiThueNgoai":"0","nhomNguyenNhan":"NguonDien"})[2])
 print("trả lại:", nv.post(f"/PhieuSuaChua/TraLai/{pid}",{"yKien":"Vẫn chưa lên"})[2])
 print("bình luận:", nv.post(f"/PhieuSuaChua/BinhLuan/{pid}",{"noiDung":"Anh xem lại giúp em"})[1])
 print("chờ hàng đợi gửi (≤35s)…"); time.sleep(35)
