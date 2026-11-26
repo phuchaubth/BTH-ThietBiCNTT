@@ -191,6 +191,7 @@ public static class DbSeeder
         await TaoMauKiemTraMau(db, loai, khoa);
         await TaoHaTangMauAsync(db, loai, khoa);
         await TaoGD32MauAsync(db, khoa);
+        await TaoGD33MauAsync(db, khoa);
     }
 
     private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
@@ -382,6 +383,37 @@ public static class DbSeeder
         var cc = khoa["CC"]; var dt = new BuoiDaoTao { Ngay = now.AddMonths(-2), Loai = LoaiDaoTao.Downtime, ChuDe = "Quy trình downtime HIS cho điều dưỡng khoa Cấp cứu", HeThongId = his.Id, KhoaPhongId = cc.Id, NguoiGiang = "Nguyễn Văn An", NoiDung = "Khi nào kích hoạt, dùng bộ biểu mẫu giấy, nhập bù dữ liệu sau khôi phục.", NguoiTao = "ktv1" };
         dt.ThamDus.AddRange([new() { HoTen = "Phạm Thu Hà", MaNhanVien = "NV0123", KhoaPhongId = cc.Id, ChucDanh = "Điều dưỡng", DatDanhGia = true }, new() { HoTen = "Lê Văn Hùng", MaNhanVien = "NV0145", KhoaPhongId = cc.Id, ChucDanh = "Điều dưỡng", DatDanhGia = true }, new() { HoTen = "Võ Thị Mai", MaNhanVien = "NV0167", KhoaPhongId = cc.Id, ChucDanh = "Bác sĩ", DatDanhGia = true }]);
         db.BuoiDaoTaos.AddRange(dt, new BuoiDaoTao { Ngay = now.AddMonths(-14), Loai = LoaiDaoTao.AnToanThongTin, ChuDe = "An toàn thông tin cho nhân viên toàn viện (năm trước)", NguoiGiang = "Trần Minh Bảo", NguoiTao = "ktv2" });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Dữ liệu mẫu GĐ3.3: quản lý thay đổi, dự án xây dựng.</summary>
+    private static async Task TaoGD33MauAsync(AppDbContext db, Dictionary<string, KhoaPhong> khoa)
+    {
+        if (await db.PhieuThayDois.AnyAsync()) return;
+        var now = DateTime.Now; var hn = DateOnly.FromDateTime(now);
+        var his = await db.HeThongThongTins.FirstAsync(h => h.Ma == "HIS"); var lis = await db.HeThongThongTins.FirstAsync(h => h.Ma == "LIS");
+        db.ThayDoiChuanMaus.AddRange(
+            new ThayDoiChuanMau { Ten = "Cập nhật bản vá hằng tháng cho máy trạm", HuongDan = "Triển khai bản vá đã kiểm thử trên nhóm thí điểm, sau đó toàn viện ngoài giờ cao điểm; ghi danh sách máy chưa vá.", KiemThu = "Mở HIS, in thử một phiếu", NguoiDuyet = "admin", NgayDuyet = now.AddMonths(-3), NguoiTao = "ktv1" },
+            new ThayDoiChuanMau { Ten = "Thêm tài khoản người dùng mới theo yêu cầu của khoa", HuongDan = "Tạo tài khoản theo mẫu phân quyền của vai trò; ghi người đề nghị.", NguoiDuyet = null, NguoiTao = "ktv1" });
+        // Thay đổi thường đã hoàn thành (nâng cấp HIS), có downtime và đánh giá sau triển khai
+        var done = new PhieuThayDoi { Ma = $"TD-{now:yyMM}-0001", Loai = LoaiThayDoi.Thuong, Ten = "Nâng cấp HIS lên phiên bản 5.2", MoTa = "Nâng cấp phân hệ viện phí và đơn thuốc", LyDo = "Sửa lỗi in phiếu, theo khuyến cáo của nhà cung cấp", HeThongId = his.Id, MucRui = MucRuiRo.Cao, LaThayDoiLon = true,
+            KeHoachThucHien = "Sao lưu toàn bộ, cài bản nâng cấp trên máy chủ ứng dụng, chạy script cơ sở dữ liệu, kiểm thử.", KeHoachKiemThu = "Chạy 10 kịch bản kiểm thử: nhập viện, kê đơn, thanh toán", PhuongAnQuayLui = "Phục hồi bản sao lưu trước nâng cấp (dự kiến 90 phút).",
+            CanDowntime = true, DeXuatBatDau = now.AddDays(-40), DeXuatKetThuc = now.AddDays(-40).AddHours(3), PhienBanMoi = "5.2", NguoiDeXuat = "ktv1", NguoiThucHien = "ktv1", TrangThai = TrangThaiThayDoi.HoanThanh, NgayGuiDuyet = now.AddDays(-50),
+            NguoiDuyetCntt = "admin", NgayDuyetCntt = now.AddDays(-48), NguoiDuyetChuSoHuu = "truongkhoacc", NgayDuyetChuSoHuu = now.AddDays(-47), BatDauThucTe = now.AddDays(-40), KetThucThucTe = now.AddDays(-40).AddHours(2.5),
+            KetQua = "Nâng cấp thành công, downtime 2,5 giờ.", KiemThuSau = "10/10 kịch bản đạt", NguoiXacNhanNghiepVu = "Phòng Kế hoạch tổng hợp", NgayXacNhanNghiepVu = now.AddDays(-40), NguoiTao = "ktv1" };
+        done.HeThongs.Add(new PhieuThayDoiHeThong { HeThongId = his.Id });
+        done.DanhGiaSau = new DanhGiaSauThayDoi { Han = hn.AddDays(50) };
+        // Thay đổi khẩn cấp đang thực hiện, chưa duyệt bổ sung
+        var kc = new PhieuThayDoi { Ma = $"TD-{now:yyMM}-0002", Loai = LoaiThayDoi.KhanCap, Ten = "Thay switch tầng 2 khu Cấp cứu bị hỏng", LyDo = "Switch hỏng, mất mạng khu Cấp cứu", HeThongId = lis.Id, MucRui = MucRuiRo.Cao, PhuongAnQuayLui = "Gắn lại switch cũ, chuyển cáp sang switch dự phòng.",
+            KeHoachThucHien = "Thay bằng switch dự phòng cùng model, nạp cấu hình đã sao lưu.", NguoiDeXuat = "ktv1", NguoiThucHien = "ktv1", TrangThai = TrangThaiThayDoi.DangThucHien, BatDauThucTe = now.AddHours(-2), HanDuyetBoSung = PhieuThayDoi.CongNgayLam(now, 2), NguoiTao = "ktv1" };
+        kc.HeThongs.Add(new PhieuThayDoiHeThong { HeThongId = lis.Id });
+        // Triển khai mới (công cụ AI) đang nháp, có checklist
+        var moi = new PhieuThayDoi { Ma = $"TD-{now:yyMM}-0003", Loai = LoaiThayDoi.TrienKhaiMoi, Ten = "Triển khai công cụ gợi ý liều thuốc nhi khoa", MoTa = "Công cụ hỗ trợ quyết định lâm sàng tích hợp HIS", LyDo = "Giảm sai sót liều thuốc ở trẻ em", MucRui = MucRuiRo.Cao, LaThayDoiLon = true, LaCongCuHoTroQuyetDinh = true,
+            KeHoachThucHien = "Chạy thử song song 4 tuần tại khoa Nhi", PhuongAnQuayLui = "Tắt tích hợp, quay về kê đơn thông thường.", NguoiDeXuat = "ktv1", NguoiTao = "ktv1" };
+        moi.TaoChecklistMacDinh(); foreach (var m in moi.Checklist.Take(3)) { m.Dat = true; m.NguoiXacNhan = "ktv1"; }
+        db.PhieuThayDois.AddRange(done, kc, moi);
+        db.DuAnXayDungs.Add(new DuAnXayDung { Ten = "Cải tạo khu Cấp cứu giai đoạn 2", ViTri = "Tầng 1, khu A", TuNgay = hn.AddDays(20), DenNgay = hn.AddDays(110), HaTangAnhHuong = "Tuyến cáp quang tầng 1, tủ mạng khu Cấp cứu, nguồn điện tầng 1", NguoiThamGiaCntt = "Trần Minh Bảo", NgayDanhGia = hn.AddDays(-5),
+            BienPhapBaoVe = "Di dời tủ mạng tạm, bọc ống bảo vệ cáp, kiểm tra mạng hằng ngày trong thi công", NhaThau = "Công ty Xây dựng ABC", NguoiTao = "ktv2" });
         await db.SaveChangesAsync();
     }
 }

@@ -1,0 +1,16 @@
+@model List<PhieuThayDoi>
+@{ ViewData["Title"] = "Quản lý thay đổi CNTT"; var trangThai = (TrangThaiThayDoi?)ViewData["trangThai"]; var loai = (LoaiThayDoi?)ViewData["loai"]; var chiMo = (bool)ViewData["chiMo"]!; var quaHan = (List<PhieuThayDoi>)ViewBag.QuaHan; int dgHan = ViewBag.DanhGiaDenHan; var now = DateTime.Now; }
+<div class="page-head"><h1>Quản lý thay đổi CNTT</h1><span class="text-muted small">HCT.01.00, FMS.10.00 – đánh giá, phê duyệt, quay lui, kết quả</span>
+    <div class="actions"><a asp-action="Lich" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar3"></i> Lịch thay đổi</a><a asp-action="Chuan" class="btn btn-sm btn-outline-secondary">Danh mục thay đổi chuẩn</a><a asp-controller="DuAnXayDung" asp-action="Index" class="btn btn-sm btn-outline-secondary">Dự án xây dựng</a>
+    @if (User.LaCNTT()) { <a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Đề nghị thay đổi</a> }</div></div>
+@foreach (var p in quaHan.Where(x => x.QuaHanDuyetBoSung(now))) { <div class="alert alert-danger py-2"><i class="bi bi-exclamation-octagon"></i> Thay đổi khẩn cấp <a asp-action="Details" asp-route-id="@p.Id">@p.Ma</a> quá hạn duyệt bổ sung (@p.HanDuyetBoSung?.ToString("dd/MM/yyyy")).</div> }
+@if (dgHan > 0) { <div class="alert alert-warning py-2"><i class="bi bi-clipboard-check"></i> @dgHan đánh giá sau triển khai đã đến hạn (HCT.01.00 ME4).</div> }
+<form method="get" class="row g-2 mb-3"><div class="col-auto"><select name="trangThai" asp-items="@EnumExtensions.ToSelectList<TrangThaiThayDoi>(trangThai)" class="form-select form-select-sm" aria-label="Trạng thái"><option value="">Mọi trạng thái</option></select></div>
+    <div class="col-auto"><select name="loai" asp-items="@EnumExtensions.ToSelectList<LoaiThayDoi>(loai)" class="form-select form-select-sm" aria-label="Loại"><option value="">Mọi loại</option></select></div>
+    <div class="col-auto form-check pt-1"><input type="hidden" name="chiMo" value="false" /><input class="form-check-input" type="checkbox" name="chiMo" value="true" id="cm" checked="@chiMo" /><label class="form-check-label small" for="cm">Chỉ phiếu đang mở</label></div>
+    <div class="col-auto"><button class="btn btn-sm btn-outline-secondary">Lọc</button></div></form>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Số phiếu</th><th>Tên thay đổi</th><th>Loại</th><th>Hệ thống</th><th>Rủi ro</th><th>Khung giờ</th><th>Trạng thái</th></tr></thead><tbody>
+@foreach (var p in Model) { <tr><td><a asp-action="Details" asp-route-id="@p.Id">@p.Ma</a></td><td>@p.Ten</td><td>@Html.Raw(Badge.Html(p.Loai))</td><td class="small">@p.HeThong?.Ma</td><td class="small">@p.MucRui.Ten()</td>
+    <td class="small">@p.DeXuatBatDau?.ToString("dd/MM HH:mm")@(p.DeXuatKetThuc is null ? "" : " – " + p.DeXuatKetThuc.Value.ToString("HH:mm dd/MM"))</td><td>@Html.Raw(Badge.Html(p.TrangThai))</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-center text-muted py-3">Không có phiếu.</td></tr> }
+</tbody></table></div></div>

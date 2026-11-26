@@ -1,0 +1,30 @@
+@model PhieuThayDoi
+@{ ViewData["Title"] = Model.Id == 0 ? "Đề nghị thay đổi" : "Sửa phiếu " + Model.Ma; var dsHt = (List<HeThongThongTin>)ViewBag.DsHeThong; var chon = (List<int>)ViewBag.HeThongDaChon; var chuan = (List<ThayDoiChuanMau>)ViewBag.Chuan; }
+<div class="page-head"><h1>@ViewData["Title"]</h1><span class="text-muted small">FR-TD-01</span></div>
+@if (Model.Id == 0 && chuan.Count > 0) { <div class="alert alert-light border py-2 small">Thay đổi lặp lại? Dùng <a asp-action="Chuan">danh mục thay đổi chuẩn</a>: @foreach (var m in chuan) { <a asp-action="Form" asp-route-chuanId="@m.Id" class="badge bg-light text-dark border text-decoration-none">@m.Ten</a> }</div> }
+<div class="card" style="max-width:960px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiThayDoi>(Model.Loai)" class="form-select"></select><div class="form-text">Khẩn cấp: thực hiện trước, duyệt bổ sung ≤ 2 ngày làm việc.</div></div>
+    <div class="col-12"><label class="form-label">Hệ thống thông tin bị tác động</label><div class="row">@foreach (var h in dsHt) { <div class="col-md-4 col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="heThongIds" value="@h.Id" id="h@(h.Id)" checked="@chon.Contains(h.Id)" /><label class="form-check-label small" for="h@(h.Id)">@h.Ma – @h.Ten</label></div></div> }</div>
+        <div class="form-text">Khoa và hệ thống phụ thuộc bị ảnh hưởng được tính tự động từ sơ đồ phụ thuộc.</div></div>
+    <div class="col-md-6"><label asp-for="TaiSanId" class="form-label"></label><select asp-for="TaiSanId" asp-items="@((SelectList)ViewBag.DsTaiSan)" class="form-select"><option value="">— Không —</option></select></div>
+    <div class="col-md-3"><label asp-for="MucRui" class="form-label"></label><select asp-for="MucRui" asp-items="@EnumExtensions.ToSelectList<MucRuiRo>(Model.MucRui)" class="form-select"></select></div>
+    <div class="col-md-3"><label asp-for="PhienBanMoi" class="form-label"></label><input asp-for="PhienBanMoi" class="form-control" /></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><label asp-for="LyDo" class="form-label"></label><textarea asp-for="LyDo" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-6"><label asp-for="KeHoachThucHien" class="form-label"></label><textarea asp-for="KeHoachThucHien" class="form-control" rows="3"></textarea></div>
+    <div class="col-md-6"><label asp-for="KeHoachKiemThu" class="form-label"></label><textarea asp-for="KeHoachKiemThu" class="form-control" rows="3"></textarea></div>
+    <div class="col-12"><label asp-for="PhuongAnQuayLui" class="form-label"></label><textarea asp-for="PhuongAnQuayLui" class="form-control" rows="2"></textarea><div class="form-text">Bắt buộc với mọi loại trừ Chuẩn (BR-TD-03).</div></div>
+    <div class="col-md-3"><div class="form-check mt-4"><input asp-for="CanDowntime" class="form-check-input" /><label asp-for="CanDowntime" class="form-check-label"></label></div></div>
+    <div class="col-md-4"><label asp-for="DeXuatBatDau" class="form-label"></label><input asp-for="DeXuatBatDau" type="datetime-local" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="DeXuatKetThuc" class="form-label"></label><input asp-for="DeXuatKetThuc" type="datetime-local" class="form-control" /></div>
+    <div class="col-12 d-flex flex-wrap gap-4">
+        <div class="form-check"><input asp-for="LaThayDoiLon" class="form-check-input" /><label asp-for="LaThayDoiLon" class="form-check-label"></label></div>
+        <div class="form-check"><input asp-for="LaHeThongSaoLuu" class="form-check-input" /><label asp-for="LaHeThongSaoLuu" class="form-check-label"></label></div>
+        <div class="form-check"><input asp-for="LaCongCuHoTroQuyetDinh" class="form-check-input" /><label asp-for="LaCongCuHoTroQuyetDinh" class="form-check-label"></label></div>
+        <div class="form-check"><input asp-for="AnhHuongChamSoc" class="form-check-input" /><label asp-for="AnhHuongChamSoc" class="form-check-label"></label></div></div>
+    <div class="col-12 form-text">Đánh dấu "Ảnh hưởng chăm sóc người bệnh" để bắt buộc đánh giá rủi ro trước thực hiện (PCRA, FMS.10.00). Loại "Triển khai hệ thống mới" tự tạo checklist đánh giá trước triển khai.</div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

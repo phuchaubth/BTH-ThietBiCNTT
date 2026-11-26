@@ -25,7 +25,8 @@ public enum LoaiThongBao
     [Display(Name = "Hành động khắc phục")] HanhDong,
     [Display(Name = "Sự cố an ninh mạng")] AnNinhMang,
     [Display(Name = "Rủi ro CNTT")] RuiRo,
-    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao
+    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao,
+    [Display(Name = "Thay đổi CNTT")] ThayDoi
 }
 
 public enum MucDoThongBao { ThongTin = 1, CanhBao, KhanCap }

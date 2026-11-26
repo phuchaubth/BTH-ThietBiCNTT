@@ -800,7 +800,10 @@ public enum NguonHanhDong
     [Display(Name = "Sao lưu lỗi")] SaoLuu,
     [Display(Name = "Sự cố an ninh mạng")] SuCoAnNinh,
     [Display(Name = "Rủi ro CNTT")] RuiRo,
-    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao
+    [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao,
+    [Display(Name = "Phiếu thay đổi")] PhieuThayDoi,
+    [Display(Name = "Rà soát quyền truy cập")] RaSoatQuyen,
+    [Display(Name = "Lỗ hổng")] LoHong
 }
 
 public enum LoaiHanhDong

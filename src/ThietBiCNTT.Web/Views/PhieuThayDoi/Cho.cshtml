@@ -1,0 +1,7 @@
+@model List<PhieuThayDoi>
+@{ ViewData["Title"] = "Thay đổi CNTT chờ xác nhận"; }
+<div class="page-head"><h1>Thay đổi CNTT chờ xác nhận của khoa</h1><span class="text-muted small">Hệ thống do khoa bạn làm chủ sở hữu nghiệp vụ</span></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Số phiếu</th><th>Tên thay đổi</th><th>Hệ thống</th><th>Khung giờ</th></tr></thead><tbody>
+@foreach (var p in Model) { <tr><td><a asp-action="Details" asp-route-id="@p.Id">@p.Ma</a></td><td>@p.Ten</td><td>@p.HeThong?.Ma</td><td class="small">@p.DeXuatBatDau?.ToString("dd/MM/yyyy HH:mm")</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Không có phiếu nào chờ.</td></tr> }
+</tbody></table></div></div>

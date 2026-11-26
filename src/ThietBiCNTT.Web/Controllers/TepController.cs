@@ -11,7 +11,7 @@ namespace ThietBiCNTT.Web.Controllers;
 /// <summary>Tệp đính kèm: tải lên, xem, xoá — kiểm tra quyền theo đối tượng gắn kèm.</summary>
 public class TepController(AppDbContext db, TepService tep, ThamSoService thamSo) : Controller
 {
-    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "TaiSan", "LanKiemTra", "HeThong", "KeHoachDowntime", "SuKienDowntime", "DotDienTap", "LanThuPhucHoi", "HanhDongKhacPhuc", "TaiLieuQuyDinh", "NguoiGiamSatCntt", "SuCoAnNinh", "RuiRo", "DotDanhGiaRuiRo", "BuoiDaoTao", "BaoCaoLanhDao"];
+    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "PhieuThayDoi", "DuAnXayDung", "TaiSan", "LanKiemTra", "HeThong", "KeHoachDowntime", "SuKienDowntime", "DotDienTap", "LanThuPhucHoi", "HanhDongKhacPhuc", "TaiLieuQuyDinh", "NguoiGiamSatCntt", "SuCoAnNinh", "RuiRo", "DotDanhGiaRuiRo", "BuoiDaoTao", "BaoCaoLanhDao"];
 
     /// <summary>Người dùng có được xem đối tượng không (cùng quy tắc phạm vi khoa của từng phân hệ).</summary>
     private async Task<bool> DuocXemAsync(string doiTuong, string id)

@@ -1,0 +1,17 @@
+@model DuAnXayDung
+@{ ViewData["Title"] = Model.Id == 0 ? "Ghi nhận dự án xây dựng" : "Sửa dự án"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1><span class="text-muted small">FR-TD-10</span></div>
+<div class="card" style="max-width:860px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3">
+    <input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div><div class="col-md-4"><label asp-for="ViTri" class="form-label"></label><input asp-for="ViTri" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="TuNgay" class="form-label"></label><input asp-for="TuNgay" type="date" class="form-control" /></div><div class="col-md-3"><label asp-for="DenNgay" class="form-label"></label><input asp-for="DenNgay" type="date" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="NhaThau" class="form-label"></label><input asp-for="NhaThau" class="form-control" /></div>
+    <div class="col-12"><label asp-for="HaTangAnhHuong" class="form-label"></label><textarea asp-for="HaTangAnhHuong" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-6"><label asp-for="NguoiThamGiaCntt" class="form-label"></label><input asp-for="NguoiThamGiaCntt" class="form-control" /></div><div class="col-md-3"><label asp-for="NgayDanhGia" class="form-label"></label><input asp-for="NgayDanhGia" type="date" class="form-control" /></div>
+    <div class="col-12"><label asp-for="BienPhapBaoVe" class="form-label"></label><textarea asp-for="BienPhapBaoVe" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><label asp-for="KetQuaGiamSat" class="form-label"></label><textarea asp-for="KetQuaGiamSat" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-6"><label asp-for="PhieuThayDoiId" class="form-label"></label><select asp-for="PhieuThayDoiId" asp-items="@((SelectList)ViewBag.DsPhieu)" class="form-select"><option value="">— Không —</option></select></div>
+    <div class="col-md-6"><div class="form-check mt-4"><input asp-for="DaHoanThanh" class="form-check-input" /><label asp-for="DaHoanThanh" class="form-check-label"></label></div></div>
+    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

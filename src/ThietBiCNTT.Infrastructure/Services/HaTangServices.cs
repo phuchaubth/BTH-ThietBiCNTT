@@ -153,6 +153,7 @@ public class HanhDongService(AppDbContext db, SoPhieuService soPhieu, ThongBaoSe
         (NguonHanhDong.SuCoAnNinh, { } i) => $"/AnNinh/Details/{i}",
         (NguonHanhDong.RuiRo, { } i) => $"/RuiRo/Details/{i}",
         (NguonHanhDong.BaoCaoLanhDao, { } i) => $"/BaoCaoLanhDao/Details/{i}",
+        (NguonHanhDong.PhieuThayDoi, { } i) => $"/PhieuThayDoi/Details/{i}",
         _ => ""
     };
 }
@@ -174,6 +175,7 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
         await SaoLuuAsync(now, ct);
         await HanhDongAsync(homNay, ct);
         await GD32Async(now, homNay, ct);
+        await GD33Async(now, homNay, ct);
         await db.SaveChangesAsync(ct);
     }
 
@@ -182,6 +184,23 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
     {
         var tu = DateTime.Now.AddDays(-ngay);
         return !await db.ThongBaos.AnyAsync(t => t.TieuDe == tieuDe && t.ThoiGian >= tu, ct) && !db.ThongBaos.Local.Any(t => t.TieuDe == tieuDe && t.ThoiGian >= tu);
+    }
+
+    /// <summary>GĐ3.3: thay đổi khẩn cấp quá hạn duyệt bổ sung (BR-TD-02), đánh giá sau triển khai đến hạn (HCT.01.00 ME4).</summary>
+    private async Task GD33Async(DateTime now, DateOnly homNay, CancellationToken ct)
+    {
+        var duyet = thamSo.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+        foreach (var p in await db.PhieuThayDois.Where(x => x.Loai == LoaiThayDoi.KhanCap && x.NguoiDuyetCntt == null && !x.DaLeoThang && x.HanDuyetBoSung != null && x.HanDuyetBoSung < now &&
+            (x.TrangThai == TrangThaiThayDoi.DangThucHien || x.TrangThai == TrangThaiThayDoi.HoanThanh || x.TrangThai == TrangThaiThayDoi.ThatBai || x.TrangThai == TrangThaiThayDoi.DaQuayLui)).ToListAsync(ct))
+        {
+            p.DaLeoThang = true;
+            await tb.GuiAsync(duyet, LoaiThongBao.ThayDoi, $"[Quá hạn] Thay đổi khẩn cấp {p.Ma} chưa duyệt bổ sung", $"Hạn {p.HanDuyetBoSung:dd/MM/yyyy}. BR-TD-02: leo thang Trưởng phòng CNTT.", $"/PhieuThayDoi/Details/{p.Id}", MucDoThongBao.KhanCap);
+        }
+        foreach (var p in await db.PhieuThayDois.Include(x => x.DanhGiaSau).Where(x => x.DanhGiaSau != null && x.DanhGiaSau.NgayDanhGia == null && !x.DanhGiaSau.DaNhac && x.DanhGiaSau.Han <= homNay).ToListAsync(ct))
+        {
+            p.DanhGiaSau!.DaNhac = true;
+            await tb.GuiAsync(await tb.CanBoCNTTAsync(), LoaiThongBao.ThayDoi, $"Đến hạn đánh giá sau triển khai: {p.Ten} ({p.Ma})", "HCT.01.00 ME4: đánh giá tính dễ dùng, đúng mục đích, an toàn người bệnh.", $"/PhieuThayDoi/Details/{p.Id}", MucDoThongBao.CanhBao);
+        }
     }
 
     /// <summary>GĐ3.2: nhắc rà soát tài liệu, xem xét công cụ AI, thử nguồn dự phòng, báo cáo cơ quan chức năng, báo cáo quý, rủi ro.</summary>

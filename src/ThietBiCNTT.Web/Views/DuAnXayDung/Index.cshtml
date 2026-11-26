@@ -1,0 +1,9 @@
+@model List<DuAnXayDung>
+@{ ViewData["Title"] = "Dự án xây dựng, cải tạo, phá dỡ"; }
+<div class="page-head"><h1>Dự án xây dựng, cải tạo, phá dỡ</h1><span class="text-muted small">FMS.10.00 – Phòng CNTT tham gia đánh giá rủi ro trước khi thi công</span>
+    <div class="actions"><a asp-controller="PhieuThayDoi" asp-action="Index" class="btn btn-sm btn-outline-secondary">Phiếu thay đổi</a>@if (User.LaCNTT()) { <a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Ghi nhận dự án</a> }</div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Dự án</th><th>Vị trí</th><th>Thời gian</th><th>CNTT tham gia</th><th>Nhà thầu</th><th></th></tr></thead><tbody>
+@foreach (var d in Model) { <tr class="@(d.DaHoanThanh ? "text-muted" : "")"><td><a asp-action="Details" asp-route-id="@d.Id">@d.Ten</a></td><td class="small">@d.ViTri</td><td class="small">@d.TuNgay?.ToString("dd/MM/yyyy") – @d.DenNgay?.ToString("dd/MM/yyyy")</td>
+    <td class="small">@d.NguoiThamGiaCntt</td><td class="small">@d.NhaThau</td><td>@if (!d.DaHoanThanh && d.ThieuThongTin) { <span class="badge bg-warning text-dark">Thiếu đánh giá / biện pháp</span> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Chưa có dự án.</td></tr> }
+</tbody></table></div></div>

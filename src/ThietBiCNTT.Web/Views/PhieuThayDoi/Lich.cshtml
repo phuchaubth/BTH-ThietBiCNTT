@@ -1,0 +1,10 @@
+@model List<PhieuThayDoi>
+@{ ViewData["Title"] = "Lịch thay đổi"; var thang = (DateTime)ViewBag.Thang; var trung = (Dictionary<int, List<string>>)ViewBag.Trung; }
+<div class="page-head"><h1>Lịch thay đổi tháng @thang.ToString("MM/yyyy")</h1>
+    <div class="actions"><a asp-action="Lich" asp-route-nam="@thang.AddMonths(-1).Year" asp-route-thang="@thang.AddMonths(-1).Month" class="btn btn-sm btn-outline-secondary">‹ Tháng trước</a><a asp-action="Lich" asp-route-nam="@thang.AddMonths(1).Year" asp-route-thang="@thang.AddMonths(1).Month" class="btn btn-sm btn-outline-secondary">Tháng sau ›</a><a asp-action="Index" class="btn btn-sm btn-outline-secondary">Danh sách</a></div></div>
+@if (trung.Count > 0) { <div class="alert alert-warning py-2"><i class="bi bi-exclamation-triangle"></i> Có @trung.Count phiếu trùng khung giờ trên cùng hệ thống hoặc chuỗi phụ thuộc (FR-TD-04).</div> }
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Từ</th><th>Đến</th><th>Phiếu</th><th>Hệ thống</th><th>Trạng thái</th><th>Cảnh báo</th></tr></thead><tbody>
+@foreach (var p in Model) { <tr class="@(trung.ContainsKey(p.Id) ? "table-warning" : "")"><td class="small">@p.DeXuatBatDau?.ToString("dd/MM HH:mm")</td><td class="small">@p.DeXuatKetThuc?.ToString("dd/MM HH:mm")</td><td><a asp-action="Details" asp-route-id="@p.Id">@p.Ma</a> @p.Ten @Html.Raw(Badge.Html(p.Loai))</td>
+    <td class="small">@p.HeThong?.Ma</td><td>@Html.Raw(Badge.Html(p.TrangThai))</td><td class="small">@(trung.TryGetValue(p.Id, out var t) ? "Trùng với " + string.Join(", ", t) : "")</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Không có thay đổi nào trong tháng.</td></tr> }
+</tbody></table></div></div>

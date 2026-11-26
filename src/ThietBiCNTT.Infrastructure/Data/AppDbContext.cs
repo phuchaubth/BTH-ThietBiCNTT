@@ -73,6 +73,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<TieuChuanJci> TieuChuanJcis => Set<TieuChuanJci>();
     public DbSet<DanhGiaTieuChuanJci> DanhGiaTieuChuanJcis => Set<DanhGiaTieuChuanJci>();
     public DbSet<BaoCaoLanhDao> BaoCaoLanhDaos => Set<BaoCaoLanhDao>();
+    public DbSet<PhieuThayDoi> PhieuThayDois => Set<PhieuThayDoi>();
+    public DbSet<ThayDoiChuanMau> ThayDoiChuanMaus => Set<ThayDoiChuanMau>();
+    public DbSet<DuAnXayDung> DuAnXayDungs => Set<DuAnXayDung>();
+    public DbSet<DanhGiaSauThayDoi> DanhGiaSauThayDois => Set<DanhGiaSauThayDoi>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -224,6 +228,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         b.Entity<BuoiDaoTao>(e => { e.HasIndex(x => x.Ngay); e.HasMany(x => x.ThamDus).WithOne(x => x.BuoiDaoTao).HasForeignKey(x => x.BuoiDaoTaoId).OnDelete(DeleteBehavior.Cascade); });
         b.Entity<TieuChuanJci>().HasIndex(x => x.Ma).IsUnique();
         b.Entity<BaoCaoLanhDao>().HasIndex(x => x.Ky);
+        b.Entity<PhieuThayDoi>(e =>
+        {
+            e.HasIndex(x => x.Ma).IsUnique(); e.HasIndex(x => x.TrangThai);
+            e.HasMany(x => x.HeThongs).WithOne(x => x.PhieuThayDoi).HasForeignKey(x => x.PhieuThayDoiId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.MucPcras).WithOne().HasForeignKey(x => x.PhieuThayDoiId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Checklist).WithOne().HasForeignKey(x => x.PhieuThayDoiId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.DanhGiaSau).WithOne().HasForeignKey<DanhGiaSauThayDoi>(x => x.PhieuThayDoiId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<PhieuThayDoiHeThong>().HasKey(x => new { x.PhieuThayDoiId, x.HeThongId });
         b.Entity<ThamSoHeThong>().Property(x => x.ToiThieu).HasPrecision(18, 2);
         b.Entity<ThamSoHeThong>().Property(x => x.ToiDa).HasPrecision(18, 2);
     }

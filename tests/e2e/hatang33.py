@@ -1,0 +1,60 @@
+# E2E GĐ3.3 — quản lý thay đổi (TD), rà soát quyền (TC)... Chạy trên demo DB mới (xem hatang.py).
+exec(open('tests/e2e/e2e.py').read().split("ok=True")[0])
+import datetime
+ok=True
+def check(cond,label):
+    global ok
+    print(("PASS " if cond else "FAIL ")+label); ok = ok and cond
+adm=U("admin"); ktv=U("ktv1"); ld=U("lanhdao"); tk=U("truongkhoacc"); nv=U("nhanvien")
+def pg(u,p): return u.get(p)[1]
+def first(pat,b): m=re.search(pat,b); return m.group(1) if m else None
+def msg(r): return r[2]
+
+# ---- Phân quyền trang TD ----
+for p,exp in {"/PhieuThayDoi":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/PhieuThayDoi/Lich":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},
+              "/PhieuThayDoi/Chuan":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/PhieuThayDoi/Form":{"admin":200,"ktv1":200,"lanhdao":302,"truongkhoacc":302,"nhanvien":302},
+              "/DuAnXayDung":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/PhieuThayDoi/Cho":{"truongkhoacc":200}}.items():
+    us={"admin":adm,"ktv1":ktv,"lanhdao":ld,"truongkhoacc":tk,"nhanvien":nv}
+    bad=[f"{n}={us[n].get(p)[0]}(cần {e})" for n,e in exp.items() if us[n].get(p)[0]!=e]
+    check(not bad,"Phân quyền "+p+" "+", ".join(bad))
+l=pg(adm,"/PhieuThayDoi")
+check("Nâng cấp HIS" not in l,"Phiếu đã hoàn thành ẩn khỏi danh sách đang mở")
+check("Thay switch tầng 2" in l and "quá hạn" not in l.lower().split("alert")[0],"Phiếu khẩn cấp đang thực hiện hiển thị")
+l2=pg(adm,"/PhieuThayDoi?chiMo=false")
+check("Nâng cấp HIS" in l2,"Xem được phiếu đã hoàn thành")
+ids={n:first(r'/PhieuThayDoi/Details/(\d+)">TD-\d+-%s'%n,l2) for n in ("0001","0002","0003")}
+# Phiếu seed hoàn thành: đánh giá sau triển khai
+d=pg(adm,f"/PhieuThayDoi/Details/{ids['0001']}")
+check("Đánh giá sau triển khai" in d,"Phiếu lớn hoàn thành có lịch đánh giá sau triển khai")
+r=adm.post(f"/PhieuThayDoi/DanhGiaSau/{ids['0001']}",{"ketLuan":"Ổn định","anToan":""},page=d); check("danger" in msg(r),"Đánh giá thiếu an toàn người bệnh bị chặn: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/DanhGiaSau/{ids['0001']}",{"ketLuan":"Ổn định","anToan":"Không ghi nhận sai sót"},page=d); check("success" in msg(r),"Ghi đánh giá sau triển khai: "+msg(r))
+# Khẩn cấp: kết quả thành công chặn khi chưa duyệt bổ sung
+d=pg(adm,f"/PhieuThayDoi/Details/{ids['0002']}")
+r=adm.post(f"/PhieuThayDoi/KetQua/{ids['0002']}",{"ketQua":"HoanThanh","ketQuaMoTa":"Đã thay","kiemThuSau":"Mạng thông"},page=d); check("danger" in msg(r),"Khẩn cấp chưa duyệt bổ sung không đóng được: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/Duyet/{ids['0002']}",{"buoc":"Cntt"},page=d); check("success" in msg(r),"Duyệt bổ sung khẩn cấp: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/KetQua/{ids['0002']}",{"ketQua":"HoanThanh","ketQuaMoTa":"Đã thay","kiemThuSau":"Mạng thông","coVanDe":"true"},page=pg(adm,f"/PhieuThayDoi/Details/{ids['0002']}")); check("success" in msg(r) and "hành động khắc phục" in msg(r),"Ghi kết quả có vấn đề → gợi ý CAPA: "+msg(r))
+# Triển khai mới: chưa đạt checklist → không gửi duyệt
+d=pg(adm,f"/PhieuThayDoi/Details/{ids['0003']}")
+r=adm.post(f"/PhieuThayDoi/GuiDuyet/{ids['0003']}",{},page=d); check("danger" in msg(r) and "checklist" in msg(r),"Checklist chưa đạt chặn gửi duyệt: "+msg(r))
+muc=sorted(set(re.findall(r'name="mucId" value="(\d+)"',d)))
+r=adm.post(f"/PhieuThayDoi/LuuChecklist/{ids['0003']}",{"mucId":muc,"dat":muc,"ghiChu":[""]*len(muc)},page=d); check("success" in msg(r),"Lưu checklist: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/GuiDuyet/{ids['0003']}",{},page=pg(adm,f"/PhieuThayDoi/Details/{ids['0003']}")); check("success" in msg(r),"Gửi duyệt triển khai mới: "+msg(r))
+d=pg(adm,f"/PhieuThayDoi/Details/{ids['0003']}")
+r=ld.post(f"/PhieuThayDoi/Duyet/{ids['0003']}",{"buoc":"LanhDao"},page=pg(ld,f"/PhieuThayDoi/Details/{ids['0003']}")); check("danger" in msg(r),"Lãnh đạo không duyệt trước CNTT: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/Duyet/{ids['0003']}",{"buoc":"Cntt"},page=d); check("success" in msg(r),"CNTT duyệt: "+msg(r))
+r=ld.post(f"/PhieuThayDoi/Duyet/{ids['0003']}",{"buoc":"LanhDao"},page=pg(ld,f"/PhieuThayDoi/Details/{ids['0003']}")); check("success" in msg(r) and "đủ cấp" in msg(r),"Lãnh đạo duyệt đủ cấp: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/BatDau/{ids['0003']}",{},page=pg(adm,f"/PhieuThayDoi/Details/{ids['0003']}")); check("success" in msg(r),"Bắt đầu thực hiện: "+msg(r))
+r=adm.post(f"/PhieuThayDoi/KetQua/{ids['0003']}",{"ketQua":"HoanThanh","ketQuaMoTa":"Xong","kiemThuSau":"Đạt"},page=pg(adm,f"/PhieuThayDoi/Details/{ids['0003']}")); check("danger" in msg(r),"Thay đổi lớn cần người dùng nghiệp vụ xác nhận: "+msg(r))
+
+# ---- Tạo phiếu thường mới, PCRA, downtime, lịch ----
+his=first(r'/HeThong/Details/(\d+)">HIS</a>',pg(adm,"/HeThong"))
+dt=lambda d: (datetime.datetime.now()+datetime.timedelta(days=d)).strftime("%Y-%m-%dT%H:%M")
+form=pg(adm,"/PhieuThayDoi/Form")
+r=adm.post("/PhieuThayDoi/Form",{"Ten":"Đổi cấu hình tường lửa","Loai":"Thuong","heThongIds":[his],"MucRui":"TrungBinh","KeHoachThucHien":"Đổi rule","PhuongAnQuayLui":"","CanDowntime":"true","DeXuatBatDau":dt(5),"DeXuatKetThuc":dt(5).replace("T","T").replace(dt(5)[11:13], str((int(dt(5)[11:13])+1)%24).zfill(2)) if False else dt(6),"AnhHuongChamSoc":"true"},page=form)
+check(r[0]==302 and r[1] and "Details" in r[1],"Tạo phiếu thay đổi: "+str(r[:3]))
+nid=first(r'Details/(\d+)',r[1] or "")
+d=pg(adm,f"/PhieuThayDoi/Details/{nid}")
+r=adm.post(f"/PhieuThayDoi/GuiDuyet/{nid}",{},page=d); check("danger" in msg(r) and "quay lui" in msg(r),"Thiếu phương án quay lui chặn gửi duyệt: "+msg(r))
+check("Trùng khung giờ" not in d,"Chưa trùng lịch")
+check("Đánh giá rủi ro trước thực hiện (PCRA)" in d,"Phiếu ảnh hưởng chăm sóc hiển thị PCRA")
+print("\nKẾT QUẢ:", "ALL OK" if ok else "CÓ LỖI"); sys.exit(0 if ok else 1)

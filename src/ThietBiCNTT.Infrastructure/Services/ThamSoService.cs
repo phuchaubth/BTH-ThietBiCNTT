@@ -101,6 +101,8 @@ public static class TS
     public const string JciThuNguonDuPhongThang = "Jci.ThuNguonDuPhongThang";
     public const string JciXemXetAiThang = "Jci.XemXetCongCuAiThang";
     public const string JciBaoCaoQuyNhacNgay = "Jci.BaoCaoQuyNhacSauNgay";
+    public const string JciDanhGiaSauTrienKhaiNgay = "Jci.DanhGiaSauTrienKhaiNgay";
+    public const string JciKhanCapDuyetNgayLam = "Jci.KhanCapDuyetBoSungNgayLam";
 }
 
 public static class ThamSoMacDinh
@@ -196,6 +198,8 @@ public static class ThamSoMacDinh
         T(254, "JCI 8 – Tài liệu & chương trình", TS.JciThuNguonDuPhongThang, "Chu kỳ tối đa thử nguồn điện dự phòng", KieuThamSo.SoNguyen, "3", "tháng", 1, 12, "FMS.08.01 ME3: ít nhất mỗi quý. Phiếu mẫu có chu kỳ dài hơn sẽ bị cảnh báo."),
         T(255, "JCI 8 – An ninh mạng", TS.JciNhomAnToanThongTin, "Tài khoản được xử lý sự cố an ninh mạng", KieuThamSo.VanBan, "admin", moTa: "FR-AN-06: chỉ nhóm này và Lãnh đạo xem chi tiết sự cố an ninh mạng. Tên đăng nhập, cách nhau bởi dấu phẩy."),
         T(256, "JCI 8 – An ninh mạng", TS.JciHanBaoCaoSuCoGio, "Hạn báo cáo sự cố nghiêm trọng liên quan dữ liệu cá nhân cho cơ quan chức năng", KieuThamSo.SoNguyen, "0", "giờ", 0, 720, "0 = không áp dụng. Phòng CNTT nhập theo văn bản hiện hành về ứng cứu sự cố và bảo vệ dữ liệu cá nhân."),
+        T(260, "JCI 8 – Quản lý thay đổi", TS.JciDanhGiaSauTrienKhaiNgay, "Đánh giá sau triển khai hệ thống mới / thay đổi lớn sau", KieuThamSo.SoNguyen, "90", "ngày", 7, 365, "HCT.01.00 ME4: hệ thống mới được giám sát, đánh giá sau khi đưa vào vận hành."),
+        T(261, "JCI 8 – Quản lý thay đổi", TS.JciKhanCapDuyetNgayLam, "Hạn duyệt bổ sung thay đổi khẩn cấp", KieuThamSo.SoNguyen, "2", "ngày làm việc", 1, 10, "BR-TD-02: quá hạn leo thang Trưởng phòng CNTT."),
         T(257, "JCI 8 – Báo cáo lãnh đạo", TS.JciBaoCaoQuyNhacNgay, "Nhắc lập báo cáo quý sau khi quý kết thúc", KieuThamSo.SoNguyen, "7", "ngày", 0, 60, "GLD.04.01 ME2: báo cáo bằng văn bản ít nhất hằng quý. 0 = không nhắc."),
 
         T(240, "JCI 8 – Hành động khắc phục", TS.JciHanhDongMacDinhNgay, "Hạn mặc định của hành động khắc phục", KieuThamSo.SoNguyen, "30", "ngày", 1, 365),

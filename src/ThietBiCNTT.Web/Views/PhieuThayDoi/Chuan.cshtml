@@ -1,0 +1,16 @@
+@model List<ThayDoiChuanMau>
+@{ ViewData["Title"] = "Danh mục thay đổi chuẩn"; var cntt = User.LaCNTT(); }
+<div class="page-head"><h1>Danh mục thay đổi chuẩn</h1><span class="text-muted small">BR-TD-04 – thay đổi lặp lại, rủi ro thấp, được Trưởng phòng CNTT duyệt sẵn; không cần duyệt từng lần</span>
+    <div class="actions"><a asp-action="Index" class="btn btn-sm btn-outline-secondary">Phiếu thay đổi</a></div></div>
+<div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 align-top"><thead><tr><th>Tên</th><th>Hướng dẫn thực hiện</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+@foreach (var m in Model) { <tr><td>@m.Ten</td><td class="small" style="white-space:pre-line">@m.HuongDan@if (!string.IsNullOrWhiteSpace(m.KiemThu)) { <div class="text-muted">Kiểm thử: @m.KiemThu</div> }</td>
+    <td>@if (!m.DaDuyet) { <span class="badge bg-warning text-dark">Chờ duyệt</span> } else if (m.HoatDong) { <span class="badge bg-success">Đang dùng</span> } else { <span class="badge bg-secondary">Ngừng</span> }</td>
+    <td class="text-nowrap">@if (cntt && m.DaDuyet && m.HoatDong) { <a asp-action="Form" asp-route-chuanId="@m.Id" class="btn btn-sm btn-outline-primary">Tạo phiếu</a> }
+        @if (User.LaCNTT()) { <form asp-action="ChuanDuyet" asp-route-id="@m.Id" method="post" class="d-inline">@if (!m.DaDuyet) { <input type="hidden" name="dung" value="true" /><button class="btn btn-sm btn-outline-success">Duyệt</button> } else { <input type="hidden" name="dung" value="false" /><button class="btn btn-sm btn-outline-secondary">@(m.HoatDong ? "Ngừng" : "Bật lại")</button> }</form> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Chưa có mục nào.</td></tr> }
+</tbody></table></div></div>
+@if (cntt) { <div class="card" style="max-width:820px"><div class="card-header">Đề xuất mục mới</div><div class="card-body"><form asp-action="ChuanLuu" method="post" class="row g-2">
+    <div class="col-12"><input name="ten" class="form-control" placeholder="Tên (ví dụ: Cập nhật bản vá hằng tháng cho máy trạm)" aria-label="Tên" /></div>
+    <div class="col-12"><textarea name="huongDan" class="form-control" rows="3" placeholder="Hướng dẫn thực hiện" aria-label="Hướng dẫn"></textarea></div>
+    <div class="col-12"><input name="kiemThu" class="form-control" placeholder="Kiểm thử sau thay đổi" aria-label="Kiểm thử" /></div>
+    <div class="col-12"><button class="btn btn-primary">Đề xuất</button></div></form></div></div> }

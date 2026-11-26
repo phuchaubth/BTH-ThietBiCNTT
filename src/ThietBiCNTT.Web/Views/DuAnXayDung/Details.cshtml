@@ -1,0 +1,13 @@
+@model DuAnXayDung
+@{ ViewData["Title"] = Model.Ten; var cntt = User.LaCNTT(); }
+<div class="small text-muted mb-1"><a asp-action="Index">Dự án xây dựng</a> › @Model.Ten</div>
+<div class="page-head"><h1>@Model.Ten</h1>@if (Model.DaHoanThanh) { <span class="badge bg-success">Hoàn thành</span> } @if (cntt) { <div class="actions"><a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a></div> }</div>
+@if (Model.ThieuThongTin && !Model.DaHoanThanh) { <div class="alert alert-warning py-2">Chưa đủ: người của Phòng CNTT tham gia đánh giá, ngày đánh giá, biện pháp bảo vệ hạ tầng.</div> }
+<div class="row g-3"><div class="col-lg-8"><div class="card"><div class="card-body"><dl class="row info mb-0">
+    <div class="col-sm-6"><dt>Vị trí</dt><dd>@Model.ViTri</dd></div><div class="col-sm-6"><dt>Thời gian</dt><dd>@Model.TuNgay?.ToString("dd/MM/yyyy") – @Model.DenNgay?.ToString("dd/MM/yyyy")</dd></div>
+    <div class="col-12"><dt>Hạ tầng CNTT có thể bị ảnh hưởng</dt><dd style="white-space:pre-line">@Model.HaTangAnhHuong</dd></div>
+    <div class="col-sm-6"><dt>Người của Phòng CNTT tham gia đánh giá</dt><dd>@Model.NguoiThamGiaCntt (@Model.NgayDanhGia?.ToString("dd/MM/yyyy"))</dd></div><div class="col-sm-6"><dt>Nhà thầu</dt><dd>@Model.NhaThau</dd></div>
+    <div class="col-12"><dt>Biện pháp bảo vệ hạ tầng</dt><dd style="white-space:pre-line">@Model.BienPhapBaoVe</dd></div>
+    <div class="col-12"><dt>Kết quả giám sát</dt><dd style="white-space:pre-line">@Model.KetQuaGiamSat</dd></div>
+    <div class="col-12"><dt>Phiếu thay đổi (di dời thiết bị)</dt><dd>@if (Model.PhieuThayDoi is not null) { <a asp-controller="PhieuThayDoi" asp-action="Details" asp-route-id="@Model.PhieuThayDoiId">@Model.PhieuThayDoi.Ma</a> }</dd></div>
+</dl></div></div></div><div class="col-lg-4">@await Html.PartialAsync("_DinhKem", (DoiTuong: "DuAnXayDung", DoiTuongId: Model.Id.ToString(), Teps: (List<TepDinhKem>)ViewBag.Tep, DuocTaiLen: cntt))</div></div>
