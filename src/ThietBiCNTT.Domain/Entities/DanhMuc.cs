@@ -35,6 +35,8 @@ public class LoaiThietBi : BaseEntity
     /// <summary>Loại có ổ lưu trữ → bắt buộc xoá dữ liệu trước khi thanh lý.</summary>
     [Display(Name = "Có lưu trữ dữ liệu")] public bool CoLuuTruDuLieu { get; set; }
     [Range(1, 50), Display(Name = "Thời gian sử dụng khuyến nghị (năm)")] public int TuoiThoNam { get; set; } = 5;
+    /// <summary>Chu kỳ bảo trì khuyến cáo của nhà sản xuất (FR-PM-15) — mặc định khi lập kế hoạch.</summary>
+    [Range(1, 3650), Display(Name = "Chu kỳ bảo trì khuyến cáo (ngày)")] public int? ChuKyBaoTriNgay { get; set; }
 }
 
 public class NhaCungCap : BaseEntity

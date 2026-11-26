@@ -1,0 +1,53 @@
+@model KeHoachBaoTri
+@{
+    ViewData["Title"] = Model.Ten; var ts = (List<TaiSan>)ViewBag.TaiSans; var lenh = (List<PhieuSuaChua>)ViewBag.Lenh; var moc = (List<DateOnly>)ViewBag.CacMoc;
+    var u = User.Identity?.Name; var cntt = User.LaCNTT();
+    var lanCuoi = lenh.Where(p => p.NgayHoanThanh != null).GroupBy(p => p.TaiSanId).ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.NgayHoanThanh).First());
+    var mo = lenh.Where(p => p.TrangThai is not (TrangThaiPhieuSuaChua.DaNghiemThu or TrangThaiPhieuSuaChua.DaHuy or TrangThaiPhieuSuaChua.HoanThanh)).ToDictionary(p => p.TaiSanId, p => p);
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Bảo trì định kỳ</a> › @Model.Ten</div>
+<div class="page-head"><h1>@Model.Ten</h1> <span class="badge bg-@(Model.TrangThai == TrangThaiKeHoach.HieuLuc ? "success" : Model.TrangThai is TrangThaiKeHoach.ChoDuyet or TrangThaiKeHoach.ChoThamDinh ? "warning text-dark" : "secondary")">@Model.TrangThai.Ten()</span>
+    <div class="actions">
+        @if (cntt) { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.Nhap) { <form asp-action="GuiTrinh" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Gửi trình</button></form> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.HieuLuc) { <form asp-action="TamDung" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-warning">Tạm dừng</button></form> }
+        @if (cntt && Model.TrangThai == TrangThaiKeHoach.TamDung) { <form asp-action="TiepTuc" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-success">Tiếp tục</button></form> }
+    </div>
+</div>
+@if ((Model.TrangThai == TrangThaiKeHoach.ChoThamDinh && string.Equals(u, Model.NguoiThamDinh, StringComparison.OrdinalIgnoreCase))
+     || (Model.TrangThai == TrangThaiKeHoach.ChoDuyet && (string.Equals(u, Model.NguoiDuyet, StringComparison.OrdinalIgnoreCase) || User.IsInRole(VaiTro.QuanTri))))
+{
+    var thamDinh = Model.TrangThai == TrangThaiKeHoach.ChoThamDinh;
+    <form asp-action="@(thamDinh ? "ThamDinh" : "Duyet")" asp-route-id="@Model.Id" method="post" class="card card-body mb-3 border-warning">
+        <label class="form-label" for="yk"><b>@(thamDinh ? "Thẩm định" : "Xét duyệt")</b> — ý kiến (bắt buộc khi trả lại)</label>
+        <textarea name="yKien" id="yk" rows="2" class="form-control mb-2"></textarea>
+        <div><button name="dongY" value="true" class="btn btn-success">@(thamDinh ? "Đồng ý, chuyển duyệt" : "Duyệt — cho hiệu lực")</button> <button name="dongY" value="false" class="btn btn-outline-danger">Trả lại</button></div>
+    </form>
+}
+<div class="row g-3 mb-3">
+    <div class="col-lg-7"><div class="card h-100"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-sm-6"><dt>Áp dụng cho</dt><dd>@(Model.TaiSan is not null ? Model.TaiSan.MaTaiSan + " – " + Model.TaiSan.Ten : "Tất cả " + Model.LoaiThietBi?.Ten) @(Model.KhoaPhong is null ? "" : "· " + Model.KhoaPhong.Ten) (@ts.Count TS)</dd></div>
+        <div class="col-sm-6"><dt>Chu kỳ</dt><dd>@Model.KieuChuKy.Ten(): @(Model.TheoThoiGian ? $"{Model.ChuKyNgay} ngày" : "") @(Model.TheoChiSo ? $"/ {Model.ChuKyChiSo:N0} {Model.DonViChiSo}" : "")</dd></div>
+        <div class="col-sm-6"><dt>Các mốc sắp tới</dt><dd>@(moc.Count == 0 ? "—" : string.Join(", ", moc.Select(d => d.ToString("dd/MM/yy"))))</dd></div>
+        <div class="col-sm-6"><dt>KTV · checklist</dt><dd>@(Model.KyThuatVien ?? "chưa giao") · @(Model.MauKiemTra?.Ten ?? "hướng dẫn văn bản")</dd></div>
+        <div class="col-sm-6"><dt>Thẩm định</dt><dd>@(Model.NguoiThamDinh ?? "—") @(Model.NgayThamDinh?.ToString("· dd/MM/yyyy"))</dd></div>
+        <div class="col-sm-6"><dt>Xét duyệt</dt><dd>@(Model.NguoiDuyet ?? "—") @(Model.NgayDuyet?.ToString("· dd/MM/yyyy"))</dd></div>
+        @if (!string.IsNullOrEmpty(Model.YKien)) { <div class="col-12"><dt>Ý kiến</dt><dd class="text-danger">@Model.YKien</dd></div> }
+        <div class="col-sm-6"><dt>Dự trù / lần / TS</dt><dd>@Model.GioCongDuKien.ToString("0.##") giờ công · @Model.ChiPhiDuKien.ToString("N0") đ thuê ngoài</dd></div>
+        <div class="col-sm-6"><dt>Vật tư / lần / TS</dt><dd>@(Model.VatTus.Count == 0 ? "—" : string.Join(", ", Model.VatTus.Select(v => $"{v.VatTu?.Ten} × {v.SoLuong:0.##}")))</dd></div>
+        @if (!string.IsNullOrEmpty(Model.Checklist)) { <div class="col-12"><dt>Hướng dẫn</dt><dd style="white-space:pre-line">@Model.Checklist</dd></div> }
+    </dl></div></div></div>
+    <div class="col-lg-5"><div class="card h-100"><div class="card-header">Lệnh bảo trì (@lenh.Count)</div><div class="list-group list-group-flush" style="max-height:300px;overflow:auto">
+        @foreach (var p in lenh.Take(50)) { <a class="list-group-item list-group-item-action small d-flex" href="/PhieuSuaChua/Details/@p.Id"><b class="me-2">@p.SoPhieu</b> @p.TaiSan?.MaTaiSan <span class="ms-auto">@Html.Raw(Badge.Html(p.TrangThai))</span></a> }
+        @if (lenh.Count == 0) { <div class="list-group-item small text-muted">Chưa sinh lệnh.</div> }
+    </div></div></div>
+</div>
+<div class="card"><div class="card-header">Thiết bị trong phạm vi</div><div class="table-responsive"><table class="table table-sm mb-0 small">
+    <thead><tr><th>Mã</th><th>Tên</th><th>Khoa</th><th>Lần bảo trì gần nhất</th>@if (Model.TheoChiSo) { <th class="text-end">Chỉ số lần trước</th><th class="text-end">Chỉ số hiện tại</th><th class="text-end">Còn</th> }<th>Lệnh đang mở</th></tr></thead>
+    <tbody>@foreach (var t in ts) {
+        var lc = lanCuoi.GetValueOrDefault(t.Id); long? con = lc?.ChiSoBoDem is { } a && t.ChiSoBoDem is { } h && Model.ChuKyChiSo is { } ck ? ck - (h - a) : null;
+        <tr><td><a href="/TaiSan/Details/@t.Id">@t.MaTaiSan</a></td><td>@t.Ten</td><td>@t.KhoaPhong?.Ten</td><td>@(lc?.NgayHoanThanh?.ToString("dd/MM/yyyy") ?? "—")</td>
+            @if (Model.TheoChiSo) { <td class="text-end">@lc?.ChiSoBoDem?.ToString("N0")</td><td class="text-end">@t.ChiSoBoDem?.ToString("N0")</td><td class="text-end @(con <= 0 ? "text-danger fw-semibold" : "")">@con?.ToString("N0")</td> }
+            <td>@if (mo.GetValueOrDefault(t.Id) is { } pm) { <a href="/PhieuSuaChua/Details/@pm.Id">@pm.SoPhieu</a> }</td></tr> }
+    @if (ts.Count == 0) { <tr><td colspan="8" class="text-muted text-center">Không có thiết bị đang sử dụng trong phạm vi.</td></tr> }
+    </tbody></table></div></div>

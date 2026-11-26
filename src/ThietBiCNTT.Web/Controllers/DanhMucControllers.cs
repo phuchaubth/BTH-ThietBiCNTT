@@ -71,7 +71,7 @@ public class LoaiThietBiController(AppDbContext db, ThietBiCNTT.Infrastructure.S
 {
     protected override LoaiThietBi TaoMoi() => new() { TuoiThoNam = thamSo.SoNguyen(ThietBiCNTT.Infrastructure.Services.TS.TuoiThoMacDinhNam) };
     protected override string TieuDe => "Loại thiết bị";
-    protected override string[] Cot => [nameof(LoaiThietBi.Ma), nameof(LoaiThietBi.Ten), nameof(LoaiThietBi.Nhom), nameof(LoaiThietBi.CoLuuTruDuLieu), nameof(LoaiThietBi.TuoiThoNam)];
+    protected override string[] Cot => [nameof(LoaiThietBi.Ma), nameof(LoaiThietBi.Ten), nameof(LoaiThietBi.Nhom), nameof(LoaiThietBi.CoLuuTruDuLieu), nameof(LoaiThietBi.TuoiThoNam), nameof(LoaiThietBi.ChuKyBaoTriNgay)];
     protected override IQueryable<LoaiThietBi> TimKiem(IQueryable<LoaiThietBi> q, string s) => q.Where(x => x.Ma.Contains(s) || x.Ten.Contains(s));
 }
 

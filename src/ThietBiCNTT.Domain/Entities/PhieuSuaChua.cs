@@ -57,6 +57,8 @@ public class PhieuSuaChua : BaseEntity
     [StringLength(1000), Display(Name = "Ý kiến người dùng")] public string? YKienNguoiDung { get; set; }
 
     [Display(Name = "Kế hoạch bảo trì")] public int? KeHoachBaoTriId { get; set; }
+    /// <summary>Chỉ số bộ đếm khi hoàn thành lệnh bảo trì (mốc tính chu kỳ theo chỉ số lần sau).</summary>
+    [Display(Name = "Chỉ số bộ đếm khi hoàn thành")] public long? ChiSoBoDem { get; set; }
     public KeHoachBaoTri? KeHoachBaoTri { get; set; }
     public ICollection<ChiTietVatTuSuaChua> VatTus { get; set; } = [];
     public ICollection<BinhLuanPhieu> BinhLuans { get; set; } = [];
@@ -200,6 +202,28 @@ public class ChiTietVatTuSuaChua
 }
 
 /// <summary>Kế hoạch bảo trì phòng ngừa (PM) theo chu kỳ ngày, áp cho một tài sản hoặc cả loại thiết bị.</summary>
+public enum TrangThaiKeHoach
+{
+    [Display(Name = "Nháp")] Nhap = 1,
+    [Display(Name = "Chờ thẩm định")] ChoThamDinh,
+    [Display(Name = "Chờ duyệt")] ChoDuyet,
+    [Display(Name = "Hiệu lực")] HieuLuc,
+    [Display(Name = "Tạm dừng")] TamDung,
+    [Display(Name = "Hết hiệu lực")] HetHieuLuc
+}
+
+public enum KieuChuKy
+{
+    [Display(Name = "Theo thời gian")] ThoiGian = 1,
+    [Display(Name = "Theo chỉ số (bộ đếm)")] ChiSo,
+    [Display(Name = "Thời gian hoặc chỉ số – điều kiện nào đến trước")] KetHop
+}
+
+/// <summary>
+/// Kế hoạch bảo trì định kỳ (FR-PM-01..15). Theo thời gian: sinh lệnh theo lô cho mọi tài sản phạm vi ở <see cref="NgayTiepTheo"/>.
+/// Theo chỉ số: sinh lệnh riêng cho tài sản có bộ đếm tăng ≥ <see cref="ChuKyChiSo"/> kể từ lần bảo trì trước.
+/// Chỉ kế hoạch ở trạng thái Hiệu lực mới sinh lệnh.
+/// </summary>
 public class KeHoachBaoTri : BaseEntity
 {
     [Required, StringLength(200), Display(Name = "Tên kế hoạch")] public string Ten { get; set; } = "";
@@ -207,14 +231,116 @@ public class KeHoachBaoTri : BaseEntity
     public LoaiThietBi? LoaiThietBi { get; set; }
     [Display(Name = "Áp dụng cho tài sản")] public int? TaiSanId { get; set; }
     public TaiSan? TaiSan { get; set; }
+    [Display(Name = "Chỉ tài sản của khoa")] public int? KhoaPhongId { get; set; }
+    public KhoaPhong? KhoaPhong { get; set; }
+    [Display(Name = "Kiểu chu kỳ")] public KieuChuKy KieuChuKy { get; set; } = KieuChuKy.ThoiGian;
     [Range(1, 3650), Display(Name = "Chu kỳ (ngày)")] public int ChuKyNgay { get; set; } = 180;
+    [Range(1, long.MaxValue), Display(Name = "Chu kỳ theo chỉ số")] public long? ChuKyChiSo { get; set; }
+    [StringLength(30), Display(Name = "Đơn vị chỉ số")] public string? DonViChiSo { get; set; }
     [Display(Name = "Ngày thực hiện tiếp theo"), DataType(DataType.Date)] public DateOnly NgayTiepTheo { get; set; }
-    [StringLength(4000), Display(Name = "Checklist (mỗi dòng 1 mục)")] public string? Checklist { get; set; }
+    [Display(Name = "Hiệu lực đến (tuỳ chọn)"), DataType(DataType.Date)] public DateOnly? NgayKetThuc { get; set; }
+    [StringLength(4000), Display(Name = "Hướng dẫn / checklist văn bản (mỗi dòng 1 mục)")] public string? Checklist { get; set; }
+    [Display(Name = "Phiếu checklist (mẫu kiểm tra)")] public int? MauKiemTraId { get; set; }
+    public MauKiemTra? MauKiemTra { get; set; }
     [StringLength(100), Display(Name = "KTV phụ trách")] public string? KyThuatVien { get; set; }
+    [Range(0, 1000), Display(Name = "Giờ công dự kiến / lần / thiết bị")] public decimal GioCongDuKien { get; set; } = 1;
+    [Range(0, double.MaxValue), Display(Name = "Chi phí thuê ngoài dự kiến / lần / thiết bị")] public decimal ChiPhiDuKien { get; set; }
     [Display(Name = "Đang áp dụng")] public bool DangApDung { get; set; } = true;
+    public TrangThaiKeHoach TrangThai { get; set; } = TrangThaiKeHoach.HieuLuc;
+    [StringLength(100), Display(Name = "Người thẩm định")] public string? NguoiThamDinh { get; set; }
+    [StringLength(100), Display(Name = "Người xét duyệt")] public string? NguoiDuyet { get; set; }
+    public DateTime? NgayThamDinh { get; set; }
+    public DateTime? NgayDuyet { get; set; }
+    [StringLength(1000)] public string? YKien { get; set; }
+    public List<KeHoachVatTu> VatTus { get; set; } = [];
 
+    public bool TheoThoiGian => KieuChuKy != KieuChuKy.ChiSo;
+    public bool TheoChiSo => KieuChuKy != KieuChuKy.ThoiGian && ChuKyChiSo > 0;
     public bool DenHan(DateOnly homNay) => DangApDung && NgayTiepTheo <= homNay;
     public void DayLichTiep() => NgayTiepTheo = NgayTiepTheo.AddDays(ChuKyNgay);
+
+    /// <summary>Bộ đếm đã tăng đủ chu kỳ kể từ lần bảo trì trước (chưa có lần trước → chưa xét chỉ số).</summary>
+    public bool DenHanChiSo(long? hienTai, long? lanTruoc) => TheoChiSo && hienTai is { } h && lanTruoc is { } l && h - l >= ChuKyChiSo;
+
+    /// <summary>Các mốc thời gian dự kiến trong [tu, den] (theo chu kỳ ngày, tính từ NgayTiepTheo).</summary>
+    public IEnumerable<DateOnly> CacMoc(DateOnly tu, DateOnly den)
+    {
+        if (!TheoThoiGian) yield break;
+        var d = NgayTiepTheo;
+        while (d < tu) d = d.AddDays(ChuKyNgay);
+        for (; d <= den && (NgayKetThuc is null || d <= NgayKetThuc); d = d.AddDays(ChuKyNgay)) yield return d;
+    }
+
+    private void DatTrangThai(TrangThaiKeHoach t) { TrangThai = t; DangApDung = t == TrangThaiKeHoach.HieuLuc; }
+
+    public void KiemTra()
+    {
+        if (LoaiThietBiId is null && TaiSanId is null) throw new DomainException("Chọn loại thiết bị hoặc một tài sản cụ thể.");
+        if (KieuChuKy != KieuChuKy.ThoiGian && (ChuKyChiSo is null or <= 0)) throw new DomainException("Nhập chu kỳ theo chỉ số (VD 20.000 trang).");
+        if (NgayKetThuc is { } kt && kt < NgayTiepTheo) throw new DomainException("Ngày hết hiệu lực trước ngày thực hiện đầu tiên.");
+    }
+
+    /// <summary>Gửi trình: có người thẩm định → Chờ thẩm định; không → Chờ duyệt.</summary>
+    public void GuiTrinh()
+    {
+        if (TrangThai is not TrangThaiKeHoach.Nhap) throw new DomainException("Chỉ gửi trình kế hoạch nháp.");
+        KiemTra();
+        if (string.IsNullOrWhiteSpace(NguoiDuyet)) throw new DomainException("Chọn người xét duyệt.");
+        YKien = null;
+        DatTrangThai(string.IsNullOrWhiteSpace(NguoiThamDinh) ? TrangThaiKeHoach.ChoDuyet : TrangThaiKeHoach.ChoThamDinh);
+    }
+
+    public void ThamDinh(string nguoi, bool dongY, string? yKien, DateTime now)
+    {
+        if (TrangThai != TrangThaiKeHoach.ChoThamDinh) throw new DomainException("Kế hoạch không ở bước thẩm định.");
+        if (!string.Equals(nguoi, NguoiThamDinh, StringComparison.OrdinalIgnoreCase)) throw new DomainException($"Chỉ {NguoiThamDinh} được thẩm định kế hoạch này.");
+        if (!dongY && string.IsNullOrWhiteSpace(yKien)) throw new DomainException("Ghi lý do khi trả lại.");
+        NgayThamDinh = now; YKien = yKien;
+        DatTrangThai(dongY ? TrangThaiKeHoach.ChoDuyet : TrangThaiKeHoach.Nhap);
+    }
+
+    public void Duyet(string nguoi, bool laQuanTri, bool dongY, string? yKien, DateTime now)
+    {
+        if (TrangThai != TrangThaiKeHoach.ChoDuyet) throw new DomainException("Kế hoạch không ở bước xét duyệt.");
+        if (!laQuanTri && !string.Equals(nguoi, NguoiDuyet, StringComparison.OrdinalIgnoreCase)) throw new DomainException($"Chỉ {NguoiDuyet} (hoặc Quản trị) được duyệt kế hoạch này.");
+        if (string.Equals(nguoi, NguoiTao, StringComparison.OrdinalIgnoreCase)) throw new DomainException("Người lập không tự duyệt kế hoạch.");
+        if (!dongY && string.IsNullOrWhiteSpace(yKien)) throw new DomainException("Ghi lý do khi trả lại.");
+        NgayDuyet = now; YKien = yKien;
+        DatTrangThai(dongY ? TrangThaiKeHoach.HieuLuc : TrangThaiKeHoach.Nhap);
+    }
+
+    public void TamDung()
+    {
+        if (TrangThai != TrangThaiKeHoach.HieuLuc) throw new DomainException("Chỉ tạm dừng kế hoạch đang hiệu lực.");
+        DatTrangThai(TrangThaiKeHoach.TamDung);
+    }
+
+    public void TiepTuc(DateOnly homNay)
+    {
+        if (TrangThai != TrangThaiKeHoach.TamDung) throw new DomainException("Kế hoạch không ở trạng thái tạm dừng.");
+        if (NgayKetThuc is { } kt && kt < homNay) throw new DomainException("Kế hoạch đã quá ngày hiệu lực.");
+        DatTrangThai(TrangThaiKeHoach.HieuLuc);
+    }
+
+    /// <summary>Hết ngày hiệu lực → chuyển Hết hiệu lực (job nền).</summary>
+    public bool KiemTraHetHan(DateOnly homNay)
+    {
+        if (TrangThai != TrangThaiKeHoach.HieuLuc || NgayKetThuc is not { } kt || kt >= homNay) return false;
+        DatTrangThai(TrangThaiKeHoach.HetHieuLuc); return true;
+    }
+
+    /// <summary>Sửa kế hoạch đã duyệt → quay lại nháp, phải trình duyệt lại.</summary>
+    public void VeNhap() => DatTrangThai(TrangThaiKeHoach.Nhap);
+}
+
+/// <summary>Vật tư tiêu hao chuẩn cho mỗi lần bảo trì một thiết bị (FR-PM-10) — dùng dự trù kho / ngân sách.</summary>
+public class KeHoachVatTu
+{
+    public int Id { get; set; }
+    public int KeHoachBaoTriId { get; set; }
+    public int VatTuId { get; set; }
+    public VatTu? VatTu { get; set; }
+    public decimal SoLuong { get; set; }
 }
 
 /// <summary>Trao đổi / bình luận giữa người báo và KTV ngay trong phiếu.</summary>

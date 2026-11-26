@@ -13,6 +13,7 @@
 <div class="page-head"><h1 class="h5">@Model.Ten</h1></div>
 @if (Model.MoTa is not null) { <div class="alert alert-info small py-2">@Model.MoTa</div> }
 <form asp-action="Ghi" method="post" enctype="multipart/form-data" style="max-width:720px">
+    @if (ViewData["phieuBaoTriId"] is int pbt) { <input type="hidden" name="phieuBaoTriId" value="@pbt" /><div class="alert alert-info small">Checklist cho lệnh bảo trì định kỳ — kết quả gắn vào lệnh; mục không đạt tự tạo phiếu sửa chữa.</div> }
     <input type="hidden" name="mauId" value="@Model.Id" />
     @if (Model.KhongGanTaiSan) { <div class="mb-3"><span class="text-muted small">Vị trí:</span> <b>@Model.ViTri</b></div> }
     else if (((SelectList)ViewBag.DsTaiSan).Count() == 0)

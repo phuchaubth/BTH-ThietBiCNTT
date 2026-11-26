@@ -89,7 +89,7 @@ public class KiemTraService(AppDbContext db, ThongBaoService tb, SoPhieuService 
     /// <summary>Danh sách việc kiểm tra, sắp theo hạn. <paramref name="khoaId"/> lọc mẫu theo khoa thực hiện.</summary>
     public async Task<List<ViecKiemTra>> DanhSachViecAsync(DateTime now, int? khoaId = null, bool chiDenHan = false)
     {
-        var maus = await db.MauKiemTras.AsNoTracking().Include(m => m.KhoaPhong).Where(m => m.DangApDung && (khoaId == null || m.KhoaPhongId == khoaId)).ToListAsync();
+        var maus = await db.MauKiemTras.AsNoTracking().Include(m => m.KhoaPhong).Where(m => m.DangApDung && !m.DungChoBaoTri && (khoaId == null || m.KhoaPhongId == khoaId)).ToListAsync();
         var lanCuoi = (await db.LanKiemTras.GroupBy(l => new { l.MauKiemTraId, l.TaiSanId })
                 .Select(g => new { g.Key.MauKiemTraId, g.Key.TaiSanId, Max = g.Max(x => x.ThoiGian) }).ToListAsync())
             .ToDictionary(x => (x.MauKiemTraId, x.TaiSanId), x => x.Max);
@@ -105,14 +105,32 @@ public class KiemTraService(AppDbContext db, ThongBaoService tb, SoPhieuService 
         return kq.OrderBy(v => v.HanTiep).ToList();
     }
 
-    public async Task<LanKiemTra> GhiAsync(int mauId, int? taiSanId, IReadOnlyDictionary<int, string?> nhap, string nguoi, string? ghiChu)
+    public async Task<LanKiemTra> GhiAsync(int mauId, int? taiSanId, IReadOnlyDictionary<int, string?> nhap, string nguoi, string? ghiChu, int? phieuBaoTriId = null)
     {
         var mau = await db.MauKiemTras.Include(m => m.Mucs).FirstOrDefaultAsync(m => m.Id == mauId) ?? throw new DomainException("Không tìm thấy phiếu kiểm tra.");
-        if (taiSanId is not null && !(await DoiTuongAsync(mau)).Any(t => t?.Id == taiSanId)) throw new DomainException("Thiết bị không thuộc phạm vi phiếu kiểm tra này.");
+        PhieuSuaChua? pm = null;
+        if (phieuBaoTriId is { } pid)
+        {
+            // Checklist của lệnh bảo trì: đúng thiết bị, đúng mẫu của kế hoạch, lệnh còn mở
+            pm = await db.PhieuSuaChuas.Include(p => p.KeHoachBaoTri).FirstOrDefaultAsync(p => p.Id == pid)
+                 ?? throw new DomainException("Không tìm thấy lệnh bảo trì.");
+            if (pm.LoaiCongViec != LoaiCongViec.BaoTriDinhKy || pm.KeHoachBaoTri?.MauKiemTraId != mauId || pm.TaiSanId != taiSanId)
+                throw new DomainException("Checklist không khớp với lệnh bảo trì.");
+            if (pm.DaDong || pm.TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Lệnh bảo trì đã hoàn thành.");
+        }
+        else if (taiSanId is not null && !(await DoiTuongAsync(mau)).Any(t => t?.Id == taiSanId)) throw new DomainException("Thiết bị không thuộc phạm vi phiếu kiểm tra này.");
         var now = DateTime.Now;
         var lan = mau.ChamDiem(nhap, mau.KhongGanTaiSan ? null : taiSanId, nguoi, now, ghiChu);
+        lan.PhieuBaoTriId = pm?.Id;
         db.LanKiemTras.Add(lan);
         await db.SaveChangesAsync();
+        if (pm is not null)
+        {
+            db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = pm.Id, ThoiGian = now, NguoiViet = nguoi, LaHeThong = true,
+                NoiDung = $"Đã thực hiện checklist '{mau.Ten}': " + (lan.CoBatThuong ? "có mục không đạt — " + lan.TomTatBatThuong() : "tất cả đạt") });
+            if (pm.TrangThai == TrangThaiPhieuSuaChua.DaTiepNhan) pm.BatDauXuLy(now);
+            await db.SaveChangesAsync();
+        }
         if (lan.CoBatThuong) await XuLyBatThuongAsync(mau, lan, nguoi);
         return lan;
     }

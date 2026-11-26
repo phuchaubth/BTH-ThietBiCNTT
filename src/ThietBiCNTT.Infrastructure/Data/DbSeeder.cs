@@ -35,15 +35,15 @@ public static class DbSeeder
                 new KhoaPhong { Ma = "CDHA", Ten = "Khoa Chẩn đoán hình ảnh" },
                 new KhoaPhong { Ma = "DUOC", Ten = "Khoa Dược" });
             db.LoaiThietBis.AddRange(
-                new LoaiThietBi { Ma = "PC", Ten = "Máy tính để bàn", Nhom = NhomThietBi.MayTinhDeBan, CoLuuTruDuLieu = true, TuoiThoNam = 5 },
-                new LoaiThietBi { Ma = "LT", Ten = "Máy tính xách tay", Nhom = NhomThietBi.MayTinhXachTay, CoLuuTruDuLieu = true, TuoiThoNam = 5 },
-                new LoaiThietBi { Ma = "SV", Ten = "Máy chủ", Nhom = NhomThietBi.MayChu, CoLuuTruDuLieu = true, TuoiThoNam = 7 },
-                new LoaiThietBi { Ma = "PRN", Ten = "Máy in laser", Nhom = NhomThietBi.MayIn, TuoiThoNam = 5 },
+                new LoaiThietBi { Ma = "PC", ChuKyBaoTriNgay = 180, Ten = "Máy tính để bàn", Nhom = NhomThietBi.MayTinhDeBan, CoLuuTruDuLieu = true, TuoiThoNam = 5 },
+                new LoaiThietBi { Ma = "LT", ChuKyBaoTriNgay = 180, Ten = "Máy tính xách tay", Nhom = NhomThietBi.MayTinhXachTay, CoLuuTruDuLieu = true, TuoiThoNam = 5 },
+                new LoaiThietBi { Ma = "SV", ChuKyBaoTriNgay = 90, Ten = "Máy chủ", Nhom = NhomThietBi.MayChu, CoLuuTruDuLieu = true, TuoiThoNam = 7 },
+                new LoaiThietBi { Ma = "PRN", ChuKyBaoTriNgay = 90, Ten = "Máy in laser", Nhom = NhomThietBi.MayIn, TuoiThoNam = 5 },
                 new LoaiThietBi { Ma = "SCN", Ten = "Máy scan", Nhom = NhomThietBi.MayIn, TuoiThoNam = 5 },
                 new LoaiThietBi { Ma = "SW", Ten = "Switch mạng", Nhom = NhomThietBi.ThietBiMang, TuoiThoNam = 7 },
                 new LoaiThietBi { Ma = "AP", Ten = "Wifi Access Point", Nhom = NhomThietBi.ThietBiMang, TuoiThoNam = 5 },
                 new LoaiThietBi { Ma = "MH", Ten = "Màn hình", Nhom = NhomThietBi.ManHinh, TuoiThoNam = 6 },
-                new LoaiThietBi { Ma = "UPS", Ten = "Bộ lưu điện UPS", Nhom = NhomThietBi.Ups, TuoiThoNam = 5 },
+                new LoaiThietBi { Ma = "UPS", ChuKyBaoTriNgay = 365, Ten = "Bộ lưu điện UPS", Nhom = NhomThietBi.Ups, TuoiThoNam = 5 },
                 new LoaiThietBi { Ma = "CAM", Ten = "Camera IP", Nhom = NhomThietBi.Camera, TuoiThoNam = 5 },
                 new LoaiThietBi { Ma = "BCR", Ten = "Máy đọc mã vạch", Nhom = NhomThietBi.NgoaiVi, TuoiThoNam = 4 });
             db.NhaCungCaps.AddRange(
@@ -179,8 +179,15 @@ public static class DbSeeder
         }
         db.KeHoachBaoTris.AddRange(
             new KeHoachBaoTri { Ten = "Vệ sinh máy tính định kỳ 6 tháng", LoaiThietBiId = loai["PC"].Id, ChuKyNgay = 180, NgayTiepTheo = homNay.AddDays(5),
+                NguoiDuyet = "admin", GioCongDuKien = 1, MauKiemTra = new MauKiemTra { Ten = "Checklist bảo trì máy tính", LoaiThietBiId = loai["PC"].Id, DungChoBaoTri = true, ChuKyGio = 4320, NguoiTao = "admin",
+                    Mucs = [new MucKiemTra { ThuTu = 1, NoiDung = "Vệ sinh bụi, tra keo tản nhiệt", Kieu = KieuMucKiemTra.DatKhongDat },
+                            new MucKiemTra { ThuTu = 2, NoiDung = "Nhiệt độ CPU khi tải", Kieu = KieuMucKiemTra.So, DonVi = "°C", NguongMax = 80 },
+                            new MucKiemTra { ThuTu = 3, NoiDung = "Dung lượng trống ổ C", Kieu = KieuMucKiemTra.So, DonVi = "GB", NguongMin = 20 },
+                            new MucKiemTra { ThuTu = 4, NoiDung = "Cập nhật Windows, quét virus", Kieu = KieuMucKiemTra.DatKhongDat },
+                            new MucKiemTra { ThuTu = 5, NoiDung = "Ghi chú", Kieu = KieuMucKiemTra.VanBan, BatBuoc = false }] },
                 Checklist = "Vệ sinh bụi, tra keo tản nhiệt\nKiểm tra quạt, nguồn\nCập nhật Windows, diệt virus\nKiểm tra dung lượng ổ cứng\nKiểm tra kết nối HIS", KyThuatVien = "ktv1" },
-            new KeHoachBaoTri { Ten = "Bảo dưỡng máy in 3 tháng", LoaiThietBiId = loai["PRN"].Id, ChuKyNgay = 90, NgayTiepTheo = homNay.AddDays(-2),
+            new KeHoachBaoTri { Ten = "Bảo dưỡng máy in 3 tháng hoặc 20.000 trang", LoaiThietBiId = loai["PRN"].Id, ChuKyNgay = 90, NgayTiepTheo = homNay.AddDays(-2),
+                KieuChuKy = KieuChuKy.KetHop, ChuKyChiSo = 20000, DonViChiSo = "trang", NguoiDuyet = "admin", GioCongDuKien = 0.5m,
                 Checklist = "Vệ sinh trục kéo giấy\nKiểm tra trống, lô sấy\nIn trang thử", KyThuatVien = "ktv2" },
             new KeHoachBaoTri { Ten = "Kiểm tra ắc quy UPS hằng năm", LoaiThietBiId = loai["UPS"].Id, ChuKyNgay = 365, NgayTiepTheo = homNay.AddDays(30),
                 Checklist = "Đo điện áp ắc quy\nTest chuyển nguồn\nGhi nhận thời gian lưu điện", KyThuatVien = "ktv1" });
@@ -211,7 +218,7 @@ public static class DbSeeder
 
     private static async Task TaoMauKiemTraMau(AppDbContext db, Dictionary<string, LoaiThietBi> loai, Dictionary<string, KhoaPhong> khoa)
     {
-        if (await db.MauKiemTras.AnyAsync()) return;
+        if (await db.MauKiemTras.AnyAsync(m => !m.DungChoBaoTri)) return;
         static MucKiemTra Dk(int i, string nd) => new() { ThuTu = i, NoiDung = nd, Kieu = KieuMucKiemTra.DatKhongDat };
         static MucKiemTra So(int i, string nd, string dv, decimal? min, decimal? max) => new() { ThuTu = i, NoiDung = nd, Kieu = KieuMucKiemTra.So, DonVi = dv, NguongMin = min, NguongMax = max };
         db.MauKiemTras.AddRange(

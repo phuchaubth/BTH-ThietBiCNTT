@@ -30,6 +30,8 @@ public class MauKiemTra : BaseEntity
     [Range(1, 8760), Display(Name = "Chu kỳ (giờ)")] public int ChuKyGio { get; set; } = 24;
     [Display(Name = "Bất thường tự tạo phiếu sửa chữa")] public bool TuTaoPhieu { get; set; } = true;
     [Display(Name = "Đang áp dụng")] public bool DangApDung { get; set; } = true;
+    /// <summary>Checklist dùng cho lệnh bảo trì định kỳ — không xuất hiện trong danh sách kiểm tra theo chu kỳ giờ.</summary>
+    [Display(Name = "Dùng làm checklist bảo trì định kỳ (không lập lịch kiểm tra riêng)")] public bool DungChoBaoTri { get; set; }
     public List<MucKiemTra> Mucs { get; set; } = [];
 
     public bool KhongGanTaiSan => TaiSanId is null && LoaiThietBiId is null;
@@ -119,6 +121,8 @@ public class LanKiemTra
     /// <summary>Phiếu sửa chữa được tạo / liên kết khi có bất thường.</summary>
     public int? PhieuSuaChuaId { get; set; }
     public PhieuSuaChua? PhieuSuaChua { get; set; }
+    /// <summary>Lệnh bảo trì định kỳ mà lần kiểm tra này là checklist thực hiện.</summary>
+    public int? PhieuBaoTriId { get; set; }
     public List<KetQuaKiemTra> KetQuas { get; set; } = [];
 
     public string TomTatBatThuong() => string.Join("; ", KetQuas.Where(k => k.BatThuong).Select(k =>

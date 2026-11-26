@@ -32,6 +32,7 @@
 
 **Giai đoạn 5 (hoàn thiện yêu cầu):**
 - Tài sản: trường thông tin bổ sung do Quản trị định nghĩa theo loại thiết bị (văn bản, số, ngày, danh sách, có/không; bắt buộc) — dùng trong form, hồ sơ, lọc, nhập/xuất Excel, báo cáo tuỳ biến; mã tài sản tự sinh theo mẫu (VD `PC-CC-2026-00012`, xem trước khi tạo); hồ sơ vận hành trên trang tài sản (MTBF, MTTR, dừng máy, chi phí, phụ tùng đã dùng, TCO)
+- Bảo trì định kỳ đầy đủ: kế hoạch có thẩm định → xét duyệt (chỉ kế hoạch Hiệu lực mới sinh lệnh), chu kỳ theo thời gian / bộ đếm / điều kiện nào đến trước, checklist mẫu (đạt/không đạt, số đo có ngưỡng) bắt buộc trước khi hoàn thành — mục không đạt tự tạo phiếu sửa chữa, lịch tháng theo nhiệm vụ/tài sản kéo-thả dời lịch có lý do, vật tư chuẩn & dự trù 12 tháng (Excel), gợi ý chu kỳ theo khuyến cáo và rút ngắn cho thiết bị trọng yếu/hỏng nhiều
 
 ## Tài liệu
 
@@ -49,7 +50,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, taisan2.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, taisan2.py, baotri.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

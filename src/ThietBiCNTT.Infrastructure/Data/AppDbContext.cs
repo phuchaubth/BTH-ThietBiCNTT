@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<ChiTietVatTuSuaChua> ChiTietVatTuSuaChuas => Set<ChiTietVatTuSuaChua>();
     public DbSet<BinhLuanPhieu> BinhLuanPhieus => Set<BinhLuanPhieu>();
     public DbSet<KeHoachBaoTri> KeHoachBaoTris => Set<KeHoachBaoTri>();
+    public DbSet<KeHoachVatTu> KeHoachVatTus => Set<KeHoachVatTu>();
     public DbSet<PhieuDieuChuyen> PhieuDieuChuyens => Set<PhieuDieuChuyen>();
     public DbSet<ChiTietDieuChuyen> ChiTietDieuChuyens => Set<ChiTietDieuChuyen>();
     public DbSet<BuocDuyetDieuChuyen> BuocDuyetDieuChuyens => Set<BuocDuyetDieuChuyen>();
@@ -190,6 +191,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         });
         b.Entity<KhoaApi>().HasIndex(x => x.BamKhoa).IsUnique();
         b.Entity<TruongTuyChinh>().HasIndex(x => x.Ma).IsUnique();
+        b.Entity<KeHoachBaoTri>(e =>
+        {
+            e.HasMany(x => x.VatTus).WithOne().HasForeignKey(x => x.KeHoachBaoTriId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(x => x.GioCongDuKien).HasPrecision(8, 2);
+            e.HasIndex(x => new { x.TrangThai, x.NgayTiepTheo });
+        });
+        b.Entity<KeHoachVatTu>().Property(x => x.SoLuong).HasPrecision(18, 2);
+        b.Entity<LanKiemTra>().HasIndex(x => x.PhieuBaoTriId);
         b.Entity<GiaTriTuyChinh>(e =>
         {
             e.HasKey(x => new { x.TaiSanId, x.TruongTuyChinhId });

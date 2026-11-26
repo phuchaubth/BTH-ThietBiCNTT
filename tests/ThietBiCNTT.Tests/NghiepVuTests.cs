@@ -671,3 +671,48 @@ public class TaiSanMoRongTests
         Assert.Equal(("TB26/", 4, "/UPS"), b);
     }
 }
+
+public class BaoTriDayDuTests
+{
+    private static readonly DateTime Now = new(2026, 11, 26, 9, 0, 0);
+    private static KeHoachBaoTri Kh() => new() { Ten = "x", LoaiThietBiId = 1, NguoiTao = "ktv1", NguoiDuyet = "lanhdao", TrangThai = TrangThaiKeHoach.Nhap, DangApDung = false, NgayTiepTheo = new DateOnly(2026, 12, 1) };
+
+    [Fact]
+    public void QuyTrinh_ThamDinh_Duyet_HieuLuc()
+    {
+        var k = Kh(); k.NguoiThamDinh = "ktv2";
+        k.GuiTrinh(); Assert.Equal(TrangThaiKeHoach.ChoThamDinh, k.TrangThai); Assert.False(k.DangApDung);
+        Assert.Throws<DomainException>(() => k.ThamDinh("ktv1", true, null, Now));          // không phải người thẩm định
+        Assert.Throws<DomainException>(() => k.ThamDinh("ktv2", false, "", Now));           // trả lại phải có lý do
+        k.ThamDinh("ktv2", true, null, Now); Assert.Equal(TrangThaiKeHoach.ChoDuyet, k.TrangThai);
+        Assert.Throws<DomainException>(() => k.Duyet("ktv2", false, true, null, Now));      // không phải người duyệt
+        k.Duyet("lanhdao", false, true, null, Now);
+        Assert.Equal(TrangThaiKeHoach.HieuLuc, k.TrangThai); Assert.True(k.DangApDung);
+        k.TamDung(); Assert.False(k.DangApDung);
+        k.TiepTuc(new DateOnly(2026, 11, 26)); Assert.True(k.DangApDung);
+    }
+
+    [Fact]
+    public void KhongThamDinh_ThangDuyet_NguoiLapKhongTuDuyet_TraLaiVeNhap()
+    {
+        var k = Kh(); k.NguoiDuyet = "ktv1";
+        k.GuiTrinh(); Assert.Equal(TrangThaiKeHoach.ChoDuyet, k.TrangThai);
+        Assert.Throws<DomainException>(() => k.Duyet("ktv1", false, true, null, Now));     // người lập
+        k.Duyet("admin", true, false, "Bổ sung vật tư", Now);                              // Quản trị trả lại
+        Assert.Equal(TrangThaiKeHoach.Nhap, k.TrangThai); Assert.Equal("Bổ sung vật tư", k.YKien);
+        Assert.Throws<DomainException>(() => new KeHoachBaoTri { Ten = "y", TrangThai = TrangThaiKeHoach.Nhap }.GuiTrinh()); // thiếu phạm vi
+        Assert.Throws<DomainException>(() => new KeHoachBaoTri { Ten = "y", LoaiThietBiId = 1, KieuChuKy = KieuChuKy.ChiSo, TrangThai = TrangThaiKeHoach.Nhap, NguoiDuyet = "a" }.GuiTrinh()); // thiếu chu kỳ chỉ số
+    }
+
+    [Fact]
+    public void ChiSo_VaCacMoc_VaHetHan()
+    {
+        var k = new KeHoachBaoTri { KieuChuKy = KieuChuKy.KetHop, ChuKyChiSo = 20000, ChuKyNgay = 90, NgayTiepTheo = new DateOnly(2026, 12, 1), NgayKetThuc = new DateOnly(2027, 6, 30) };
+        Assert.True(k.DenHanChiSo(31000, 10000)); Assert.False(k.DenHanChiSo(29999, 10000)); Assert.False(k.DenHanChiSo(50000, null));
+        Assert.Equal([new DateOnly(2026, 12, 1), new DateOnly(2027, 3, 1)], k.CacMoc(new DateOnly(2026, 11, 1), new DateOnly(2027, 5, 1)));
+        Assert.Single(k.CacMoc(new DateOnly(2027, 3, 2), new DateOnly(2027, 12, 31)));   // 30/05/2027; 28/08 vượt ngày kết thúc
+        Assert.Empty(new KeHoachBaoTri { KieuChuKy = KieuChuKy.ChiSo, ChuKyChiSo = 1 }.CacMoc(new DateOnly(2026, 1, 1), new DateOnly(2027, 1, 1)));
+        Assert.False(k.KiemTraHetHan(new DateOnly(2027, 6, 30)));
+        Assert.True(k.KiemTraHetHan(new DateOnly(2027, 7, 1))); Assert.Equal(TrangThaiKeHoach.HetHieuLuc, k.TrangThai);
+    }
+}

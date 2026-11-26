@@ -1,58 +1,38 @@
 @model List<KeHoachBaoTri>
 @{
-    ViewData["Title"] = "Bảo trì định kỳ";
-    var lich = (List<(DateOnly Ngay, KeHoachBaoTri KeHoach)>)ViewBag.Lich;
-    var homNay = DateOnly.FromDateTime(DateTime.Today);
-    var vi = new System.Globalization.CultureInfo("vi-VN");
+    ViewData["Title"] = "Bảo trì định kỳ"; var homNay = DateOnly.FromDateTime(DateTime.Today);
+    string Mau(TrangThaiKeHoach t) => t switch { TrangThaiKeHoach.HieuLuc => "success", TrangThaiKeHoach.ChoThamDinh or TrangThaiKeHoach.ChoDuyet => "warning text-dark", TrangThaiKeHoach.Nhap => "secondary", _ => "light text-muted border" };
 }
-<div class="page-head">
-    <h1>Bảo trì định kỳ (PM)</h1>
-    <span class="small text-muted ms-2">@ViewBag.SoLenhMo lệnh bảo trì đang mở · sinh lệnh tự động mỗi @ThamSo.SoNguyen(TS.BaoTriChuKyQuetGio) giờ</span>
+<div class="page-head"><h1>Bảo trì định kỳ (PM)</h1>
+    <span class="small text-muted ms-2">@ViewBag.SoLenhMo lệnh đang mở · sinh lệnh tự động mỗi @ThamSo.SoNguyen(TS.BaoTriChuKyQuetGio) giờ</span>
     @if (User.LaCNTT())
     {
         <div class="actions">
-            <a asp-controller="PhieuSuaChua" asp-action="Index" asp-route-loai="BaoTriDinhKy" class="btn btn-sm btn-outline-secondary">Lệnh bảo trì</a>
             <form asp-action="SinhLenh" method="post" class="d-inline"><button class="btn btn-sm btn-outline-primary"><i class="bi bi-lightning"></i> Sinh lệnh đến hạn ngay</button></form>
-            <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm kế hoạch</a>
+            <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Lập kế hoạch</a>
         </div>
     }
 </div>
-<div class="row g-3">
-    <div class="col-lg-7">
-        <div class="card"><div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead><tr><th>Kế hoạch</th><th>Áp dụng cho</th><th>Chu kỳ</th><th>Lần tới</th><th>KTV</th><th></th></tr></thead>
-                <tbody>
-                @foreach (var k in Model)
-                {
-                    var den = k.DenHan(homNay);
-                    <tr class="@(k.DangApDung ? "" : "text-muted")">
-                        <td class="fw-semibold">@k.Ten @if (!k.DangApDung) { <span class="badge bg-light text-muted border">Ngừng</span> }
-                            <div class="small text-muted fw-normal">@(k.Checklist?.Split('\n').Length ?? 0) mục checklist</div></td>
-                        <td class="small">@(k.TaiSan is not null ? k.TaiSan.MaTaiSan : "Tất cả " + k.LoaiThietBi?.Ten)</td>
-                        <td class="small">@k.ChuKyNgay ngày</td>
-                        <td class="small @(den ? "overdue" : "")">@k.NgayTiepTheo.ToString("dd/MM/yyyy")</td>
-                        <td class="small">@k.KyThuatVien</td>
-                        <td>@if (User.LaCNTT()) { <a asp-action="Edit" asp-route-id="@k.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a> }</td>
-                    </tr>
-                }
-                @if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Chưa có kế hoạch bảo trì.</td></tr> }
-                </tbody>
-            </table>
-        </div></div>
-    </div>
-    <div class="col-lg-5">
-        <div class="card"><div class="card-header">Lịch 60 ngày tới</div>
-            <div class="list-group list-group-flush" style="max-height:560px;overflow:auto">
-                @foreach (var g in lich.GroupBy(x => x.Ngay))
-                {
-                    <div class="list-group-item">
-                        <div class="small fw-semibold @(g.Key <= homNay ? "overdue" : "")">@g.Key.ToString("dddd, dd/MM", vi)</div>
-                        @foreach (var x in g) { <div class="small"><i class="bi bi-calendar2-check text-primary"></i> @x.KeHoach.Ten <span class="text-muted">· @(x.KeHoach.TaiSan?.MaTaiSan ?? x.KeHoach.LoaiThietBi?.Ten)</span></div> }
-                    </div>
-                }
-                @if (lich.Count == 0) { <div class="list-group-item small text-muted">Không có lịch trong 60 ngày tới.</div> }
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <select name="trangThai" class="form-select form-select-sm" style="width:200px" asp-items="@EnumExtensions.ToSelectList((TrangThaiKeHoach?)ViewData["trangThai"])" aria-label="Trạng thái" onchange="this.form.submit()"><option value="">— Mọi trạng thái —</option></select>
+    <a class="btn btn-sm @((bool)ViewData["choToi"]! ? "btn-warning" : "btn-outline-warning")" href="?choToi=true">Chờ tôi thẩm định/duyệt <span class="badge bg-light text-dark">@ViewBag.ChoToi</span></a>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+    <thead><tr><th>Kế hoạch</th><th>Áp dụng cho</th><th>Chu kỳ</th><th>Lần tới</th><th>KTV</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var k in Model)
+    {
+        <tr class="@(k.DangApDung ? "" : "text-muted")">
+            <td class="fw-semibold"><a asp-action="ChiTiet" asp-route-id="@k.Id">@k.Ten</a>
+                <div class="small text-muted fw-normal">@(k.MauKiemTra is not null ? "Checklist: " + k.MauKiemTra.Ten : $"{k.Checklist?.Split('\n').Length ?? 0} mục hướng dẫn")</div></td>
+            <td class="small">@(k.TaiSan is not null ? k.TaiSan.MaTaiSan : "Tất cả " + k.LoaiThietBi?.Ten) @(k.KhoaPhong is null ? "" : "· " + k.KhoaPhong.Ten)</td>
+            <td class="small">@(k.TheoThoiGian ? $"{k.ChuKyNgay} ngày" : "") @(k.KieuChuKy == KieuChuKy.KetHop ? "hoặc" : "") @(k.TheoChiSo ? $"{k.ChuKyChiSo:N0} {k.DonViChiSo}" : "")</td>
+            <td class="small @(k.DenHan(homNay) ? "overdue" : "")">@(k.TheoThoiGian ? k.NgayTiepTheo.ToString("dd/MM/yyyy") : "theo chỉ số")</td>
+            <td class="small">@k.KyThuatVien</td>
+            <td><span class="badge bg-@Mau(k.TrangThai)">@k.TrangThai.Ten()</span></td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có kế hoạch.</td></tr> }
+    </tbody>
+</table></div></div>

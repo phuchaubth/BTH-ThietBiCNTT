@@ -1,0 +1,40 @@
+@model List<DuTruKeHoach>
+@{
+    ViewData["Title"] = "Dự trù bảo trì"; var tu = (DateOnly)ViewData["tu"]!; var den = (DateOnly)ViewData["den"]!;
+    var vt = Model.SelectMany(x => x.VatTu).GroupBy(x => x.VatTu.Id).Select(g => (V: g.First().VatTu, SL: g.Sum(x => x.SoLuong), TT: g.Sum(x => x.ThanhTien))).OrderByDescending(x => x.TT).ToList();
+}
+<div class="page-head"><h1>Bảo trì định kỳ (PM)</h1>
+    <div class="actions"><a class="btn btn-sm btn-outline-success" href="/KeHoachBaoTri/XuatDuTru?tu=@tu.ToString("yyyy-MM-dd")&den=@den.ToString("yyyy-MM-dd")"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a></div></div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <label class="small" for="tu">Từ</label><input id="tu" type="date" name="tu" value="@tu.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+    <label class="small" for="den">đến</label><input id="den" type="date" name="den" value="@den.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" />
+    <button class="btn btn-sm btn-primary">Tính</button>
+    <span class="small text-muted">Theo kế hoạch Hiệu lực, chu kỳ thời gian × số thiết bị trong phạm vi (kế hoạch chỉ theo chỉ số không tính được trước).</span>
+</form>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Lượt bảo trì</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.SoLuot).ToString("N0")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Giờ công</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.GioCong).ToString("N1")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Vật tư</div><div class="fs-5 fw-semibold">@Model.Sum(x => x.ChiPhiVatTu).ToString("N0")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="small text-muted">Tổng chi phí</div><div class="fs-5 fw-semibold text-primary">@Model.Sum(x => x.TongChiPhi).ToString("N0")</div></div></div>
+</div>
+<div class="card mb-3"><div class="table-responsive"><table class="table table-sm mb-0 small">
+    <thead><tr><th>Kế hoạch</th><th>KTV</th><th class="text-end">TS</th><th class="text-end">Mốc</th><th class="text-end">Lượt</th><th class="text-end">Giờ công</th><th class="text-end">Vật tư</th><th class="text-end">Thuê ngoài</th><th class="text-end">Tổng</th></tr></thead>
+    <tbody>@foreach (var x in Model.OrderByDescending(x => x.TongChiPhi)) {
+        <tr><td><a href="/KeHoachBaoTri/ChiTiet/@x.KeHoach.Id">@x.KeHoach.Ten</a></td><td>@x.KeHoach.KyThuatVien</td><td class="text-end">@x.SoTaiSan</td><td class="text-end">@x.SoMoc</td><td class="text-end">@x.SoLuot</td>
+            <td class="text-end">@x.GioCong.ToString("N1")</td><td class="text-end">@x.ChiPhiVatTu.ToString("N0")</td><td class="text-end">@x.ChiPhiThueNgoai.ToString("N0")</td><td class="text-end fw-semibold">@x.TongChiPhi.ToString("N0")</td></tr> }
+    </tbody></table></div></div>
+<div class="row g-3">
+    <div class="col-lg-7"><div class="card"><div class="card-header">Vật tư cần cho kỳ</div><div class="table-responsive"><table class="table table-sm mb-0 small">
+        <thead><tr><th>Vật tư</th><th class="text-end">Dự trù</th><th class="text-end">Tồn</th><th class="text-end">Thiếu</th><th class="text-end">Thành tiền</th></tr></thead>
+        <tbody>@foreach (var x in vt) { var thieu = Math.Max(0, x.SL - x.V.TonKho);
+            <tr><td>@x.V.Ma · @x.V.Ten</td><td class="text-end">@x.SL.ToString("0.##") @x.V.DonViTinh</td><td class="text-end">@x.V.TonKho.ToString("0.##")</td>
+                <td class="text-end @(thieu > 0 ? "text-danger fw-semibold" : "")">@thieu.ToString("0.##")</td><td class="text-end">@x.TT.ToString("N0")</td></tr> }
+        @if (vt.Count == 0) { <tr><td colspan="5" class="text-muted text-center">Chưa gắn vật tư cho kế hoạch nào.</td></tr> }
+        </tbody></table></div></div></div>
+    <div class="col-lg-5"><div class="card"><div class="card-header">Theo người phụ trách</div><ul class="list-group list-group-flush small">
+        @foreach (var g in Model.GroupBy(x => x.KeHoach.KyThuatVien ?? "(chưa giao)").OrderByDescending(g => g.Sum(x => x.GioCong)))
+        { <li class="list-group-item d-flex"><span>@g.Key</span><span class="ms-auto">@g.Sum(x => x.SoLuot) lượt · @g.Sum(x => x.GioCong).ToString("N1") giờ</span></li> }
+    </ul></div>
+    <p class="small text-muted mt-2">Đưa tổng chi phí vào dự toán khoản mục ngân sách "Vật tư, linh kiện" và "Bảo trì" (Ngân sách → Thêm khoản mục).</p></div>
+</div>

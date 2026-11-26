@@ -80,53 +80,111 @@ public class LichSuService(AppDbContext db)
 /// <summary>Sinh lệnh công việc bảo trì định kỳ cho các kế hoạch đến hạn.</summary>
 public class BaoTriService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo, ThongBaoService tb)
 {
+    private static readonly TrangThaiPhieuSuaChua[] Dong = [TrangThaiPhieuSuaChua.DaNghiemThu, TrangThaiPhieuSuaChua.DaHuy];
+
+    /// <summary>Tài sản thuộc phạm vi kế hoạch (đang sử dụng).</summary>
+    public IQueryable<TaiSan> PhamVi(KeHoachBaoTri kh) =>
+        kh.TaiSanId is { } id ? db.TaiSans.Where(t => t.Id == id && t.TrangThai != TrangThaiTaiSan.DaThanhLy)
+            : db.TaiSans.Where(t => t.LoaiThietBiId == kh.LoaiThietBiId && t.TrangThai == TrangThaiTaiSan.DangSuDung
+                                    && (kh.KhoaPhongId == null || t.KhoaPhongId == kh.KhoaPhongId));
+
+    /// <summary>
+    /// Sinh lệnh bảo trì (job nền mỗi vài giờ, hoặc bấm tay). Chỉ kế hoạch Hiệu lực.
+    /// • Thời gian: đến NgayTiepTheo (trừ số ngày sinh trước) → lệnh cho mọi tài sản phạm vi, rồi dời lịch một chu kỳ.
+    ///   Kết hợp: bỏ qua tài sản vừa bảo trì (theo chỉ số) trong nửa chu kỳ gần đây.
+    /// • Chỉ số: tài sản có bộ đếm tăng ≥ chu kỳ kể từ lần bảo trì hoàn thành gần nhất → lệnh riêng.
+    ///   Chưa từng bảo trì theo kế hoạch → lần đầu theo NgayTiepTheo.
+    /// </summary>
     public async Task<int> SinhLenhDenHanAsync(DateOnly homNay, CancellationToken ct = default)
     {
         var mocSinh = homNay.AddDays(thamSo.SoNguyen(TS.BaoTriSinhTruocNgay));
         var hanNgay = thamSo.SoNguyen(TS.BaoTriHanHoanThanhNgay);
-        var keHoachs = await db.KeHoachBaoTris
-            .Where(k => k.DangApDung && k.NgayTiepTheo <= mocSinh).ToListAsync(ct);
+        foreach (var het in await db.KeHoachBaoTris.Where(k => k.TrangThai == TrangThaiKeHoach.HieuLuc && k.NgayKetThuc < homNay).ToListAsync(ct))
+            het.KiemTraHetHan(homNay);
+        await db.SaveChangesAsync(ct);
+        var keHoachs = await db.KeHoachBaoTris.Include(k => k.VatTus).ThenInclude(v => v.VatTu)
+            .Where(k => k.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync(ct);
         var dem = 0;
         foreach (var kh in keHoachs)
         {
-            var taiSanIds = kh.TaiSanId is { } id
-                ? [id]
-                : await db.TaiSans.Where(t => t.LoaiThietBiId == kh.LoaiThietBiId
-                                           && t.TrangThai == TrangThaiTaiSan.DangSuDung)
-                                  .Select(t => t.Id).ToListAsync(ct);
-            foreach (var tsId in taiSanIds)
+            var dsTs = await PhamVi(kh).ToListAsync(ct);
+            if (dsTs.Count == 0) { if (kh.TheoThoiGian && kh.NgayTiepTheo <= mocSinh) { kh.DayLichTiep(); await db.SaveChangesAsync(ct); } continue; }
+            var ids = dsTs.Select(t => t.Id).ToList();
+            // Lệnh đã Hoàn thành (chờ khoa nghiệm thu) coi như đã làm xong — không chặn lệnh kỳ sau
+            var dangMo = (await db.PhieuSuaChuas.Where(p => p.KeHoachBaoTriId == kh.Id && ids.Contains(p.TaiSanId) && !Dong.Contains(p.TrangThai) && p.TrangThai != TrangThaiPhieuSuaChua.HoanThanh)
+                .Select(p => p.TaiSanId).ToListAsync(ct)).ToHashSet();
+            var lanCuoi = (await db.PhieuSuaChuas.Where(p => p.KeHoachBaoTriId == kh.Id && ids.Contains(p.TaiSanId) && p.NgayHoanThanh != null && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy)
+                    .Select(p => new { p.TaiSanId, p.NgayHoanThanh, p.ChiSoBoDem }).ToListAsync(ct))
+                .GroupBy(x => x.TaiSanId).ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.NgayHoanThanh).First());
+
+            var denKy = kh.NgayTiepTheo <= mocSinh;
+            foreach (var ts in dsTs.Where(t => !dangMo.Contains(t.Id)))
             {
-                // Không sinh trùng nếu còn lệnh bảo trì mở cho cùng kế hoạch + tài sản.
-                var daCo = await db.PhieuSuaChuas.AnyAsync(p => p.KeHoachBaoTriId == kh.Id && p.TaiSanId == tsId
-                    && p.TrangThai != TrangThaiPhieuSuaChua.DaNghiemThu && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy, ct);
-                if (daCo) continue;
-                var ts = await db.TaiSans.FindAsync([tsId], ct);
-                var now = DateTime.Now;
-                var phieu = new PhieuSuaChua
+                var cuoi = lanCuoi.GetValueOrDefault(ts.Id);
+                string? lyDo = null;
+                if (kh.TheoChiSo && kh.DenHanChiSo(ts.ChiSoBoDem, cuoi?.ChiSoBoDem))
+                    lyDo = $"đạt chỉ số: {ts.ChiSoBoDem:N0} {kh.DonViChiSo} (lần trước {cuoi!.ChiSoBoDem:N0}, chu kỳ {kh.ChuKyChiSo:N0})";
+                else if (denKy && kh.KieuChuKy == KieuChuKy.ChiSo && cuoi is null)
+                    lyDo = "lần bảo trì đầu tiên theo kế hoạch";
+                else if (denKy && kh.TheoThoiGian)
                 {
-                    LoaiCongViec = LoaiCongViec.BaoTriDinhKy,
-                    TaiSanId = tsId,
-                    KhoaPhongId = ts?.KhoaPhongId,
-                    MoTaSuCo = $"[Bảo trì định kỳ] {kh.Ten}\n{kh.Checklist}",
-                    UuTien = MucDoUuTien.Thap,
-                    NgayYeuCau = now,
-                    HanXuLy = (kh.NgayTiepTheo > homNay ? kh.NgayTiepTheo : homNay).AddDays(hanNgay).ToDateTime(TimeOnly.MaxValue),
-                    KyThuatVien = kh.KyThuatVien,
-                    KeHoachBaoTriId = kh.Id,
-                    NguoiYeuCau = "Hệ thống (PM)"
-                };
-                db.PhieuSuaChuas.Add(phieu);
-                await db.LuuMoiAsync(soPhieu, "BT", so => phieu.SoPhieu = so, ct);
-                if (phieu.KyThuatVien is not null)
-                    await tb.GuiAsync([phieu.KyThuatVien], LoaiThongBao.BaoTri, $"Lệnh bảo trì {phieu.SoPhieu}: {kh.Ten}",
-                        $"Thiết bị {ts?.MaTaiSan} · hạn {phieu.HanXuLy:dd/MM}", $"/PhieuSuaChua/Details/{phieu.Id}");
+                    // Kết hợp: tài sản vừa bảo trì (do đạt chỉ số) trong nửa chu kỳ → chờ kỳ sau
+                    if (kh.KieuChuKy == KieuChuKy.KetHop && cuoi?.NgayHoanThanh is { } ht && ht > homNay.ToDateTime(TimeOnly.MinValue).AddDays(-kh.ChuKyNgay / 2.0)) continue;
+                    lyDo = $"đến kỳ {kh.NgayTiepTheo:dd/MM/yyyy}";
+                }
+                if (lyDo is null) continue;
+                await TaoLenhAsync(kh, ts, lyDo, homNay, hanNgay, ct);
                 dem++;
             }
-            kh.DayLichTiep();
+            if (denKy && kh.TheoThoiGian) kh.DayLichTiep();
             await db.SaveChangesAsync(ct);
         }
         return dem;
     }
+
+    private async Task TaoLenhAsync(KeHoachBaoTri kh, TaiSan ts, string lyDo, DateOnly homNay, int hanNgay, CancellationToken ct)
+    {
+        var now = DateTime.Now;
+        var vt = kh.VatTus.Count == 0 ? "" : "\nVật tư dự kiến: " + string.Join(", ", kh.VatTus.Select(v => $"{v.VatTu?.Ten} × {v.SoLuong:0.##} {v.VatTu?.DonViTinh}"));
+        var phieu = new PhieuSuaChua
+        {
+            LoaiCongViec = LoaiCongViec.BaoTriDinhKy, TaiSanId = ts.Id, KhoaPhongId = ts.KhoaPhongId,
+            MoTaSuCo = $"[Bảo trì định kỳ] {kh.Ten} — {lyDo}" + (string.IsNullOrWhiteSpace(kh.Checklist) ? "" : "\n" + kh.Checklist) + vt
+                       + (kh.MauKiemTraId is null ? "" : "\nThực hiện checklist trên hệ thống trước khi hoàn thành."),
+            UuTien = MucDoUuTien.Thap, NgayYeuCau = now,
+            HanXuLy = (kh.NgayTiepTheo > homNay && kh.TheoThoiGian ? kh.NgayTiepTheo : homNay).AddDays(hanNgay).ToDateTime(TimeOnly.MaxValue),
+            KyThuatVien = kh.KyThuatVien, KeHoachBaoTriId = kh.Id, NguoiYeuCau = "Hệ thống (PM)"
+        };
+        if (phieu.KyThuatVien is not null) phieu.TiepNhan(phieu.KyThuatVien, HinhThucXuLy.TuSua, now); // KTV phụ trách của kế hoạch nhận lệnh ngay
+        db.PhieuSuaChuas.Add(phieu);
+        await db.LuuMoiAsync(soPhieu, "BT", so => phieu.SoPhieu = so, ct);
+        var nhan = phieu.KyThuatVien is not null ? [phieu.KyThuatVien] : await tb.CanBoCNTTAsync();
+        await tb.GuiAsync(nhan, LoaiThongBao.BaoTri, $"Lệnh bảo trì {phieu.SoPhieu}: {kh.Ten}",
+            $"Thiết bị {ts.MaTaiSan} · {lyDo} · hạn {phieu.HanXuLy:dd/MM}", $"/PhieuSuaChua/Details/{phieu.Id}");
+    }
+
+    /// <summary>Dự trù theo kỳ (FR-PM-12): số lượt, giờ công, vật tư, chi phí của mỗi kế hoạch Hiệu lực trong [tu, den].</summary>
+    public async Task<List<DuTruKeHoach>> DuTruAsync(DateOnly tu, DateOnly den)
+    {
+        var kq = new List<DuTruKeHoach>();
+        foreach (var kh in await db.KeHoachBaoTris.AsNoTracking().Include(k => k.VatTus).ThenInclude(v => v.VatTu).Include(k => k.LoaiThietBi).Include(k => k.TaiSan)
+                     .Where(k => k.TrangThai == TrangThaiKeHoach.HieuLuc).ToListAsync())
+        {
+            var soTs = await PhamVi(kh).CountAsync();
+            var moc = kh.CacMoc(tu, den).Count();
+            var luot = moc * soTs;
+            kq.Add(new DuTruKeHoach(kh, soTs, moc, luot, luot * kh.GioCongDuKien, luot * kh.ChiPhiDuKien,
+                kh.VatTus.Select(v => new DuTruVatTu(v.VatTu!, v.SoLuong * luot, v.SoLuong * luot * v.VatTu!.DonGia)).ToList()));
+        }
+        return kq;
+    }
+}
+
+public record DuTruVatTu(VatTu VatTu, decimal SoLuong, decimal ThanhTien);
+public record DuTruKeHoach(KeHoachBaoTri KeHoach, int SoTaiSan, int SoMoc, int SoLuot, decimal GioCong, decimal ChiPhiThueNgoai, List<DuTruVatTu> VatTu)
+{
+    public decimal ChiPhiVatTu => VatTu.Sum(v => v.ThanhTien);
+    public decimal TongChiPhi => ChiPhiVatTu + ChiPhiThueNgoai;
 }
 
 public record ThongKeKhoa(string Khoa, int SoLuong, decimal GiaTri);

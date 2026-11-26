@@ -131,6 +131,8 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
             .OrderBy(t => t.VatTu!.Ten).ThenBy(t => t.Kho!.Ma)
             .Select(t => new { Id = $"{t.KhoId}:{t.VatTuId}", Ten = $"{t.VatTu!.Ma} - {t.VatTu.Ten} · {t.Kho!.Ten} (tồn {t.SoLuong:0.##} {t.VatTu.DonViTinh})" }), "Id", "Ten");
         ViewBag.Tep = await tep.DanhSachAsync("PhieuSuaChua", id.ToString());
+        ViewBag.ChecklistBaoTri = p.KeHoachBaoTri?.MauKiemTraId is null ? null
+            : await db.LanKiemTras.AsNoTracking().Where(l => l.PhieuBaoTriId == id).OrderByDescending(l => l.Id).FirstOrDefaultAsync();
         ViewBag.LichSuThietBi = await db.PhieuSuaChuas.AsNoTracking().Where(x => x.TaiSanId == p.TaiSanId && x.Id != p.Id)
             .OrderByDescending(x => x.NgayYeuCau).Take(5).ToListAsync();
         return View(p);
@@ -223,8 +225,25 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
     });
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> HoanThanh(int id, string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai) =>
-        ThucHien(id, p => { p.HoanThanh(nguyenNhan, bienPhap, gioCong, chiPhiThueNgoai, DateTime.Now, DoiHan(p)); return "Đã hoàn thành, chờ khoa nghiệm thu."; });
+    public async Task<IActionResult> HoanThanh(int id, string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai, long? chiSoBoDem)
+    {
+        // Lệnh bảo trì có phiếu checklist: phải ghi checklist trước khi hoàn thành (FR-PM-04, 07)
+        var mauId = await db.PhieuSuaChuas.Where(x => x.Id == id).Select(x => x.KeHoachBaoTri!.MauKiemTraId).FirstOrDefaultAsync();
+        var thieuChecklist = mauId is not null && !await db.LanKiemTras.AnyAsync(l => l.PhieuBaoTriId == id);
+        return await ThucHien(id, p =>
+        {
+            if (thieuChecklist) throw new DomainException("Chưa thực hiện checklist bảo trì — bấm \"Thực hiện checklist\" trước khi hoàn thành.");
+            if (chiSoBoDem is { } cs)
+            {
+                if (p.TaiSan?.ChiSoBoDem is { } cu && cs < cu) throw new DomainException($"Chỉ số bộ đếm ({cs:N0}) nhỏ hơn chỉ số đang ghi nhận ({cu:N0}).");
+                p.ChiSoBoDem = cs;
+                if (p.TaiSan is not null) p.TaiSan.ChiSoBoDem = cs;
+            }
+            else if (p.LoaiCongViec == LoaiCongViec.BaoTriDinhKy) p.ChiSoBoDem = p.TaiSan?.ChiSoBoDem;
+            p.HoanThanh(nguyenNhan, bienPhap, gioCong, chiPhiThueNgoai, DateTime.Now, DoiHan(p));
+            return "Đã hoàn thành, chờ khoa nghiệm thu.";
+        });
+    }
 
     private void KiemTraQuyenNghiemThu(PhieuSuaChua p)
     {

@@ -1289,7 +1289,7 @@ gantt
 | Phiếu sửa chữa (báo hỏng → tiếp nhận → xử lý → hoàn thành → nghiệm thu) | FR-WR-01..04, FR-WO-01..05, FR-WO-12 | [Đã có] | Giờ công, linh kiện, chi phí chi tiết, gửi hãng, tự đóng (FR-WO-06..11, 13) |
 | SLA theo ưu tiên & khoa trọng yếu, tạm dừng khi chờ, escalation 3 cấp | FR-WO-04, FR-WO-14, BR-WO-02 | [Đã có] | — |
 | Chống trùng yêu cầu, bình luận trong phiếu, Kanban | FR-WR-05, FR-WO-19, FR-WO-15 | [Đã có] | Nhắc tên @, bình luận nội bộ/công khai (nếu chưa có) |
-| Kế hoạch bảo trì tự sinh lệnh | FR-PM-01, FR-PM-05 | [Một phần] | Theo chỉ số, checklist, thẩm định/xét duyệt, dự trù, lịch (FR-PM-02..04, 06..15) |
+| Bảo trì định kỳ: kế hoạch thẩm định/duyệt, thời gian/chỉ số/kết hợp, checklist, phát sinh CM, lịch, dự trù, gợi ý chu kỳ | FR-PM-01..15 | [Đã có] | Ký xác nhận điện tử khi hoàn thành PM trên điện thoại (hiện dùng bước nghiệm thu của khoa) |
 | Điều chuyển có duyệt + bàn giao | FR-DC-01..06, 08 | [Đã có] | Điều chuyển ra ngoài BV (FR-DC-07) |
 | Thanh lý có hội đồng + quyết định + bắt buộc xoá dữ liệu | FR-TL-01, 03..09; BR-TL-01 | [Đã có] | Gợi ý TS cần thanh lý, tận dụng linh kiện (FR-TL-02, 10) |
 | Danh mục dùng chung | FR-HT-06 | [Đã có] | Lịch làm việc/ngày lễ phục vụ SLA giờ làm việc (nếu chưa có) |

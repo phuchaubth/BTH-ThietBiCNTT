@@ -1,0 +1,7 @@
+@{ var a = ViewContext.RouteData.Values["action"]?.ToString(); }
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link @(a is "Index" or "ChiTiet" or "Create" or "Edit" ? "active" : "")" asp-action="Index">Kế hoạch</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "Lich" ? "active" : "")" asp-action="Lich">Lịch bảo trì</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "DuTru" ? "active" : "")" asp-action="DuTru">Dự trù</a></li>
+    <li class="nav-item"><a class="nav-link" asp-controller="PhieuSuaChua" asp-action="Index" asp-route-loai="BaoTriDinhKy">Lệnh bảo trì</a></li>
+</ul>

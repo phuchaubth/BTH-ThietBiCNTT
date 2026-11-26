@@ -1,0 +1,87 @@
+@model List<ThietBiCNTT.Web.Controllers.MocLich>
+@{
+    ViewData["Title"] = "Lịch bảo trì"; var dau = (DateOnly)ViewData["dau"]!; var nhom = (string)ViewData["nhom"]!; var homNay = DateOnly.FromDateTime(DateTime.Today);
+    var batDau = dau.AddDays(-(((int)dau.DayOfWeek + 6) % 7)); var cntt = User.LaCNTT();
+    string Q(DateOnly d, string? n = null) => $"?nam={d.Year}&thang={d.Month}&nhom={n ?? nhom}&ktv={ViewData["ktv"]}&khoa={ViewData["khoa"]}";
+}
+@section Styles {
+<style>
+    .lich { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: #dee2e6; border: 1px solid #dee2e6; border-radius: .4rem; overflow: hidden; }
+    .lich .o { background: #fff; min-height: 110px; padding: 4px; font-size: .78rem; }
+    .lich .o.ngoai { background: #f8f9fa; color: #adb5bd; }
+    .lich .o.homnay { box-shadow: inset 0 0 0 2px var(--accent); }
+    .lich .o.keo-vao { background: #e7f1ff; }
+    .lich .th { background: #f1f3f5; text-align: center; font-weight: 600; font-size: .75rem; padding: 4px; }
+    .muc { display: block; border-radius: 4px; padding: 2px 4px; margin-top: 2px; text-decoration: none; background: #e7f1ff; color: #0b4f7a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .muc.lenh { background: #fff3cd; color: #664d03; } .muc.qua { background: #f8d7da; color: #842029; }
+    .muc[draggable=true] { cursor: grab; }
+    @@media (max-width: 767px) { .lich .o { min-height: 70px; } .muc { font-size: .7rem; } }
+</style>
+}
+<div class="page-head"><h1>Bảo trì định kỳ (PM)</h1></div>
+<partial name="_Tabs" />
+<div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+    <a class="btn btn-sm btn-outline-secondary" href="@Q(dau.AddMonths(-1))" aria-label="Tháng trước">‹</a>
+    <b class="mx-1">Tháng @dau.Month/@dau.Year</b>
+    <a class="btn btn-sm btn-outline-secondary" href="@Q(dau.AddMonths(1))" aria-label="Tháng sau">›</a>
+    <div class="btn-group btn-group-sm ms-2"><a class="btn @(nhom == "nhiemvu" ? "btn-primary" : "btn-outline-primary")" href="@Q(dau, "nhiemvu")">Theo nhiệm vụ</a><a class="btn @(nhom == "taisan" ? "btn-primary" : "btn-outline-primary")" href="@Q(dau, "taisan")">Theo tài sản</a></div>
+    <form method="get" class="d-flex gap-2 ms-auto"><input type="hidden" name="nam" value="@dau.Year" /><input type="hidden" name="thang" value="@dau.Month" /><input type="hidden" name="nhom" value="@nhom" />
+        <select name="ktv" asp-items="ViewBag.DsKtv" class="form-select form-select-sm" aria-label="KTV" onchange="this.form.submit()"><option value="">Mọi KTV</option></select>
+        <select name="khoa" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm" aria-label="Khoa" onchange="this.form.submit()"><option value="">Mọi khoa</option></select></form>
+</div>
+<div class="small text-muted mb-2"><span class="muc d-inline-block">Kế hoạch (dự kiến)</span> <span class="muc lenh d-inline-block">Lệnh đang mở (theo hạn)</span> <span class="muc qua d-inline-block">Lệnh quá hạn (@ViewBag.QuaHan)</span>
+    @if (cntt) { <span>· Kéo mốc kế tiếp của kế hoạch sang ngày khác để dời lịch (cần lý do).</span> }</div>
+<div class="lich" id="lich">
+    @foreach (var t in new[] { "T2", "T3", "T4", "T5", "T6", "T7", "CN" }) { <div class="th">@t</div> }
+    @for (var d = batDau; d < batDau.AddDays(42); d = d.AddDays(1))
+    {
+        if (d > dau.AddMonths(1).AddDays(-1) && d.DayOfWeek == DayOfWeek.Monday) { break; }
+        var trong = Model.Where(m => m.Ngay == d).ToList();
+        <div class="o @(d.Month != dau.Month ? "ngoai" : "") @(d == homNay ? "homnay" : "")" data-ngay="@d.ToString("yyyy-MM-dd")">
+            <div class="fw-semibold">@d.Day</div>
+            @if (nhom == "taisan")
+            {
+                foreach (var x in trong.SelectMany(m => m.TaiSans.Select(t => (m, t))).Take(8))
+                {
+                    <a class="muc @(x.m.LaLenhMo ? (x.m.Lenh!.HanXuLy < DateTime.Now ? "qua" : "lenh") : "")" href="@(x.m.LaLenhMo ? $"/PhieuSuaChua/Details/{x.m.Lenh!.Id}" : $"/TaiSan/Details/{x.t.Id}")" title="@x.t.MaTaiSan · @x.m.KeHoach.Ten">@x.t.MaTaiSan</a>
+                }
+                if (trong.Sum(m => m.TaiSans.Count) > 8) { <span class="text-muted">+@(trong.Sum(m => m.TaiSans.Count) - 8)</span> }
+            }
+            else
+            {
+                foreach (var m in trong.Where(m => !m.LaLenhMo))
+                {
+                    var keo = cntt && m.KeHoach.NgayTiepTheo == m.Ngay;
+                    <a class="muc" href="/KeHoachBaoTri/ChiTiet/@m.KeHoach.Id" draggable="@(keo ? "true" : "false")" data-id="@m.KeHoach.Id" data-tu="@m.Ngay.ToString("yyyy-MM-dd")"
+                       title="@m.KeHoach.Ten · @m.TaiSans.Count TS · @m.KeHoach.KyThuatVien">@m.KeHoach.Ten (@m.TaiSans.Count)</a>
+                }
+                foreach (var g in trong.Where(m => m.LaLenhMo).GroupBy(m => m.KeHoach.Id))
+                {
+                    var qua = g.Any(m => m.Lenh!.HanXuLy < DateTime.Now);
+                    <a class="muc @(qua ? "qua" : "lenh")" href="/PhieuSuaChua?loai=BaoTriDinhKy" title="@g.Count() lệnh đang mở">@g.First().KeHoach.Ten · @g.Count() lệnh</a>
+                }
+            }
+        </div>
+    }
+</div>
+@Html.AntiForgeryToken()
+@section Scripts {
+<script>
+(function () {
+    let keo = null;
+    document.querySelectorAll('.muc[draggable=true]').forEach(m => m.addEventListener('dragstart', e => { keo = m; e.dataTransfer.effectAllowed = 'move'; }));
+    document.querySelectorAll('.lich .o').forEach(o => {
+        o.addEventListener('dragover', e => { if (keo) { e.preventDefault(); o.classList.add('keo-vao'); } });
+        o.addEventListener('dragleave', () => o.classList.remove('keo-vao'));
+        o.addEventListener('drop', async e => {
+            e.preventDefault(); o.classList.remove('keo-vao'); if (!keo || o.dataset.ngay === keo.dataset.tu) return;
+            const lyDo = prompt(`Dời "${keo.textContent.trim()}" từ ${keo.dataset.tu} sang ${o.dataset.ngay}.\nLý do:`); if (!lyDo) return;
+            const fd = new FormData(); fd.append('__RequestVerificationToken', document.querySelector('input[name=__RequestVerificationToken]').value);
+            fd.append('id', keo.dataset.id); fd.append('tuNgay', keo.dataset.tu); fd.append('ngayMoi', o.dataset.ngay); fd.append('lyDo', lyDo);
+            const r = await (await fetch('/KeHoachBaoTri/DoiLich', { method: 'POST', body: fd })).json();
+            if (r.ok) location.reload(); else alert(r.loi);
+        });
+    });
+})();
+</script>
+}

@@ -61,7 +61,7 @@ public class KiemTraController(AppDbContext db, KiemTraService svc, TepService t
         if (input.Id == 0) { m = new MauKiemTra(); db.MauKiemTras.Add(m); }
         else m = await db.MauKiemTras.Include(x => x.Mucs).FirstAsync(x => x.Id == input.Id);
         m.Ten = input.Ten.Trim(); m.MoTa = input.MoTa; m.LoaiThietBiId = input.LoaiThietBiId; m.TaiSanId = input.TaiSanId;
-        m.KhoaPhongId = input.KhoaPhongId; m.ViTri = input.ViTri; m.ChuKyGio = input.ChuKyGio; m.TuTaoPhieu = input.TuTaoPhieu; m.DangApDung = input.DangApDung;
+        m.KhoaPhongId = input.KhoaPhongId; m.ViTri = input.ViTri; m.ChuKyGio = input.ChuKyGio; m.TuTaoPhieu = input.TuTaoPhieu; m.DangApDung = input.DangApDung; m.DungChoBaoTri = input.DungChoBaoTri;
         // Đồng bộ mục: cập nhật mục cũ theo Id, thêm mục mới, xoá mục bị bỏ (kết quả cũ vẫn giữ nội dung mục đã lưu)
         var giu = mucs.Where(x => x.Id != 0).Select(x => x.Id).ToHashSet();
         foreach (var cu in m.Mucs.Where(x => !giu.Contains(x.Id)).ToList()) m.Mucs.Remove(cu);
@@ -79,8 +79,9 @@ public class KiemTraController(AppDbContext db, KiemTraService svc, TepService t
     }
 
     // ===== Ghi kiểm tra =====
-    public async Task<IActionResult> Ghi(int mauId, int? taiSanId)
+    public async Task<IActionResult> Ghi(int mauId, int? taiSanId, int? phieuBaoTriId)
     {
+        ViewData["phieuBaoTriId"] = phieuBaoTriId;
         var m = await db.MauKiemTras.Include(x => x.Mucs).Include(x => x.KhoaPhong).AsNoTracking().FirstOrDefaultAsync(x => x.Id == mauId);
         if (m is null) return NotFound();
         if (!DuocGhi(m)) return Forbid();
@@ -91,14 +92,14 @@ public class KiemTraController(AppDbContext db, KiemTraService svc, TepService t
     }
 
     [HttpPost, ValidateAntiForgeryToken, RequestSizeLimit(60_000_000)]
-    public async Task<IActionResult> Ghi(int mauId, int? taiSanId, Dictionary<int, string?> giaTri, string? ghiChu, List<IFormFile>? anh)
+    public async Task<IActionResult> Ghi(int mauId, int? taiSanId, Dictionary<int, string?> giaTri, string? ghiChu, List<IFormFile>? anh, int? phieuBaoTriId)
     {
         var m = await db.MauKiemTras.AsNoTracking().FirstOrDefaultAsync(x => x.Id == mauId);
         if (m is null) return NotFound();
         if (!DuocGhi(m)) return Forbid();
         try
         {
-            var lan = await svc.GhiAsync(mauId, taiSanId, giaTri, User.Identity!.Name!, ghiChu);
+            var lan = await svc.GhiAsync(mauId, taiSanId, giaTri, User.Identity!.Name!, ghiChu, phieuBaoTriId);
             foreach (var f in (anh ?? []).Take(10))
             {
                 await using var s = f.OpenReadStream();
@@ -110,7 +111,7 @@ public class KiemTraController(AppDbContext db, KiemTraService svc, TepService t
                 : "Đã ghi kiểm tra — tất cả đạt.";
             return RedirectToAction(nameof(Lan), new { id = lan.Id });
         }
-        catch (DomainException ex) { TempData["err"] = ex.Message; return RedirectToAction(nameof(Ghi), new { mauId, taiSanId }); }
+        catch (DomainException ex) { TempData["err"] = ex.Message; return RedirectToAction(nameof(Ghi), new { mauId, taiSanId, phieuBaoTriId }); }
     }
 
     public async Task<IActionResult> Lan(long id)
