@@ -9,6 +9,8 @@ namespace ThietBiCNTT.Web.Infrastructure;
 
 public record MauBaoCaoChuan(string Ma, string Ten, string MoTa, bool CanKy, bool CanKhoa, bool CanNam, bool CanSoNgay);
 
+internal record SuCo(NhomNguyenNhan? Nhom, HanhDongKhacPhuc? HanhDong, double? DungMay, decimal ChiPhi);
+
 public record ThamSoBaoCao(DateTime Tu, DateTime Den, int? KhoaId, int Nam, int SoNgay);
 
 /// <summary>Danh mục báo cáo chuẩn (FR-BC-11): dựng bảng dữ liệu dùng chung cho xem web, PDF, Excel.</summary>
@@ -28,6 +30,7 @@ public class BaoCaoChuanService(AppDbContext db, BaoCaoService baoCao, NganSachS
         new("BC04", "Danh sách thiết bị đề nghị thay thế", "Theo tiêu chí: quá tuổi thọ, hỏng lặp lại, chi phí sửa chữa cao, HĐH hết hỗ trợ, dưới chuẩn cấu hình, đang hỏng.", false, true, false, false),
         new("BC05", "Tình hình thực hiện ngân sách CNTT", "Dự toán, cam kết, thực chi, còn lại theo khoản mục trong năm.", false, false, true, false),
         new("BC06", "Bảo hành, hợp đồng, bản quyền sắp hết hạn", "Các mốc hết hạn trong N ngày tới.", false, false, false, true),
+        new("BC07", "Thống kê nguyên nhân sự cố", "Số phiếu, tỷ lệ, thời gian dừng máy, chi phí và cách khắc phục chủ yếu theo nhóm nguyên nhân trong kỳ.", true, true, false, false),
     ];
 
     public ThongTinIn ThongTin(string nguoiLap) => new(thamSo.Chuoi(TS.TenBenhVien), thamSo.Chuoi(TS.TenPhongCNTT), thamSo.Chuoi(TS.VanThuDiaDanh),
@@ -65,9 +68,31 @@ public class BaoCaoChuanService(AppDbContext db, BaoCaoService baoCao, NganSachS
                 var r = await baoCao.LapAsync(p.Tu, p.Den, p.KhoaId);
                 var ds = r.ChiPhiTheoLoai;
                 return new("BC03", "Báo cáo chi phí sửa chữa, bảo trì theo loại thiết bị", ky,
-                    ["STT", "Loại thiết bị", "Số phiếu", "Vật tư, linh kiện (đ)", "Thuê ngoài (đ)", "Tổng (đ)"], [1, 6, 2, 3.5, 3.5, 3.5],
-                    ds.Select((x, i) => new string?[] { (i + 1).ToString(), x.Nhom, x.SoPhieu.ToString(), N(x.VatTu), N(x.ThueNgoai), N(x.Tong) }).ToList(),
-                    ["", "Tổng cộng", ds.Sum(x => x.SoPhieu).ToString(), N(ds.Sum(x => x.VatTu)), N(ds.Sum(x => x.ThueNgoai)), N(ds.Sum(x => x.Tong))], false, [0, 2, 3, 4, 5]);
+                    ["STT", "Loại thiết bị", "Số phiếu", "Vật tư, linh kiện (đ)", "Thuê ngoài (đ)", "Nhân công nội bộ (đ)", "Tổng (đ)"], [1, 6, 2, 3.3, 3.3, 3.3, 3.3],
+                    ds.Select((x, i) => new string?[] { (i + 1).ToString(), x.Nhom, x.SoPhieu.ToString(), N(x.VatTu), N(x.ThueNgoai), N(x.NhanCong), N(x.Tong) }).ToList(),
+                    ["", "Tổng cộng", ds.Sum(x => x.SoPhieu).ToString(), N(ds.Sum(x => x.VatTu)), N(ds.Sum(x => x.ThueNgoai)), N(ds.Sum(x => x.NhanCong)), N(ds.Sum(x => x.Tong))], false, [0, 2, 3, 4, 5, 6]);
+            }
+            case "BC07":
+            {
+                var den = p.Den.AddDays(1);
+                var ds = (await db.PhieuSuaChuas.AsNoTracking().Where(x => x.LoaiCongViec == LoaiCongViec.SuaChua && x.TrangThai != TrangThaiPhieuSuaChua.DaHuy
+                        && x.NgayYeuCau >= p.Tu && x.NgayYeuCau < den && (p.KhoaId == null || x.KhoaPhongId == p.KhoaId))
+                    .Select(x => new { x.NhomNguyenNhan, x.HanhDongKhacPhuc, x.NgayYeuCau, x.NgayHoanThanh, x.ChiPhiThueNgoai, x.ChiPhiNhanCong,
+                        VatTu = x.VatTus.Sum(v => (decimal?)(v.SoLuong * v.DonGia)) ?? 0 }).ToListAsync())
+                    .Select(x => new SuCo(x.NhomNguyenNhan, x.HanhDongKhacPhuc, x.NgayHoanThanh is { } h ? (h - x.NgayYeuCau).TotalHours : null,
+                        x.ChiPhiThueNgoai + x.ChiPhiNhanCong + x.VatTu)).ToList();
+                var tong = ds.Count;
+                var dong = ds.GroupBy(x => x.Nhom).OrderByDescending(g => g.Count()).Select((g, i) =>
+                {
+                    var xong = g.Where(x => x.DungMay is not null).ToList();
+                    return new string?[] { (i + 1).ToString(), g.Key is { } k ? T(k) : "Chưa phân loại", g.Count().ToString(), N1(Math.Round(100.0 * g.Count() / tong, 1)),
+                        N1(xong.Count == 0 ? null : xong.Average(x => x.DungMay!.Value)), N(g.Sum(x => x.ChiPhi)),
+                        string.Join("; ", g.Where(x => x.HanhDong is not null).GroupBy(x => x.HanhDong!.Value).OrderByDescending(h => h.Count()).Take(3).Select(h => $"{T(h.Key)} ({h.Count()})")) };
+                }).ToList();
+                return new("BC07", "Thống kê nguyên nhân sự cố thiết bị CNTT", ky,
+                    ["STT", "Nhóm nguyên nhân", "Số phiếu", "Tỷ lệ (%)", "Dừng máy TB (giờ)", "Chi phí (đ)", "Khắc phục chủ yếu"], [1, 5, 2, 2, 2.4, 3, 6],
+                    dong, ["", "Tổng cộng", tong.ToString(), tong == 0 ? "" : "100", "", N(ds.Sum(x => x.ChiPhi)), ""], true, [0, 2, 3, 4, 5],
+                    "Nhóm nguyên nhân do KTV chọn khi hoàn thành phiếu. \"Chưa phân loại\": phiếu chưa hoàn thành hoặc lập trước khi có danh mục nguyên nhân.");
             }
             case "BC04":
             {

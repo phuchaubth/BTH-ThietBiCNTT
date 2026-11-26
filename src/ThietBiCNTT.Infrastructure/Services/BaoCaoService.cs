@@ -14,9 +14,9 @@ public record DongKtv(string KyThuatVien, int SoPhieu, int DaXong, int DungHan, 
     public double TyLeDungHan => DaXong == 0 ? 0 : 100.0 * DungHan / DaXong;
 }
 public record DongThietBi(int TaiSanId, string MaTaiSan, string Ten, string? Khoa, string? Loai, int SoLanHong, double DungMayGio, decimal ChiPhi, double? MtbfNgay, decimal NguyenGia);
-public record DongChiPhi(string Nhom, int SoPhieu, decimal VatTu, decimal ThueNgoai)
+public record DongChiPhi(string Nhom, int SoPhieu, decimal VatTu, decimal ThueNgoai, decimal NhanCong = 0)
 {
-    public decimal Tong => VatTu + ThueNgoai;
+    public decimal Tong => VatTu + ThueNgoai + NhanCong;
 }
 public record BaoCaoKetQua(DateTime Tu, DateTime Den, string PhamVi,
     DongSla Tong, List<DongSla> TheoThang, List<DongSla> TheoKhoa, List<DongSla> TheoUuTien,
@@ -28,13 +28,13 @@ public class BaoCaoService(AppDbContext db)
 {
     private sealed record P(int Id, int TaiSanId, string MaTs, string TenTs, string? Khoa, bool TrongYeu, string? Loai, MucDoUuTien UuTien, LoaiCongViec LoaiCv,
         string? Ktv, DateTime NgayYeuCau, DateTime? NgayHoanThanh, DateTime HanXuLy, long TamDung, decimal GioCong, decimal ThueNgoai, decimal VatTu,
-        int? DanhGia, bool Huy, DateOnly? NgaySuDung, decimal NguyenGia)
+        int? DanhGia, bool Huy, DateOnly? NgaySuDung, decimal NguyenGia, decimal NhanCong = 0)
     {
         public bool Xong => NgayHoanThanh is not null;
         public bool DungHan => NgayHoanThanh <= HanXuLy;
         public double? XuLyGio => NgayHoanThanh is { } h ? Math.Max(0, (h - NgayYeuCau).TotalHours - TamDung / 3600.0) : null;
         public double DungMayGio(DateTime den) => Math.Max(0, ((NgayHoanThanh ?? den) - NgayYeuCau).TotalHours);
-        public decimal ChiPhi => VatTu + ThueNgoai;
+        public decimal ChiPhi => VatTu + ThueNgoai + NhanCong;
     }
 
     public async Task<BaoCaoKetQua> LapAsync(DateTime tu, DateTime den, int? khoaId)
@@ -46,10 +46,10 @@ public class BaoCaoService(AppDbContext db)
             {
                 p.Id, p.TaiSanId, p.TaiSan!.MaTaiSan, TenTs = p.TaiSan.Ten, Khoa = p.KhoaPhong!.Ten, TrongYeu = (bool?)p.KhoaPhong.LaKhoaTrongYeu, Loai = p.TaiSan.LoaiThietBi!.Ten,
                 p.UuTien, p.LoaiCongViec, p.KyThuatVien, p.NgayYeuCau, p.NgayHoanThanh, p.HanXuLy, p.TongTamDungGiay, p.GioCong, p.ChiPhiThueNgoai,
-                VatTu = p.VatTus.Sum(v => (decimal?)(v.SoLuong * v.DonGia)) ?? 0, p.DanhGia, p.TaiSan.NgaySuDung, p.TaiSan.NguyenGia, p.TaiSan.NgayMua
+                VatTu = p.VatTus.Sum(v => (decimal?)(v.SoLuong * v.DonGia)) ?? 0, p.DanhGia, p.TaiSan.NgaySuDung, p.TaiSan.NguyenGia, p.TaiSan.NgayMua, p.ChiPhiNhanCong
             }).ToListAsync())
             .Select(x => new P(x.Id, x.TaiSanId, x.MaTaiSan, x.TenTs, x.Khoa, x.TrongYeu == true, x.Loai, x.UuTien, x.LoaiCongViec, x.KyThuatVien, x.NgayYeuCau,
-                x.NgayHoanThanh, x.HanXuLy, x.TongTamDungGiay, x.GioCong, x.ChiPhiThueNgoai, x.VatTu, x.DanhGia, false, x.NgaySuDung ?? x.NgayMua, x.NguyenGia)).ToList();
+                x.NgayHoanThanh, x.HanXuLy, x.TongTamDungGiay, x.GioCong, x.ChiPhiThueNgoai, x.VatTu, x.DanhGia, false, x.NgaySuDung ?? x.NgayMua, x.NguyenGia, x.ChiPhiNhanCong)).ToList();
         var now = DateTime.Now < denCuoi ? DateTime.Now : denCuoi;
         var sc = ds.Where(p => p.LoaiCv == LoaiCongViec.SuaChua).ToList();
 
@@ -88,8 +88,8 @@ public class BaoCaoService(AppDbContext db)
             sc.GroupBy(p => p.Khoa ?? "Kho CNTT").Select(g => Gop(g.Key, g)).OrderByDescending(x => x.SoPhieu).ToList(),
             sc.GroupBy(p => p.UuTien).OrderByDescending(g => g.Key).Select(g => Gop(g.Key.TenHienThi(), g)).ToList(),
             ktv, thietBi,
-            ds.GroupBy(p => p.Khoa ?? "Kho CNTT").Select(g => new DongChiPhi(g.Key, g.Count(), g.Sum(p => p.VatTu), g.Sum(p => p.ThueNgoai))).OrderByDescending(x => x.Tong).ToList(),
-            ds.GroupBy(p => p.Loai ?? "—").Select(g => new DongChiPhi(g.Key, g.Count(), g.Sum(p => p.VatTu), g.Sum(p => p.ThueNgoai))).OrderByDescending(x => x.Tong).ToList(),
+            ds.GroupBy(p => p.Khoa ?? "Kho CNTT").Select(g => new DongChiPhi(g.Key, g.Count(), g.Sum(p => p.VatTu), g.Sum(p => p.ThueNgoai), g.Sum(p => p.NhanCong))).OrderByDescending(x => x.Tong).ToList(),
+            ds.GroupBy(p => p.Loai ?? "—").Select(g => new DongChiPhi(g.Key, g.Count(), g.Sum(p => p.VatTu), g.Sum(p => p.ThueNgoai), g.Sum(p => p.NhanCong))).OrderByDescending(x => x.Tong).ToList(),
             sc.Where(p => p.TrongYeu).GroupBy(p => p.Khoa!).Select(g => Gop(g.Key, g)).OrderByDescending(x => x.DungMayGio).ToList());
     }
 }

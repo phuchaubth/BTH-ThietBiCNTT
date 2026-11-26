@@ -112,3 +112,31 @@ public enum LoaiSuKien
     [Display(Name = "Điều chuyển")] DieuChuyen,
     [Display(Name = "Thanh lý")] ThanhLy
 }
+
+/// <summary>Nhóm nguyên nhân sự cố (FR-WO-08) — thống kê nguyên nhân hỏng.</summary>
+public enum NhomNguyenNhan
+{
+    [Display(Name = "Phần cứng hỏng / hao mòn")] PhanCung = 1,
+    [Display(Name = "Phần mềm / hệ điều hành")] PhanMem,
+    [Display(Name = "Thao tác người dùng")] NguoiDung,
+    [Display(Name = "Nguồn điện")] NguonDien,
+    [Display(Name = "Mạng / kết nối")] Mang,
+    [Display(Name = "Virus / mã độc")] MaDoc,
+    [Display(Name = "Môi trường (nhiệt, ẩm, bụi)")] MoiTruong,
+    [Display(Name = "Vật tư tiêu hao (mực, giấy…)")] VatTuTieuHao,
+    [Display(Name = "Không xác định / khác")] Khac
+}
+
+/// <summary>Hành động khắc phục chính (FR-WO-08).</summary>
+public enum HanhDongKhacPhuc
+{
+    [Display(Name = "Sửa chữa, cân chỉnh tại chỗ")] SuaTaiCho = 1,
+    [Display(Name = "Thay linh kiện")] ThayLinhKien,
+    [Display(Name = "Cài đặt lại / cập nhật phần mềm")] CaiDatLai,
+    [Display(Name = "Cấu hình lại")] CauHinhLai,
+    [Display(Name = "Vệ sinh, bảo dưỡng")] VeSinh,
+    [Display(Name = "Hướng dẫn người dùng")] HuongDan,
+    [Display(Name = "Gửi hãng / bảo hành")] GuiHang,
+    [Display(Name = "Thay thiết bị khác")] ThayThietBi,
+    [Display(Name = "Khác")] Khac
+}

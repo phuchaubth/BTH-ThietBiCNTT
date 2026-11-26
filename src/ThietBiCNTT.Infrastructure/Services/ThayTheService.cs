@@ -48,7 +48,7 @@ public class ThayTheService(AppDbContext db, ThamSoService thamSo, SoPhieuServic
                 && (khoaId == null || t.KhoaPhongId == khoaId) && (loaiId == null || t.LoaiThietBiId == loaiId)).ToListAsync();
         var tu = now.AddYears(-1);
         var phieu = await db.PhieuSuaChuas.AsNoTracking().Where(p => p.LoaiCongViec == LoaiCongViec.SuaChua && p.TrangThai != TrangThaiPhieuSuaChua.DaHuy)
-            .Select(p => new { p.TaiSanId, p.NgayYeuCau, Chi = p.ChiPhiThueNgoai + p.VatTus.Sum(v => v.SoLuong * v.DonGia) }).ToListAsync();
+            .Select(p => new { p.TaiSanId, p.NgayYeuCau, Chi = p.ChiPhiThueNgoai + p.ChiPhiNhanCong + p.VatTus.Sum(v => v.SoLuong * v.DonGia) }).ToListAsync();
         var hong = phieu.Where(p => p.NgayYeuCau >= tu).GroupBy(p => p.TaiSanId).ToDictionary(g => g.Key, g => g.Count());
         var chi = phieu.GroupBy(p => p.TaiSanId).ToDictionary(g => g.Key, g => g.Sum(x => x.Chi));
         var agent = (await db.MayTramAgents.AsNoTracking().Where(m => m.TaiSanId != null).ToListAsync())

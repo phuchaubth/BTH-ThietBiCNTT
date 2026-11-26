@@ -173,7 +173,8 @@ public static class DbSeeder
             if (t.TrangThai == TrangThaiTaiSan.DangSuDung)
             {
                 p.TiepNhan("ktv1", HinhThucXuLy.TuSua, ngay.AddMinutes(rnd.Next(10, 120)));
-                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), n % 5 == 0 ? 1_200_000 : 0, ngay.AddHours(rnd.Next(1, 30)));
+                p.HoanThanh("Linh kiện hỏng / lỗi phần mềm", "Đã thay thế linh kiện, cài đặt lại", rnd.Next(1, 4), n % 5 == 0 ? 1_200_000 : 0, ngay.AddHours(rnd.Next(1, 30)),
+                    nhomNguyenNhan: (NhomNguyenNhan)(n % 6 + 1), hanhDong: (HanhDongKhacPhuc)(n % 4 + 1));
                 if (rnd.Next(3) > 0) p.NghiemThu("Điều dưỡng trưởng", rnd.Next(3, 6), null, p.NgayHoanThanh!.Value.AddHours(2));
             }
             else if (t.TrangThai == TrangThaiTaiSan.DangSuaChua)

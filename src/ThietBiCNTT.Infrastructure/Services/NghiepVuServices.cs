@@ -234,7 +234,7 @@ public class DashboardService(AppDbContext db, ThamSoService thamSo)
 
         var tu12 = new DateTime(now.Year, now.Month, 1).AddMonths(-11);
         var sc = await phamViPhieu.Where(p => p.NgayYeuCau >= tu12)
-            .Select(p => new { p.NgayYeuCau, p.ChiPhiThueNgoai, VatTu = p.VatTus.Sum(v => v.SoLuong * v.DonGia) }).ToListAsync();
+            .Select(p => new { p.NgayYeuCau, ChiPhiThueNgoai = p.ChiPhiThueNgoai + p.ChiPhiNhanCong, VatTu = p.VatTus.Sum(v => v.SoLuong * v.DonGia) }).ToListAsync();
         var theoThang = Enumerable.Range(0, 12).Select(i => tu12.AddMonths(i)).Select(m =>
         {
             var trong = sc.Where(p => p.NgayYeuCau.Year == m.Year && p.NgayYeuCau.Month == m.Month).ToList();

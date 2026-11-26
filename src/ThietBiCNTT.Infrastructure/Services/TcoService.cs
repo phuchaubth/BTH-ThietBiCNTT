@@ -39,7 +39,7 @@ public class TcoService(AppDbContext db)
         var phieuQ = db.PhieuSuaChuas.AsNoTracking().Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaHuy);
         if (taiSanId is not null) phieuQ = phieuQ.Where(p => p.TaiSanId == taiSanId);
         var phieu = await phieuQ
-            .Select(p => new { p.TaiSanId, p.LoaiCongViec, p.ChiPhiThueNgoai, VatTu = p.VatTus.Select(v => v.SoLuong * v.DonGia).ToList() }).ToListAsync();
+            .Select(p => new { p.TaiSanId, p.LoaiCongViec, ChiPhiThueNgoai = p.ChiPhiThueNgoai + p.ChiPhiNhanCong, VatTu = p.VatTus.Select(v => v.SoLuong * v.DonGia).ToList() }).ToListAsync();
         var sua = phieu.Where(p => ids.Contains(p.TaiSanId)).GroupBy(p => p.TaiSanId).ToDictionary(g => g.Key, g => (
             Sua: g.Where(p => p.LoaiCongViec == LoaiCongViec.SuaChua).Sum(p => p.ChiPhiThueNgoai + p.VatTu.Sum()),
             BaoTri: g.Where(p => p.LoaiCongViec == LoaiCongViec.BaoTriDinhKy).Sum(p => p.ChiPhiThueNgoai + p.VatTu.Sum()),

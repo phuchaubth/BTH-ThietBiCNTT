@@ -97,6 +97,8 @@ public static class TS
     public const string VanThuDiaDanh = "VanThu.DiaDanh";
     public const string VanThuNhacTruocNgay = "VanThu.NhacTruocNgay";
     public const string VanThuHanMacDinh = "VanThu.HanXuLyMacDinhNgay";
+    public const string DonGiaGioCong = "SuaChua.DonGiaGioCong";
+    public const string BatBuocNguyenNhan = "SuaChua.BatBuocNhomNguyenNhan";
     // Báo cáo chuẩn & đề nghị thay thế
     public const string BaoCaoChuKy = "BaoCao.ChuKy";
     public const string ThayTheSoLanHong = "ThayThe.SoLanHong12Thang";
@@ -197,6 +199,8 @@ public static class ThamSoMacDinh
         T(103, "Bảo mật", TS.BatBuoc2FA, "Bắt buộc xác thực 2 lớp với Quản trị & Cán bộ CNTT", KieuThamSo.BatTat, "false", moTa: "Bật: tài khoản Quản trị / CNTT chưa bật 2 lớp sẽ phải cài ứng dụng xác thực (Google/Microsoft Authenticator) ngay sau khi đăng nhập."),
         T(102, "Bảo mật", TS.ChoGhiNhoVoiKhoa, "Cho 'Ghi nhớ đăng nhập' với tài khoản khoa", KieuThamSo.BatTat, "false", moTa: "Nên tắt vì máy ở khoa dùng chung."),
 
+        T(31, "SLA sửa chữa", TS.DonGiaGioCong, "Đơn giá giờ công nội bộ", KieuThamSo.SoNguyen, "0", "đ/giờ", 0, 10_000_000, "Chi phí nhân công = giờ công × đơn giá, cộng vào tổng chi phí phiếu, KPI, TCO (không tính vào ngân sách thực chi). 0 = không tính."),
+        T(32, "SLA sửa chữa", TS.BatBuocNguyenNhan, "Bắt buộc chọn nhóm nguyên nhân khi hoàn thành sửa chữa", KieuThamSo.BatTat, "true", moTa: "Phục vụ thống kê nguyên nhân hỏng (BC07)."),
         T(180, "Báo cáo chuẩn", TS.BaoCaoChuKy, "Các ô ký cuối báo cáo", KieuThamSo.VanBan, "NGƯỜI LẬP BIỂU|TRƯỞNG PHÒNG CNTT|GIÁM ĐỐC", moTa: "Cách nhau dấu |, tối đa 4 ô, theo thứ tự từ trái sang phải. Địa danh lấy theo tham số Văn thư."),
         T(181, "Đề nghị thay thế", TS.ThayTheSoLanHong, "Hỏng lặp lại từ", KieuThamSo.SoNguyen, "3", "lần / 12 tháng", 0, 100, "0 = bỏ tiêu chí."),
         T(182, "Đề nghị thay thế", TS.ThayTheTyLeChiPhi, "Chi phí sửa chữa luỹ kế từ", KieuThamSo.SoThuc, "50", "% nguyên giá", 0, 1000, "0 = bỏ tiêu chí."),

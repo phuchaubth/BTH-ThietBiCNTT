@@ -66,6 +66,19 @@ public class TepService(AppDbContext db, IConfiguration config, IHostEnvironment
         db.TepDinhKems.AsNoTracking().Where(t => t.DoiTuong == doiTuong && t.DoiTuongId == doiTuongId).OrderBy(t => t.Id).ToListAsync();
 }
 
+public static class PhieuSuaChuaTongHop
+{
+    /// <summary>Dòng bản tin: thiết bị cho mượn tạm chưa thu hồi khi máy đã sửa xong (FR-WO-11).</summary>
+    public static async Task<IEnumerable<string>> DongAsync(IServiceProvider sp, DateTime now, CancellationToken ct)
+    {
+        var db = (AppDbContext)sp.GetService(typeof(AppDbContext))!;
+        var ds = await db.PhieuSuaChuas.Where(p => p.ThietBiTamId != null && p.NgayThuHoiTam == null
+                && (p.TrangThai == TrangThaiPhieuSuaChua.HoanThanh || p.TrangThai == TrangThaiPhieuSuaChua.DaNghiemThu || p.TrangThai == TrangThaiPhieuSuaChua.DaHuy))
+            .Select(p => p.ThietBiTam!.MaTaiSan + " (" + p.SoPhieu + ")").ToListAsync(ct);
+        return ds.Count > 0 ? [$"• Thiết bị cho mượn tạm chưa thu hồi: {string.Join(", ", ds.Take(10))}{(ds.Count > 10 ? "…" : "")}"] : [];
+    }
+}
+
 public static class KiemTraTongHop
 {
     /// <summary>Dòng bản tin hằng ngày: số lượt kiểm tra quá hạn.</summary>

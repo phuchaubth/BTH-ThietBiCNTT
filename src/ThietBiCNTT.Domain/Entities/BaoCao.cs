@@ -30,7 +30,8 @@ public enum LoaiBaoCaoDinhKy
     [Display(Name = "PDF chuẩn BC03 – Chi phí theo loại thiết bị")] ChuanBC03,
     [Display(Name = "PDF chuẩn BC04 – Đề nghị thay thế")] ChuanBC04,
     [Display(Name = "PDF chuẩn BC05 – Thực hiện ngân sách")] ChuanBC05,
-    [Display(Name = "PDF chuẩn BC06 – Sắp hết hạn bảo hành/hợp đồng")] ChuanBC06
+    [Display(Name = "PDF chuẩn BC06 – Sắp hết hạn bảo hành/hợp đồng")] ChuanBC06,
+    [Display(Name = "PDF chuẩn BC07 – Thống kê nguyên nhân sự cố")] ChuanBC07
 }
 
 public enum ChuKyGui

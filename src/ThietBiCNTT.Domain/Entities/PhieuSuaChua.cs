@@ -50,7 +50,18 @@ public class PhieuSuaChua : BaseEntity
     public NhaCungCap? NhaCungCap { get; set; }
     [StringLength(1000), Display(Name = "Nguyên nhân")] public string? NguyenNhan { get; set; }
     [StringLength(2000), Display(Name = "Biện pháp khắc phục")] public string? BienPhapKhacPhuc { get; set; }
+    [Display(Name = "Nhóm nguyên nhân")] public NhomNguyenNhan? NhomNguyenNhan { get; set; }
+    [Display(Name = "Hành động khắc phục")] public HanhDongKhacPhuc? HanhDongKhacPhuc { get; set; }
     [Display(Name = "Giờ công")] public decimal GioCong { get; set; }
+    /// <summary>Chi phí nhân công nội bộ = giờ công × đơn giá giờ (tham số) tại thời điểm hoàn thành (FR-WO-09).</summary>
+    [Display(Name = "Chi phí nhân công nội bộ (VNĐ)")] public decimal ChiPhiNhanCong { get; set; }
+    // Thiết bị thay thế tạm (FR-WO-11)
+    [Display(Name = "Thiết bị cho mượn tạm")] public int? ThietBiTamId { get; set; }
+    public TaiSan? ThietBiTam { get; set; }
+    public int? KhoaGocThietBiTamId { get; set; }
+    public DateTime? NgayChoMuonTam { get; set; }
+    public DateTime? NgayThuHoiTam { get; set; }
+    public bool DangChoMuonTam => ThietBiTamId is not null && NgayThuHoiTam is null;
     [Display(Name = "Chi phí thuê ngoài (VNĐ)")] public decimal ChiPhiThueNgoai { get; set; }
     [StringLength(100), Display(Name = "Người nghiệm thu")] public string? NguoiNghiemThu { get; set; }
     [Range(1, 5), Display(Name = "Đánh giá (1-5)")] public int? DanhGia { get; set; }
@@ -62,9 +73,10 @@ public class PhieuSuaChua : BaseEntity
     public KeHoachBaoTri? KeHoachBaoTri { get; set; }
     public ICollection<ChiTietVatTuSuaChua> VatTus { get; set; } = [];
     public ICollection<BinhLuanPhieu> BinhLuans { get; set; } = [];
+    public ICollection<GioCongPhieu> GioCongs { get; set; } = [];
 
     public decimal ChiPhiVatTu => VatTus.Sum(v => v.ThanhTien);
-    public decimal TongChiPhi => ChiPhiVatTu + ChiPhiThueNgoai;
+    public decimal TongChiPhi => ChiPhiVatTu + ChiPhiThueNgoai + ChiPhiNhanCong;
     public bool DaDong => TrangThai is TrangThaiPhieuSuaChua.DaNghiemThu or TrangThaiPhieuSuaChua.DaHuy;
     public bool DangTamDung => BatDauTamDung is not null;
     public bool QuaHan(DateTime now) => !DaDong && !DangTamDung && TrangThai != TrangThaiPhieuSuaChua.HoanThanh && now > HanXuLy;
@@ -124,7 +136,8 @@ public class PhieuSuaChua : BaseEntity
         TrangThai = lyDo;
     }
 
-    public void HoanThanh(string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai, DateTime now, DoiHanSla? doiHan = null)
+    public void HoanThanh(string? nguyenNhan, string? bienPhap, decimal gioCong, decimal chiPhiThueNgoai, DateTime now, DoiHanSla? doiHan = null,
+        NhomNguyenNhan? nhomNguyenNhan = null, HanhDongKhacPhuc? hanhDong = null, decimal donGiaGioCong = 0)
     {
         YeuCau(TrangThaiPhieuSuaChua.DaTiepNhan, TrangThaiPhieuSuaChua.DangXuLy, TrangThaiPhieuSuaChua.GuiHang, TrangThaiPhieuSuaChua.ChoLinhKien);
         if (string.IsNullOrWhiteSpace(bienPhap)) throw new DomainException("Phải nhập biện pháp khắc phục.");
@@ -133,7 +146,11 @@ public class PhieuSuaChua : BaseEntity
         KetThucTamDung(now, doiHan);
         NguyenNhan = nguyenNhan;
         BienPhapKhacPhuc = bienPhap;
-        GioCong = gioCong;
+        NhomNguyenNhan = nhomNguyenNhan ?? NhomNguyenNhan;
+        HanhDongKhacPhuc = hanhDong ?? HanhDongKhacPhuc;
+        // Có nhật ký giờ công theo KTV thì giờ công = tổng nhật ký (FR-WO-06)
+        GioCong = GioCongs.Count > 0 ? GioCongs.Sum(g => g.SoGio) : gioCong;
+        ChiPhiNhanCong = Math.Round(GioCong * Math.Max(0, donGiaGioCong));
         ChiPhiThueNgoai = chiPhiThueNgoai;
         NgayBatDau ??= now;
         NgayHoanThanh = now;
@@ -177,13 +194,62 @@ public class PhieuSuaChua : BaseEntity
         TrangThai = TrangThaiPhieuSuaChua.DangXuLy;
     }
 
+    /// <summary>Ghi giờ công một KTV (FR-WO-06): bắt đầu – kết thúc, không chồng lấn với lần ghi khác của cùng người.</summary>
+    public GioCongPhieu GhiGioCong(string nguoi, DateTime batDau, DateTime ketThuc, string? ghiChu, DateTime now)
+    {
+        if (DaDong || TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành/đóng, không ghi thêm giờ công.");
+        if (TrangThai == TrangThaiPhieuSuaChua.Moi) throw new DomainException("Phiếu chưa được tiếp nhận.");
+        if (string.IsNullOrWhiteSpace(nguoi)) throw new DomainException("Chọn người thực hiện.");
+        if (ketThuc <= batDau) throw new DomainException("Thời điểm kết thúc phải sau bắt đầu.");
+        if ((ketThuc - batDau).TotalHours > 16) throw new DomainException("Một lần ghi tối đa 16 giờ.");
+        if (ketThuc > now.AddMinutes(5)) throw new DomainException("Không ghi giờ công trong tương lai.");
+        if (batDau < NgayYeuCau.AddHours(-1)) throw new DomainException("Giờ công không được trước thời điểm báo hỏng.");
+        if (GioCongs.Any(g => string.Equals(g.NguoiThucHien, nguoi, StringComparison.OrdinalIgnoreCase) && g.BatDau < ketThuc && batDau < g.KetThuc))
+            throw new DomainException($"{nguoi} đã có giờ công trùng khoảng thời gian này.");
+        var g = new GioCongPhieu { PhieuSuaChuaId = Id, NguoiThucHien = nguoi.Trim(), BatDau = batDau, KetThuc = ketThuc, GhiChu = ghiChu?.Trim() };
+        GioCongs.Add(g);
+        GioCong = GioCongs.Sum(x => x.SoGio);
+        return g;
+    }
+
+    /// <summary>Cho khoa mượn thiết bị dự phòng trong thời gian sửa (FR-WO-11): thiết bị phải đang trong kho.</summary>
+    public void ChoMuonTam(TaiSan tam, DateTime now)
+    {
+        if (DaDong || TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành/đóng.");
+        if (DangChoMuonTam) throw new DomainException("Phiếu đang có thiết bị cho mượn, thu hồi trước khi cho mượn thiết bị khác.");
+        if (tam.Id == TaiSanId) throw new DomainException("Không thể cho mượn chính thiết bị đang sửa.");
+        if (tam.TrangThai != TrangThaiTaiSan.TrongKho) throw new DomainException($"{tam.MaTaiSan} không ở trạng thái Trong kho.");
+        ThietBiTamId = tam.Id; ThietBiTam = tam; KhoaGocThietBiTamId = tam.KhoaPhongId; NgayChoMuonTam = now; NgayThuHoiTam = null;
+        tam.TrangThai = TrangThaiTaiSan.DangSuDung; tam.KhoaPhongId = KhoaPhongId;
+    }
+
+    public void ThuHoiTam(TaiSan tam, DateTime now)
+    {
+        if (!DangChoMuonTam || tam.Id != ThietBiTamId) throw new DomainException("Phiếu không có thiết bị đang cho mượn.");
+        tam.TrangThai = TrangThaiTaiSan.TrongKho; tam.KhoaPhongId = KhoaGocThietBiTamId;
+        NgayThuHoiTam = now;
+    }
+
     public void Huy(string lyDo)
     {
         if (DaDong || TrangThai == TrangThaiPhieuSuaChua.HoanThanh) throw new DomainException("Phiếu đã hoàn thành/đóng, không thể huỷ.");
+        if (DangChoMuonTam) throw new DomainException("Thu hồi thiết bị cho mượn tạm trước khi huỷ phiếu.");
         BatDauTamDung = null;
         YKienNguoiDung = lyDo;
         TrangThai = TrangThaiPhieuSuaChua.DaHuy;
     }
+}
+
+/// <summary>Giờ công một lần làm việc của một KTV trên phiếu (FR-WO-06).</summary>
+public class GioCongPhieu
+{
+    public int Id { get; set; }
+    public int PhieuSuaChuaId { get; set; }
+    [StringLength(100)] public string NguoiThucHien { get; set; } = "";
+    public DateTime BatDau { get; set; }
+    public DateTime KetThuc { get; set; }
+    [StringLength(300)] public string? GhiChu { get; set; }
+    public decimal SoGio => Math.Round((decimal)(KetThuc - BatDau).TotalHours, 2);
 }
 
 public class ChiTietVatTuSuaChua

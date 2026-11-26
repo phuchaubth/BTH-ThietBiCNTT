@@ -47,7 +47,9 @@ public class QuyTacCanhBaoService(AppDbContext db, ThongBaoService tb, ThamSoSer
             new("uu_tien", "Mức ưu tiên", "chuoi", DsEnum<MucDoUuTien>()), new("loai_cong_viec", "Loại công việc", "chuoi", DsEnum<LoaiCongViec>()),
             new("so_gio_mo", "Số giờ từ khi báo", "so"), new("qua_han_gio", "Số giờ quá hạn SLA (âm = còn hạn)", "so"),
             new("han_xu_ly", "Hạn xử lý", "ngay"), new("chua_giao", "Chưa giao kỹ thuật viên", "bool"), new("ky_thuat_vien", "Kỹ thuật viên", "chuoi"),
-            new("tam_dung", "Đang tạm dừng SLA", "bool"), new("mo_ta", "Mô tả sự cố", "chuoi"), new("khoa", "Khoa/phòng", "chuoi")
+            new("tam_dung", "Đang tạm dừng SLA", "bool"), new("mo_ta", "Mô tả sự cố", "chuoi"), new("khoa", "Khoa/phòng", "chuoi"),
+            new("nhom_nguyen_nhan", "Nhóm nguyên nhân", "chuoi", DsEnum<NhomNguyenNhan>()), new("gio_cong", "Giờ công", "so"),
+            new("dang_muon_tam", "Đang cho mượn thiết bị tạm", "bool"), new("so_gio_muon_tam", "Số giờ đã cho mượn tạm", "so")
         ],
         [DoiTuongCanhBao.KeHoachBaoTri] =
         [
@@ -154,7 +156,8 @@ public class QuyTacCanhBaoService(AppDbContext db, ThongBaoService tb, ThamSoSer
                       ("so_gio_mo", Math.Round((decimal)(now - p.NgayYeuCau).TotalHours, 1)),
                       ("qua_han_gio", p.TrangThai >= TrangThaiPhieuSuaChua.HoanThanh ? null : Math.Round((decimal)(now - p.HanXuLy).TotalHours, 1)),
                       ("han_xu_ly", p.HanXuLy), ("chua_giao", p.KyThuatVien is null), ("ky_thuat_vien", p.KyThuatVien), ("tam_dung", p.DangTamDung),
-                      ("mo_ta", p.MoTaSuCo), ("khoa", p.KhoaPhong?.Ten)))).ToList();
+                      ("mo_ta", p.MoTaSuCo), ("khoa", p.KhoaPhong?.Ten), ("nhom_nguyen_nhan", p.NhomNguyenNhan is { } nn ? T(nn) : null), ("gio_cong", p.GioCong),
+                      ("dang_muon_tam", p.DangChoMuonTam), ("so_gio_muon_tam", p.DangChoMuonTam ? Math.Round((decimal)(now - p.NgayChoMuonTam!.Value).TotalHours, 1) : null)))).ToList();
             }
             case DoiTuongCanhBao.KeHoachBaoTri:
             {

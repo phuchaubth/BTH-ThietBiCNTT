@@ -38,11 +38,11 @@ public static class BaoCaoExcel
         Sheet(wb, "ThietBiHongNhieu", "THIẾT BỊ HỎNG NHIỀU NHẤT (TOP 20)", phu, ["Mã TS", "Tên", "Khoa", "Loại", "Số lần hỏng", "Dừng máy (giờ)", "Chi phí SC (đ)", "MTBF (ngày)", "Nguyên giá (đ)"],
             r.ThietBiHongNhieu.Select(x => new object?[] { x.MaTaiSan, x.Ten, x.Khoa, x.Loai, x.SoLanHong, Math.Round(x.DungMayGio, 1), x.ChiPhi, x.MtbfNgay, x.NguyenGia }),
             ws => { ws.Column(7).Style.NumberFormat.Format = "#,##0"; ws.Column(9).Style.NumberFormat.Format = "#,##0"; });
-        string[] cotCp = ["Nhóm", "Số phiếu", "Vật tư (đ)", "Thuê ngoài (đ)", "Tổng (đ)"];
-        Sheet(wb, "ChiPhiTheoKhoa", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO KHOA", phu, cotCp, r.ChiPhiTheoKhoa.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.Tong }),
-            ws => ws.Columns(3, 5).Style.NumberFormat.Format = "#,##0");
-        Sheet(wb, "ChiPhiTheoLoai", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO LOẠI THIẾT BỊ", phu, cotCp, r.ChiPhiTheoLoai.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.Tong }),
-            ws => ws.Columns(3, 5).Style.NumberFormat.Format = "#,##0");
+        string[] cotCp = ["Nhóm", "Số phiếu", "Vật tư (đ)", "Thuê ngoài (đ)", "Nhân công nội bộ (đ)", "Tổng (đ)"];
+        Sheet(wb, "ChiPhiTheoKhoa", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO KHOA", phu, cotCp, r.ChiPhiTheoKhoa.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.NhanCong, x.Tong }),
+            ws => ws.Columns(3, 6).Style.NumberFormat.Format = "#,##0");
+        Sheet(wb, "ChiPhiTheoLoai", "CHI PHÍ SỬA CHỮA, BẢO TRÌ THEO LOẠI THIẾT BỊ", phu, cotCp, r.ChiPhiTheoLoai.Select(x => new object?[] { x.Nhom, x.SoPhieu, x.VatTu, x.ThueNgoai, x.NhanCong, x.Tong }),
+            ws => ws.Columns(3, 6).Style.NumberFormat.Format = "#,##0");
         return Luu(wb);
     }
 

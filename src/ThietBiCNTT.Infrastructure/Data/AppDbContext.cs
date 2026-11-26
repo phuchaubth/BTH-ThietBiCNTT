@@ -74,6 +74,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<BuocDuyetVanBan> BuocDuyetVanBans => Set<BuocDuyetVanBan>();
     public DbSet<NhatKyVanBan> NhatKyVanBans => Set<NhatKyVanBan>();
     public DbSet<MauVanBan> MauVanBans => Set<MauVanBan>();
+    public DbSet<GioCongPhieu> GioCongPhieus => Set<GioCongPhieu>();
     public DbSet<QuyTacCanhBao> QuyTacCanhBaos => Set<QuyTacCanhBao>();
     public DbSet<DieuKienCanhBao> DieuKienCanhBaos => Set<DieuKienCanhBao>();
     public DbSet<CanhBaoDaGui> CanhBaoDaGuis => Set<CanhBaoDaGui>();
@@ -123,7 +124,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.Property(x => x.GioCong).HasPrecision(8, 2);
             e.HasMany(x => x.BinhLuans).WithOne(x => x.PhieuSuaChua).HasForeignKey(x => x.PhieuSuaChuaId)
              .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.TaiSan).WithMany(t => t.PhieuSuaChuas).HasForeignKey(x => x.TaiSanId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.ThietBiTam).WithMany().HasForeignKey(x => x.ThietBiTamId).OnDelete(DeleteBehavior.Restrict);
+            e.Property(x => x.ChiPhiNhanCong).HasPrecision(18, 0);
+            e.HasMany(x => x.GioCongs).WithOne().HasForeignKey(x => x.PhieuSuaChuaId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => x.ThietBiTamId);
         });
+        b.Entity<GioCongPhieu>().HasIndex(x => new { x.NguoiThucHien, x.BatDau });
         b.Entity<ChiTietVatTuSuaChua>().Property(x => x.SoLuong).HasPrecision(18, 2);
 
         b.Entity<PhieuDieuChuyen>(e =>

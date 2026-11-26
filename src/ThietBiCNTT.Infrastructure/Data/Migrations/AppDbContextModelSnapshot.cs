@@ -1317,6 +1317,41 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("GiaTriTuyChinhs");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.GioCongPhieu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("BatDau")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("KetThuc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiThucHien")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PhieuSuaChuaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PhieuSuaChuaId");
+
+                    b.HasIndex("NguoiThucHien", "BatDau");
+
+                    b.ToTable("GioCongPhieus");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.HopDong", b =>
                 {
                     b.Property<int>("Id")
@@ -2689,6 +2724,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<int>("CapLeoThang")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ChiPhiNhanCong")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
                     b.Property<decimal>("ChiPhiThueNgoai")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,2)");
@@ -2713,10 +2752,16 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<DateTime>("HanXuLy")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("HanhDongKhacPhuc")
+                        .HasColumnType("int");
+
                     b.Property<int?>("HinhThucXuLy")
                         .HasColumnType("int");
 
                     b.Property<int?>("KeHoachBaoTriId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("KhoaGocThietBiTamId")
                         .HasColumnType("int");
 
                     b.Property<int?>("KhoaPhongId")
@@ -2740,6 +2785,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<DateTime?>("NgayCapNhat")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("NgayChoMuonTam")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("NgayGuiHang")
                         .HasColumnType("datetime2");
 
@@ -2756,6 +2804,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayThuHoiTam")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("NgayTiepNhan")
@@ -2785,6 +2836,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<int?>("NhaCungCapId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("NhomNguyenNhan")
+                        .HasColumnType("int");
+
                     b.Property<string>("SoPhieu")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -2795,6 +2849,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TaiSanId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ThietBiTamId")
                         .HasColumnType("int");
 
                     b.Property<long>("TongTamDungGiay")
@@ -2822,6 +2879,8 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("TaiSanId");
+
+                    b.HasIndex("ThietBiTamId");
 
                     b.HasIndex("TrangThai", "HanXuLy");
 
@@ -4315,6 +4374,15 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("TruongTuyChinh");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.GioCongPhieu", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.PhieuSuaChua", null)
+                        .WithMany("GioCongs")
+                        .HasForeignKey("PhieuSuaChuaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.HopDong", b =>
                 {
                     b.HasOne("ThietBiCNTT.Domain.Entities.NhaCungCap", "NhaCungCap")
@@ -4608,6 +4676,11 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ThietBiCNTT.Domain.Entities.TaiSan", "ThietBiTam")
+                        .WithMany()
+                        .HasForeignKey("ThietBiTamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("KeHoachBaoTri");
 
                     b.Navigation("KhoaPhong");
@@ -4615,6 +4688,8 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("NhaCungCap");
 
                     b.Navigation("TaiSan");
+
+                    b.Navigation("ThietBiTam");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.QuyTacCanhBao", b =>
@@ -4871,6 +4946,8 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.PhieuSuaChua", b =>
                 {
                     b.Navigation("BinhLuans");
+
+                    b.Navigation("GioCongs");
 
                     b.Navigation("VatTus");
                 });
