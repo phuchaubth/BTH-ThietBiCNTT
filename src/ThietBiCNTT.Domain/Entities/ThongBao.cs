@@ -18,10 +18,11 @@ public enum LoaiThongBao
     [Display(Name = "Kiểm tra bất thường")] KiemTraBatThuong,
     [Display(Name = "Tổng hợp hằng ngày")] TongHopNgay,
     [Display(Name = "Hệ thống")] HeThong,
-    [Display(Name = "Thay đổi cấu hình (agent)")] CauHinh
+    [Display(Name = "Thay đổi cấu hình (agent)")] CauHinh,
+    [Display(Name = "Cảnh báo theo quy tắc")] CanhBaoTuyChinh
 }
 
-public enum MucDoThongBao { ThongTin = 1, CanhBao, KhanCap }
+public enum MucDoThongBao { [Display(Name = "Thông tin")] ThongTin = 1, [Display(Name = "Cảnh báo")] CanhBao, [Display(Name = "Khẩn cấp")] KhanCap }
 
 /// <summary>Thông báo trong ứng dụng (chuông).</summary>
 public class ThongBao

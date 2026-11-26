@@ -74,6 +74,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<BuocDuyetVanBan> BuocDuyetVanBans => Set<BuocDuyetVanBan>();
     public DbSet<NhatKyVanBan> NhatKyVanBans => Set<NhatKyVanBan>();
     public DbSet<MauVanBan> MauVanBans => Set<MauVanBan>();
+    public DbSet<QuyTacCanhBao> QuyTacCanhBaos => Set<QuyTacCanhBao>();
+    public DbSet<DieuKienCanhBao> DieuKienCanhBaos => Set<DieuKienCanhBao>();
+    public DbSet<CanhBaoDaGui> CanhBaoDaGuis => Set<CanhBaoDaGui>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -215,6 +218,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasMany(x => x.NhatKys).WithOne().HasForeignKey(x => x.VanBanId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<BuocDuyetVanBan>().HasIndex(x => new { x.NguoiDuyet, x.DongY });
+        b.Entity<QuyTacCanhBao>(e =>
+        {
+            e.Ignore(x => x.DsNguoiNhan); e.Ignore(x => x.DsVaiTro);
+            e.HasMany(x => x.DieuKiens).WithOne().HasForeignKey(x => x.QuyTacCanhBaoId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.KhoaPhong).WithMany().HasForeignKey(x => x.KhoaPhongId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.LoaiThietBi).WithMany().HasForeignKey(x => x.LoaiThietBiId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<CanhBaoDaGui>(e =>
+        {
+            e.HasIndex(x => new { x.QuyTacCanhBaoId, x.DoiTuongId }).IsUnique();
+            e.HasOne<QuyTacCanhBao>().WithMany().HasForeignKey(x => x.QuyTacCanhBaoId).OnDelete(DeleteBehavior.Cascade);
+        });
         b.Entity<LanKiemTra>().HasIndex(x => x.PhieuBaoTriId);
         b.Entity<GiaTriTuyChinh>(e =>
         {

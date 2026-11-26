@@ -209,6 +209,7 @@ public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<Thon
                     await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<BaoCaoDinhKyService>().ChayAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<VanThuService>().NhacHanAsync(DateTime.Now, ct);
+                    await scope.ServiceProvider.GetRequiredService<QuyTacCanhBaoService>().ChayTatCaAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<TichHopService>().DonDepAsync(
                         scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.ApiLuuNhatKyNgay), ct);
                     lanCanhBao = DateTime.Now;

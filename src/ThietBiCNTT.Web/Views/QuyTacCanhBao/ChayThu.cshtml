@@ -1,0 +1,37 @@
+@model QuyTacCanhBao
+@{
+    ViewData["Title"] = "Chạy thử: " + Model.Ten;
+    var khop = (List<DongCanhBao>)ViewBag.Khop; var nhan = (List<string>)ViewBag.NguoiNhan;
+    var truong = (Dictionary<DoiTuongCanhBao, List<TruongCanhBao>>)ViewBag.Truong; var daGui = (Dictionary<string, CanhBaoDaGui>)ViewBag.DaGui;
+    var ds = truong.GetValueOrDefault(Model.DoiTuong) ?? [];
+    string Ten(string ma) => ds.FirstOrDefault(t => t.Ma == ma)?.Ten ?? ma;
+    var cot = Model.DieuKiens.Select(d => d.Truong).Distinct().ToList();
+    static string HienThi(object? v) => v switch { null => "—", DateOnly d => d.ToString("dd/MM/yyyy"), DateTime t => t.ToString("dd/MM/yyyy HH:mm"), bool b => b ? "Có" : "Không", decimal m => m.ToString("#,##0.##"), _ => v.ToString() ?? "" };
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Quy tắc cảnh báo</a> › Chạy thử</div>
+<div class="page-head"><h1>@Model.Ten</h1> @if (!Model.DangBat) { <span class="badge bg-light text-muted border">Đang tắt</span> }
+    <div class="actions">
+        <a asp-action="Form" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a>
+        <form asp-action="ChayNgay" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Gửi cảnh báo thật cho các đối tượng chưa được báo?')"><button class="btn btn-sm btn-primary"><i class="bi bi-play-fill"></i> Chạy ngay (gửi thật)</button></form>
+    </div></div>
+<div class="card mb-3"><div class="card-body small">
+    <div><b>Đối tượng:</b> @Model.DoiTuong.Ten() @(Model.KhoaPhong is null ? "" : "· " + Model.KhoaPhong.Ten) @(Model.LoaiThietBi is null ? "" : "· " + Model.LoaiThietBi.Ten) @(Model.UuTienTu is null ? "" : "· ưu tiên ≥ " + Model.UuTienTu.Value.Ten())</div>
+    <div><b>Điều kiện:</b> @Model.MoTaDieuKien(Ten)</div>
+    <div><b>Người nhận cố định:</b> @(nhan.Count == 0 ? "—" : string.Join(", ", nhan)) @(Model.GuiNguoiPhuTrach ? "+ người phụ trách" : "") @(Model.GuiTruongKhoa ? "+ trưởng khoa" : "")</div>
+    @if (Model.HanhDong != HanhDongCanhBao.KhongCo) { <div><b>Hành động:</b> @Model.HanhDong.Ten()</div> }
+    @if (Model.LoiCuoi is not null) { <div class="text-danger"><b>Lỗi lần chạy cuối:</b> @Model.LoiCuoi</div> }
+</div></div>
+<div class="alert alert-info small">Chạy thử chỉ đánh giá, không gửi. Hiện có <b>@khop.Count</b> đối tượng thoả điều kiện@(khop.Count > 200 ? " (hiển thị 200 đầu)" : "").</div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+    <thead><tr><th>Đối tượng</th>@foreach (var c in cot) { <th>@Ten(c)</th> }<th>Phụ trách</th><th>Đã báo</th></tr></thead>
+    <tbody>
+    @foreach (var d in khop.Take(200))
+    {
+        var g = daGui.GetValueOrDefault(d.Id);
+        <tr><td><a href="@d.Link">@d.Ten</a></td>@foreach (var c in cot) { <td class="small">@HienThi(d.GiaTri.GetValueOrDefault(c))</td> }
+            <td class="small">@d.PhuTrach</td>
+            <td class="small">@if (g is not null && g.DangKhop) { <span title="Lần đầu @g.LanDau.ToString("dd/MM HH:mm")">@g.LanCuoi.ToString("dd/MM HH:mm") (@g.SoLan lần)</span> } else { <span class="text-warning">Chưa báo</span> }</td></tr>
+    }
+    @if (khop.Count == 0) { <tr><td colspan="@(cot.Count + 3)" class="text-center text-muted py-4">Không có đối tượng nào thoả điều kiện.</td></tr> }
+    </tbody>
+</table></div></div>

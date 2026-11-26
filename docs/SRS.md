@@ -1318,7 +1318,8 @@ gantt
 | Nhật ký thao tác | FR-HT-07 | [Đã có] | Ghi log xem thông tin nhạy cảm, xuất log |
 | Kiểm tra tài sản, Ngân sách, API mở + webhook, Sơ đồ mặt bằng, Kiểm kê QR (cả ngoại tuyến), NCC-HĐ-BH, PWA, 2FA, AD, Zalo OA, số liệu kế toán | 4.12, 4.13, IF-07..10, FR-VT-05, 4.9, 4.6, NFR-SD-07, FR-HT-16, FR-HT-17 | [Đã có] | Kiểm thử trên hạ tầng thật (SQL Server, AD, Zalo OA, IIS) |
 | Văn thư Phòng CNTT: sổ văn bản đến/đi, tờ trình, trình duyệt nhiều bước, cấp số NĐ 30, phân công, tiến độ, nhắc hạn | FR-VB-01..10 | [Đã có] | Ký số (chữ ký số) văn bản điện tử; liên thông văn bản với hệ thống quản lý văn bản của bệnh viện |
-| Quy tắc cảnh báo tuỳ chỉnh; liên kết HIS | FR-HT-15; IF-08 (phần HIS) | [Chưa] | Hiện cảnh báo theo bộ quy tắc cố định + tham số; HIS cần đặc tả giao tiếp từ nhà cung cấp |
+| Quy tắc cảnh báo tuỳ chỉnh: 10 đối tượng, tối đa 5 điều kiện (số/chữ/ngày/có-không, còn N ngày, quá N ngày), phạm vi khoa/loại/ưu tiên, người nhận (cụ thể, vai trò, phụ trách, trưởng khoa), kênh, nhắc lại, hành động tự động (mở phiếu SC, nâng ưu tiên), chạy thử | FR-HT-15 | [Đã có] | Điều kiện theo sự kiện tức thời (hiện đánh giá 5 phút/lần); điều kiện HOẶC |
+| Liên kết HIS | IF-08 (phần HIS) | [Chưa] | Cần đặc tả giao tiếp từ nhà cung cấp HIS |
 
 **Công việc xuyên suốt:** khảo sát chi tiết & thiết kế (trước GĐ1), chuẩn hoá dữ liệu Excel hiện có, in và dán tem QR, đào tạo theo vai trò (KTV, Trưởng khoa, Nhân viên), vận hành thử song song, hỗ trợ sau triển khai, hoàn thiện quy chế sử dụng hệ thống ban hành kèm.
 

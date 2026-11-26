@@ -1,0 +1,89 @@
+@model QuyTacCanhBao
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm quy tắc cảnh báo" : "Sửa quy tắc cảnh báo";
+    var truong = (Dictionary<DoiTuongCanhBao, List<TruongCanhBao>>)ViewBag.Truong;
+    var json = System.Text.Json.JsonSerializer.Serialize(truong.ToDictionary(x => x.Key.ToString(), x => x.Value), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+    var dks = Model.DieuKiens.ToList(); while (dks.Count < 5) dks.Add(new DieuKienCanhBao());
+    var vaiTro = Model.DsVaiTro.ToHashSet();
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Quy tắc cảnh báo</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Luu" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    <div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card mb-3"><div class="card-header">1. Đối tượng & điều kiện (tất cả điều kiện cùng thoả)</div><div class="card-body row g-2">
+            <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: Nhiệt độ phòng máy chủ vượt 27°C" /></div>
+            <div class="col-md-4"><label asp-for="DoiTuong" class="form-label"></label><select asp-for="DoiTuong" asp-items="@EnumExtensions.ToSelectList<DoiTuongCanhBao>(Model.DoiTuong)" class="form-select" id="doiTuong"></select></div>
+            @for (var i = 0; i < dks.Count; i++)
+            {
+                <div class="col-12 d-flex gap-2 dk @(i > 0 && string.IsNullOrEmpty(dks[i].Truong) ? "d-none" : "")" data-i="@i">
+                    <select name="DieuKiens[@i].Truong" class="form-select form-select-sm truong" data-chon="@dks[i].Truong" aria-label="Trường điều kiện @(i + 1)" style="flex:2"></select>
+                    <select name="DieuKiens[@i].ToanTu" class="form-select form-select-sm" aria-label="Toán tử @(i + 1)" style="flex:1" asp-items="@EnumExtensions.ToSelectList<ToanTuCanhBao>(dks[i].ToanTu)"></select>
+                    <input name="DieuKiens[@i].GiaTri" value="@dks[i].GiaTri" class="form-control form-control-sm gia-tri" aria-label="Giá trị @(i + 1)" style="flex:1.5" />
+                </div>
+                <div class="col-12 form-text mt-0 goi-y" data-i="@i"></div>
+            }
+            <div class="col-12"><button type="button" class="btn btn-sm btn-link p-0" id="themDk">+ Thêm điều kiện</button></div>
+            <div class="col-12 form-text">Ngày: dùng "còn ≤ N ngày tới mốc" / "đã quá mốc ≥ N ngày" (N là số ngày). Có/không: nhập <code>true</code> hoặc <code>false</code>. Chữ: không phân biệt hoa thường.</div>
+        </div></div>
+        <div class="card mb-3"><div class="card-header">2. Phạm vi (để trống = tất cả)</div><div class="card-body row g-2">
+            <div class="col-md-4"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select form-select-sm"><option value="">—</option></select></div>
+            <div class="col-md-4"><label asp-for="LoaiThietBiId" class="form-label"></label><select asp-for="LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select form-select-sm"><option value="">—</option></select></div>
+            <div class="col-md-4"><label asp-for="UuTienTu" class="form-label"></label><select asp-for="UuTienTu" asp-items="@EnumExtensions.ToSelectList(Model.UuTienTu)" class="form-select form-select-sm"><option value="">—</option></select></div>
+            <div class="col-12 form-text">Khoa/loại áp dụng cho đối tượng gắn tài sản (tài sản, phiếu, kế hoạch, kết quả kiểm tra); ưu tiên áp dụng cho phiếu sửa chữa.</div>
+        </div></div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">3. Người nhận & kênh</div><div class="card-body row g-2">
+            <div class="col-12"><label asp-for="NguoiNhan" class="form-label"></label><input asp-for="NguoiNhan" class="form-control form-control-sm" placeholder="admin, ktv1" /></div>
+            <div class="col-12"><div class="form-label">Vai trò nhận</div>
+                @foreach (var r in VaiTro.TatCa) { <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="vaiTro" value="@r" id="vt-@r" @(vaiTro.Contains(r) ? "checked" : "") /><label class="form-check-label small" for="vt-@r">@VaiTro.TenHienThi(r)</label></div> }</div>
+            <div class="col-12 form-check ms-2"><input asp-for="GuiNguoiPhuTrach" class="form-check-input" /><label asp-for="GuiNguoiPhuTrach" class="form-check-label"></label>
+                <div class="form-text mt-0">KTV của phiếu/kế hoạch, người kiểm tra, cán bộ phụ trách hợp đồng, người chủ trì văn bản, người lập đề xuất.</div></div>
+            <div class="col-12 form-check ms-2"><input asp-for="GuiTruongKhoa" class="form-check-input" /><label asp-for="GuiTruongKhoa" class="form-check-label"></label></div>
+            <div class="col-6"><label asp-for="MucDo" class="form-label"></label><select asp-for="MucDo" asp-items="@EnumExtensions.ToSelectList<MucDoThongBao>(Model.MucDo)" class="form-select form-select-sm"></select></div>
+            <div class="col-6"><label asp-for="NhacLaiSauGio" class="form-label">Nhắc lại sau (giờ)</label><input asp-for="NhacLaiSauGio" class="form-control form-control-sm" /></div>
+            <div class="col-12 form-check ms-2"><input asp-for="ChiTrongUngDung" class="form-check-input" /><label asp-for="ChiTrongUngDung" class="form-check-label"></label></div>
+        </div></div>
+        <div class="card mb-3"><div class="card-header">4. Hành động tự động</div><div class="card-body row g-2">
+            <div class="col-12"><select asp-for="HanhDong" asp-items="@EnumExtensions.ToSelectList<HanhDongCanhBao>(Model.HanhDong)" class="form-select form-select-sm" aria-label="Hành động"></select>
+                <div class="form-text">Thực hiện một lần khi đối tượng bắt đầu thoả điều kiện (không lặp khi nhắc lại).</div></div>
+            <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" rows="2" class="form-control form-control-sm" placeholder="Hướng dẫn xử lý gửi kèm cảnh báo"></textarea></div>
+            <div class="col-12 form-check ms-2"><input asp-for="DangBat" class="form-check-input" /><label asp-for="DangBat" class="form-check-label"></label></div>
+        </div></div>
+        <button class="btn btn-primary"><i class="bi bi-save"></i> Lưu quy tắc</button>
+    </div>
+    </div>
+</form>
+@if (Model.Id != 0)
+{
+    <form asp-action="Xoa" asp-route-id="@Model.Id" method="post" class="mt-3" onsubmit="return confirm('Xoá quy tắc này?')"><button class="btn btn-sm btn-outline-danger">Xoá quy tắc</button></form>
+}
+@section Scripts {
+<script>
+(() => {
+    const truong = @Html.Raw(json);
+    const dt = document.getElementById('doiTuong');
+    function nap() {
+        const ds = truong[dt.value] || [];
+        document.querySelectorAll('select.truong').forEach(s => {
+            const chon = s.value || s.dataset.chon || '';
+            s.replaceChildren(new Option('— Trường —', ''), ...ds.map(t => new Option(t.ten, t.ma)));
+            s.value = ds.some(t => t.ma === chon) ? chon : '';
+            goiY(s);
+        });
+    }
+    function goiY(s) {
+        const i = s.closest('.dk').dataset.i, t = (truong[dt.value] || []).find(x => x.ma === s.value);
+        const el = document.querySelector(`.goi-y[data-i="${i}"]`);
+        el.textContent = t ? ({ so: 'Kiểu số', chuoi: 'Kiểu chữ', ngay: 'Kiểu ngày', bool: 'Có/Không' }[t.kieu] + (t.goiY ? ' · giá trị: ' + t.goiY : '')) : '';
+    }
+    dt.addEventListener('change', nap);
+    document.querySelectorAll('select.truong').forEach(s => s.addEventListener('change', () => goiY(s)));
+    document.getElementById('themDk').addEventListener('click', () => { const an = document.querySelector('.dk.d-none'); if (an) an.classList.remove('d-none'); });
+    nap();
+})();
+</script>
+}

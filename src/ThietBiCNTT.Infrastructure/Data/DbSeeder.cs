@@ -68,6 +68,7 @@ public static class DbSeeder
         // Mật khẩu admin lần đầu: lấy từ cấu hình Seed:AdminPassword (chỉ dùng khi tài khoản chưa tồn tại).
         await TaoUser(users, "admin", "Quản trị hệ thống", cntt.Id, VaiTro.QuanTri, matKhauAdmin);
         await TaoMauVanBan(db);
+        await TaoQuyTacCanhBaoMau(db);
         if (duLieuMau)
         {
             await TaoUser(users, "ktv1", "Nguyễn Văn An (KTV)", cntt.Id, VaiTro.CanBoCNTT);
@@ -270,6 +271,27 @@ public static class DbSeeder
                 III. KẾ HOẠCH KỲ TỚI VÀ ĐỀ XUẤT
                 …
                 """ });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Quy tắc cảnh báo mẫu (đang tắt) — Quản trị chỉnh ngưỡng, người nhận rồi bật.</summary>
+    private static async Task TaoQuyTacCanhBaoMau(AppDbContext db)
+    {
+        if (await db.QuyTacCanhBaos.AnyAsync()) return;
+        DieuKienCanhBao D(string t, ToanTuCanhBao o, string? v = null) => new() { Truong = t, ToanTu = o, GiaTri = v };
+        db.QuyTacCanhBaos.AddRange(
+            new QuyTacCanhBao { Ten = "Nhiệt độ phòng máy chủ vượt 27°C", DoiTuong = DoiTuongCanhBao.KetQuaKiemTra, VaiTroNhan = VaiTro.QuanTri + "," + VaiTro.CanBoCNTT,
+                MucDo = MucDoThongBao.KhanCap, NhacLaiSauGio = 4, DangBat = false, MoTa = "Kiểm tra điều hoà phòng máy chủ, chuẩn bị phương án tắt máy chủ không trọng yếu.",
+                DieuKiens = [D("muc", ToanTuCanhBao.Chua, "Nhiệt độ"), D("gia_tri_so", ToanTuCanhBao.Lon, "27")] },
+            new QuyTacCanhBao { Ten = "Ngân sách khoản mục đã dùng trên 80%", DoiTuong = DoiTuongCanhBao.NganSach, VaiTroNhan = VaiTro.QuanTri, NhacLaiSauGio = 168,
+                DangBat = false, DieuKiens = [D("ty_le_su_dung", ToanTuCanhBao.Lon, "80")] },
+            new QuyTacCanhBao { Ten = "Thiết bị hỏng từ 3 lần trong 12 tháng", DoiTuong = DoiTuongCanhBao.TaiSan, VaiTroNhan = VaiTro.QuanTri, ChiTrongUngDung = true,
+                MucDo = MucDoThongBao.ThongTin, NhacLaiSauGio = 720, DangBat = false, MoTa = "Xem xét đề nghị thay thế (báo cáo cảnh báo thay thế).",
+                DieuKiens = [D("so_lan_hong_12t", ToanTuCanhBao.LonBang, "3")] },
+            new QuyTacCanhBao { Ten = "Phiếu chưa giao KTV sau 2 giờ → nâng ưu tiên", DoiTuong = DoiTuongCanhBao.PhieuSuaChua, VaiTroNhan = VaiTro.QuanTri,
+                HanhDong = HanhDongCanhBao.NangUuTien, DangBat = false, DieuKiens = [D("chua_giao", ToanTuCanhBao.Bang, "true"), D("so_gio_mo", ToanTuCanhBao.LonBang, "2")] },
+            new QuyTacCanhBao { Ten = "Hợp đồng hết hiệu lực trong 30 ngày", DoiTuong = DoiTuongCanhBao.HopDong, GuiNguoiPhuTrach = true, VaiTroNhan = VaiTro.QuanTri,
+                NhacLaiSauGio = 168, DangBat = false, DieuKiens = [D("hieu_luc_den", ToanTuCanhBao.TrongVongNgay, "30")] });
         await db.SaveChangesAsync();
     }
 
