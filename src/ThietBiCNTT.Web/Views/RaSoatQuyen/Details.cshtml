@@ -19,7 +19,7 @@
 @if (ds.Count > 0)
 {
     <form asp-action="XacNhan" asp-route-id="@Model.Id" method="post">
-    <div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Tài khoản</th><th>Khoa</th><th>Nhóm quyền</th><th>Đăng nhập cuối</th><th>Dấu hiệu</th><th style="min-width:130px">Quyết định</th><th>Quyền mới / ghi chú</th><th></th></tr></thead><tbody>
+    <div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Tài khoản</th><th>Khoa</th><th>Nhóm quyền</th><th>Đăng nhập cuối</th><th>Dấu hiệu</th><th style="min-width:170px">Quyết định</th><th>Quyền mới / ghi chú</th><th></th></tr></thead><tbody>
     @foreach (var t in ds) {
         <tr class="@(t.CoDauHieu ? "table-warning" : "")"><td><b>@t.TenDangNhap</b><div class="small text-muted">@t.HoTen</div></td><td class="small">@(t.KhoaPhong?.Ten ?? t.KhoaText)</td><td class="small">@t.NhomQuyen</td><td class="small">@t.LanDangNhapCuoi?.ToString("dd/MM/yyyy")</td>
         <td class="small">@foreach (var dh in t.DauHieu()) { <span class="badge bg-warning text-dark">@dh</span> }</td>

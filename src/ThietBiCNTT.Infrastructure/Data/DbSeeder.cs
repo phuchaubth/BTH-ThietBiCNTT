@@ -410,6 +410,7 @@ public static class DbSeeder
         // Triển khai mới (công cụ AI) đang nháp, có checklist
         var moi = new PhieuThayDoi { Ma = $"TD-{now:yyMM}-0003", Loai = LoaiThayDoi.TrienKhaiMoi, Ten = "Triển khai công cụ gợi ý liều thuốc nhi khoa", MoTa = "Công cụ hỗ trợ quyết định lâm sàng tích hợp HIS", LyDo = "Giảm sai sót liều thuốc ở trẻ em", MucRui = MucRuiRo.Cao, LaThayDoiLon = true, LaCongCuHoTroQuyetDinh = true,
             KeHoachThucHien = "Chạy thử song song 4 tuần tại khoa Nhi", PhuongAnQuayLui = "Tắt tích hợp, quay về kê đơn thông thường.", NguoiDeXuat = "ktv1", NguoiTao = "ktv1" };
+        moi.HeThongs.Add(new PhieuThayDoiHeThong { HeThongId = his.Id }); moi.HeThongId = his.Id;
         moi.TaoChecklistMacDinh(); foreach (var m in moi.Checklist.Take(3)) { m.Dat = true; m.NguoiXacNhan = "ktv1"; }
         db.PhieuThayDois.AddRange(done, kc, moi);
         db.DuAnXayDungs.Add(new DuAnXayDung { Ten = "Cải tạo khu Cấp cứu giai đoạn 2", ViTri = "Tầng 1, khu A", TuNgay = hn.AddDays(20), DenNgay = hn.AddDays(110), HaTangAnhHuong = "Tuyến cáp quang tầng 1, tủ mạng khu Cấp cứu, nguồn điện tầng 1", NguoiThamGiaCntt = "Trần Minh Bảo", NgayDanhGia = hn.AddDays(-5),
