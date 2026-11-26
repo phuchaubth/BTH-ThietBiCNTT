@@ -155,6 +155,73 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.BaiTapChuDong", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BienPhap")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("DaChot")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DiemCoTheHong")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("DotDienTapId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HauQua")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("Nam")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayChot")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("NgayThucHien")
+                        .HasColumnType("date");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiChot")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuyTrinh")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ThamGia")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DotDienTapId");
+
+                    b.ToTable("BaiTapChuDongs");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.BanQuyenPhanMem", b =>
                 {
                     b.Property<int>("Id")
@@ -749,6 +816,74 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("ChiTietVatTuSuaChuas");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DanhGiaNhaCungCap", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiemBaoMat")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiemChatLuong")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiemPhanHoi")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiemTuanThu")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DuLieuThamChieu")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("HopDongId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("KetLuan")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Nam")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayDanhGia")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiGiamSat")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NhanXet")
+                        .HasMaxLength(1500)
+                        .HasColumnType("nvarchar(1500)");
+
+                    b.Property<string>("TruongBoPhan")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HopDongId", "Nam")
+                        .IsUnique();
+
+                    b.ToTable("DanhGiaNhaCungCaps");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DanhGiaSauThayDoi", b =>
                 {
                     b.Property<int>("Id")
@@ -1281,6 +1416,69 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.ToTable("DuAnXayDungs");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.GoiYRuiRo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DuLieu")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("HeThongId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Khoa")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayXuLy")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiXuLy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Nhom")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("RuiRoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeThongId");
+
+                    b.HasIndex("Khoa")
+                        .IsUnique();
+
+                    b.ToTable("GoiYRuiRos");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.HanhDongKhacPhuc", b =>
                 {
                     b.Property<int>("Id")
@@ -1405,6 +1603,14 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CachHuyDuLieu")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CanCuLuuGiu")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<int?>("CapDoAttt")
                         .HasColumnType("int");
 
@@ -1436,6 +1642,13 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("LoaiCongCuAi")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LoaiDuLieuLuuGiu")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("LuuGiuNam")
                         .HasColumnType("int");
 
                     b.Property<string>("Ma")
@@ -1526,6 +1739,14 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CachXuLyKhongDat")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ChiTieuNhaThau")
+                        .HasMaxLength(1500)
+                        .HasColumnType("nvarchar(1500)");
+
                     b.Property<string>("GhiChu")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1539,6 +1760,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
 
                     b.Property<DateOnly?>("HieuLucTu")
                         .HasColumnType("date");
+
+                    b.Property<string>("KeHoachLienTuc")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("Loai")
                         .HasColumnType("int");
@@ -1573,6 +1798,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TanSuatBaoCao")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Ten")
                         .IsRequired()
@@ -2213,6 +2442,84 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.HasIndex("TaiSanId", "ThoiGian");
 
                     b.ToTable("LichSuTaiSans");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.LoHong", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cvss")
+                        .HasPrecision(3, 1)
+                        .HasColumnType("decimal(3,1)");
+
+                    b.Property<bool>("DaNhacQuaHan")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateOnly>("HanVa")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("HeThongId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MaCve")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("NgayPhatHien")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayXong")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiCapNhat")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiPhuTrach")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NguoiTao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NguoiXong")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Nguon")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaiSanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeThongId");
+
+                    b.HasIndex("TaiSanId");
+
+                    b.ToTable("LoHongs");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.LoaiThietBi", b =>
@@ -4597,6 +4904,16 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.BaiTapChuDong", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.DotDienTap", "DotDienTap")
+                        .WithMany()
+                        .HasForeignKey("DotDienTapId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DotDienTap");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.BanQuyenPhanMem", b =>
                 {
                     b.HasOne("ThietBiCNTT.Domain.Entities.HopDong", "HopDong")
@@ -4785,6 +5102,17 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Navigation("VatTu");
                 });
 
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DanhGiaNhaCungCap", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.HopDong", "HopDong")
+                        .WithMany()
+                        .HasForeignKey("HopDongId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("HopDong");
+                });
+
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.DanhGiaSauThayDoi", b =>
                 {
                     b.HasOne("ThietBiCNTT.Domain.Entities.PhieuThayDoi", null)
@@ -4865,6 +5193,16 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("PhieuThayDoi");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.GoiYRuiRo", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.HeThongThongTin", "HeThong")
+                        .WithMany()
+                        .HasForeignKey("HeThongId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("HeThong");
                 });
 
             modelBuilder.Entity("ThietBiCNTT.Domain.Entities.HanhDongKhacPhuc", b =>
@@ -5068,6 +5406,23 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasForeignKey("TaiSanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("TaiSan");
+                });
+
+            modelBuilder.Entity("ThietBiCNTT.Domain.Entities.LoHong", b =>
+                {
+                    b.HasOne("ThietBiCNTT.Domain.Entities.HeThongThongTin", "HeThong")
+                        .WithMany()
+                        .HasForeignKey("HeThongId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ThietBiCNTT.Domain.Entities.TaiSan", "TaiSan")
+                        .WithMany()
+                        .HasForeignKey("TaiSanId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("HeThong");
 
                     b.Navigation("TaiSan");
                 });

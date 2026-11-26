@@ -33,6 +33,8 @@
         <div class="col-sm-4"><dt>Đưa vào sử dụng</dt><dd>@Model.NgaySuDung?.ToString("dd/MM/yyyy")</dd></div>
         <div class="col-sm-4"><dt>RTO</dt><dd>@Gio(rto) @if (Model.RtoPhut is null) { <span class="text-muted small">(mặc định @Model.MucTrongYeu.Ten())</span> }</dd></div>
         <div class="col-sm-4"><dt>RPO</dt><dd>@Gio(rpo) @if (Model.RpoPhut is null) { <span class="text-muted small">(mặc định)</span> }</dd></div>
+        <div class="col-12"><dt>Lưu giữ dữ liệu (MOI.01.03)</dt><dd>@if (Model.LuuGiuNam is { } ln) { <span>@Model.LoaiDuLieuLuuGiu — @ln năm · @Model.CanCuLuuGiu · huỷ: @Model.CachHuyDuLieu</span>
+            @if (tacVus.Any(t => t.DangApDung && t.LuuGiuNgay < ln * 365)) { <div class="small text-warning">Cảnh báo: có tác vụ sao lưu lưu giữ ngắn hơn @ln năm. Nếu bản sao lưu được dùng làm kho lưu trữ dài hạn, cần lưu bản lưu trữ riêng.</div> } } else { <span class="text-muted">Chưa khai báo</span> }</dd></div>
         <div class="col-sm-4"><dt>Cấp độ ATTT</dt><dd>@(Model.CapDoAttt?.ToString() ?? "—") <span class="small text-muted">@Model.SoQdCapDo @Model.NgayQdCapDo?.ToString("dd/MM/yyyy")</span></dd></div>
         <div class="col-sm-4"><dt>Chủ sở hữu nghiệp vụ</dt><dd>@Model.ChuSoHuu <span class="small text-muted">@Model.ChuSoHuuKhoaPhong?.Ten</span></dd></div>
         <div class="col-sm-4"><dt>Phụ trách kỹ thuật</dt><dd>@Model.PhuTrachChinh <span class="small text-muted">dự phòng: @Model.PhuTrachDuPhong</span></dd></div>

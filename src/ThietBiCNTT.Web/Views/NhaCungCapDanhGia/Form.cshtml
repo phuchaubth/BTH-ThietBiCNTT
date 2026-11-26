@@ -1,0 +1,11 @@
+@model DanhGiaNhaCungCap
+@{ ViewData["Title"] = "Đánh giá nhà cung cấp"; var hd = (HopDong)ViewBag.HopDong; }
+<div class="page-head"><h1>Đánh giá @hd.NhaCungCap?.Ten — @hd.SoHopDong (@Model.Nam)</h1></div>
+<div class="card" style="max-width:860px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3"><input type="hidden" asp-for="HopDongId" /><input type="hidden" asp-for="Nam" />
+    <div class="col-md-3"><label asp-for="DiemPhanHoi" class="form-label"></label><input asp-for="DiemPhanHoi" type="number" min="1" max="5" class="form-control" /></div><div class="col-md-3"><label asp-for="DiemChatLuong" class="form-label"></label><input asp-for="DiemChatLuong" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="DiemTuanThu" class="form-label"></label><input asp-for="DiemTuanThu" type="number" min="1" max="5" class="form-control" /></div><div class="col-md-3"><label asp-for="DiemBaoMat" class="form-label"></label><input asp-for="DiemBaoMat" type="number" min="1" max="5" class="form-control" /></div>
+    <div class="col-12"><label asp-for="DuLieuThamChieu" class="form-label"></label><textarea asp-for="DuLieuThamChieu" class="form-control" rows="2"></textarea></div>
+    <div class="col-md-6"><label asp-for="NguoiGiamSat" class="form-label"></label><input asp-for="NguoiGiamSat" class="form-control" /></div><div class="col-md-6"><label asp-for="TruongBoPhan" class="form-label"></label><input asp-for="TruongBoPhan" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="KetLuan" class="form-label"></label><select asp-for="KetLuan" asp-items="@EnumExtensions.ToSelectList<KetLuanNhaCungCap>(Model.KetLuan)" class="form-select"></select></div>
+    <div class="col-12"><label asp-for="NhanXet" class="form-label"></label><textarea asp-for="NhanXet" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><button class="btn btn-outline-primary" name="chot" value="false">Lưu nháp</button> <button class="btn btn-primary" name="chot" value="true">Chốt đánh giá</button> <a asp-action="Index" asp-route-nam="@Model.Nam" class="btn btn-link">Huỷ</a></div></form></div></div>

@@ -71,6 +71,12 @@ public class HeThongThongTin : BaseEntity
     [Display(Name = "Loại công cụ AI")] public LoaiCongCuAi? LoaiCongCuAi { get; set; }
     [Display(Name = "Hạn xem xét lại công cụ AI"), DataType(DataType.Date)] public DateOnly? NgayXemXetAi { get; set; }
 
+    // GĐ3.3 – FR-HTT-14 (MOI.01.03): lưu giữ dữ liệu
+    [StringLength(300), Display(Name = "Loại dữ liệu lưu giữ")] public string? LoaiDuLieuLuuGiu { get; set; }
+    [Range(0, 200), Display(Name = "Thời gian lưu giữ (năm)")] public int? LuuGiuNam { get; set; }
+    [StringLength(300), Display(Name = "Căn cứ pháp lý")] public string? CanCuLuuGiu { get; set; }
+    [StringLength(500), Display(Name = "Cách huỷ / xoá khi hết hạn")] public string? CachHuyDuLieu { get; set; }
+
     public List<HeThongKhoaPhong> KhoaPhongs { get; set; } = [];
     public List<PhuThuocHeThong> PhuThuocs { get; set; } = [];
 

@@ -582,3 +582,155 @@ public class ViPhamTruyCap : BaseEntity
 }
 
 #endregion
+
+#region Lỗ hổng (FR-AN-07), gợi ý rủi ro (FR-RR-03), bài tập chủ động (FR-RR-09), đánh giá nhà cung cấp (FR-JC-07)
+
+public enum NguonLoHong
+{
+    [Display(Name = "Khuyến cáo của nhà cung cấp")] KhuyenCao = 1,
+    [Display(Name = "Quét lỗ hổng")] QuetLoHong,
+    [Display(Name = "Kiểm thử xâm nhập")] KiemThuXamNhap,
+    [Display(Name = "Cơ quan chức năng / CERT")] CoQuan,
+    [Display(Name = "Báo cáo nội bộ")] NoiBo
+}
+
+public enum MucLoHong
+{
+    [Display(Name = "Thấp")] Thap = 1,
+    [Display(Name = "Trung bình")] TrungBinh,
+    [Display(Name = "Cao")] Cao,
+    [Display(Name = "Nghiêm trọng")] NghiemTrong
+}
+
+public enum TrangThaiLoHong
+{
+    [Display(Name = "Mở")] Mo = 1,
+    [Display(Name = "Đang vá")] DangVa,
+    [Display(Name = "Đã vá")] DaVa,
+    [Display(Name = "Chấp nhận rủi ro")] ChapNhan
+}
+
+/// <summary>FR-AN-07: lỗ hổng / khuyến cáo ATTT và hạn vá theo mức CVSS.</summary>
+public class LoHong : BaseEntity
+{
+    [Required, StringLength(300), Display(Name = "Tiêu đề")] public string TieuDe { get; set; } = "";
+    [StringLength(40), Display(Name = "Mã CVE / tham chiếu")] public string? MaCve { get; set; }
+    [Display(Name = "Nguồn")] public NguonLoHong Nguon { get; set; } = NguonLoHong.KhuyenCao;
+    [Range(0, 10), Display(Name = "Điểm CVSS")] public decimal Cvss { get; set; }
+    [Display(Name = "Hệ thống bị ảnh hưởng")] public int? HeThongId { get; set; }
+    public HeThongThongTin? HeThong { get; set; }
+    [Display(Name = "Tài sản bị ảnh hưởng")] public int? TaiSanId { get; set; }
+    public TaiSan? TaiSan { get; set; }
+    [Display(Name = "Ngày phát hiện")] public DateOnly NgayPhatHien { get; set; }
+    [Display(Name = "Hạn vá")] public DateOnly HanVa { get; set; }
+    [Display(Name = "Trạng thái")] public TrangThaiLoHong TrangThai { get; set; } = TrangThaiLoHong.Mo;
+    [StringLength(100), Display(Name = "Người phụ trách")] public string? NguoiPhuTrach { get; set; }
+    [StringLength(1000), Display(Name = "Ghi chú / lý do chấp nhận")] public string? GhiChu { get; set; }
+    public DateTime? NgayXong { get; set; }
+    [StringLength(100)] public string? NguoiXong { get; set; }
+    public bool DaNhacQuaHan { get; set; }
+
+    public static MucLoHong MucTheoCvss(decimal c) => c >= 9 ? MucLoHong.NghiemTrong : c >= 7 ? MucLoHong.Cao : c >= 4 ? MucLoHong.TrungBinh : MucLoHong.Thap;
+    public MucLoHong Muc => MucTheoCvss(Cvss);
+    public bool DangMo => TrangThai is TrangThaiLoHong.Mo or TrangThaiLoHong.DangVa;
+    public bool QuaHan(DateOnly homNay) => DangMo && HanVa < homNay;
+
+    public static DateOnly TinhHan(DateOnly phatHien, decimal cvss, int nghiemTrong, int cao, int trungBinh, int thap) =>
+        phatHien.AddDays(MucTheoCvss(cvss) switch { MucLoHong.NghiemTrong => nghiemTrong, MucLoHong.Cao => cao, MucLoHong.TrungBinh => trungBinh, _ => thap });
+
+    public void DaVaXong(string nguoi, DateTime now)
+    {
+        if (!DangMo) throw new DomainException("Lỗ hổng không còn ở trạng thái mở.");
+        TrangThai = TrangThaiLoHong.DaVa; NgayXong = now; NguoiXong = nguoi;
+    }
+
+    public void ChapNhanRuiRo(string lyDo, string nguoi, DateTime now)
+    {
+        if (!DangMo) throw new DomainException("Lỗ hổng không còn ở trạng thái mở.");
+        if (string.IsNullOrWhiteSpace(lyDo)) throw new DomainException("Ghi lý do chấp nhận rủi ro.");
+        TrangThai = TrangThaiLoHong.ChapNhan; GhiChu = lyDo.Trim(); NgayXong = now; NguoiXong = nguoi;
+    }
+}
+
+public enum TrangThaiGoiY
+{
+    [Display(Name = "Mới")] Moi = 1,
+    [Display(Name = "Đã chấp nhận")] DaChapNhan,
+    [Display(Name = "Bỏ qua")] BoQua
+}
+
+/// <summary>FR-RR-03: gợi ý rủi ro do job sinh từ dữ liệu; người dùng chấp nhận hoặc bỏ qua.</summary>
+public class GoiYRuiRo : BaseEntity
+{
+    [Required, StringLength(120)] public string Khoa { get; set; } = "";
+    [Required, StringLength(1000)] public string NoiDung { get; set; } = "";
+    public NhomRuiRo Nhom { get; set; } = NhomRuiRo.QuyTrinh;
+    public int? HeThongId { get; set; }
+    public HeThongThongTin? HeThong { get; set; }
+    [StringLength(500)] public string? DuLieu { get; set; }
+    public TrangThaiGoiY TrangThai { get; set; } = TrangThaiGoiY.Moi;
+    public int? RuiRoId { get; set; }
+    [StringLength(100)] public string? NguoiXuLy { get; set; }
+    public DateTime? NgayXuLy { get; set; }
+}
+
+/// <summary>FR-RR-09 (QPS.04.01 ME3–4): bài tập giảm thiểu rủi ro chủ động cho một quy trình rủi ro ưu tiên.</summary>
+public class BaiTapChuDong : BaseEntity
+{
+    [Display(Name = "Năm")] public int Nam { get; set; }
+    [Required, StringLength(300), Display(Name = "Quy trình rủi ro ưu tiên")] public string QuyTrinh { get; set; } = "";
+    [Display(Name = "Ngày thực hiện")] public DateOnly NgayThucHien { get; set; }
+    [StringLength(2000), Display(Name = "Các điểm có thể hỏng")] public string? DiemCoTheHong { get; set; }
+    [StringLength(2000), Display(Name = "Hậu quả")] public string? HauQua { get; set; }
+    [StringLength(2000), Display(Name = "Biện pháp / thiết kế lại quy trình")] public string? BienPhap { get; set; }
+    [StringLength(300), Display(Name = "Thành phần tham gia")] public string? ThamGia { get; set; }
+    [Display(Name = "Diễn tập liên quan")] public int? DotDienTapId { get; set; }
+    public DotDienTap? DotDienTap { get; set; }
+    public bool DaChot { get; set; }
+    [StringLength(100)] public string? NguoiChot { get; set; }
+    public DateTime? NgayChot { get; set; }
+
+    public void Chot(string nguoi, DateTime now)
+    {
+        if (DaChot) throw new DomainException("Bài tập đã chốt.");
+        if (string.IsNullOrWhiteSpace(DiemCoTheHong) || string.IsNullOrWhiteSpace(HauQua) || string.IsNullOrWhiteSpace(BienPhap)) throw new DomainException("Điền đủ điểm có thể hỏng, hậu quả và biện pháp trước khi chốt.");
+        DaChot = true; NguoiChot = nguoi; NgayChot = now;
+    }
+}
+
+public enum KetLuanNhaCungCap
+{
+    [Display(Name = "Tiếp tục")] TiepTuc = 1,
+    [Display(Name = "Cảnh báo / yêu cầu cải thiện")] CanhBao,
+    [Display(Name = "Thay thế")] ThayThe
+}
+
+/// <summary>FR-JC-07 (GLD.05.00): đánh giá nhà cung cấp dịch vụ CNTT hằng năm.</summary>
+public class DanhGiaNhaCungCap : BaseEntity
+{
+    public int HopDongId { get; set; }
+    public HopDong? HopDong { get; set; }
+    [Display(Name = "Năm")] public int Nam { get; set; }
+    [Range(1, 5), Display(Name = "Thời gian phản hồi")] public int DiemPhanHoi { get; set; } = 3;
+    [Range(1, 5), Display(Name = "Chất lượng xử lý")] public int DiemChatLuong { get; set; } = 3;
+    [Range(1, 5), Display(Name = "Tuân thủ hợp đồng")] public int DiemTuanThu { get; set; } = 3;
+    [Range(1, 5), Display(Name = "Bảo mật")] public int DiemBaoMat { get; set; } = 3;
+    [StringLength(1000), Display(Name = "Dữ liệu tham chiếu (phiếu gửi hãng, SLA)")] public string? DuLieuThamChieu { get; set; }
+    [StringLength(100), Display(Name = "Người giám sát hợp đồng")] public string? NguoiGiamSat { get; set; }
+    [StringLength(200), Display(Name = "Trưởng bộ phận sử dụng tham gia")] public string? TruongBoPhan { get; set; }
+    [Display(Name = "Kết luận")] public KetLuanNhaCungCap KetLuan { get; set; } = KetLuanNhaCungCap.TiepTuc;
+    [StringLength(1500), Display(Name = "Nhận xét")] public string? NhanXet { get; set; }
+    public DateTime? NgayDanhGia { get; set; }
+    public double DiemTb => Math.Round((DiemPhanHoi + DiemChatLuong + DiemTuanThu + DiemBaoMat) / 4.0, 2);
+
+    public void Chot(DateTime now)
+    {
+        if (NgayDanhGia is not null) throw new DomainException("Phiếu đánh giá đã chốt.");
+        if (string.IsNullOrWhiteSpace(NguoiGiamSat)) throw new DomainException("Chỉ định người giám sát hợp đồng.");
+        if (string.IsNullOrWhiteSpace(TruongBoPhan)) throw new DomainException("Ghi trưởng bộ phận sử dụng tham gia đánh giá.");
+        if (KetLuan != KetLuanNhaCungCap.TiepTuc && string.IsNullOrWhiteSpace(NhanXet)) throw new DomainException("Kết luận Cảnh báo / Thay thế cần nhận xét.");
+        NgayDanhGia = now;
+    }
+}
+
+#endregion

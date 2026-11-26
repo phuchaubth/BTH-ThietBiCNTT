@@ -1,0 +1,12 @@
+@model List<HopDong>
+@{ ViewData["Title"] = "Đánh giá nhà cung cấp CNTT"; int nam = ViewBag.Nam; var dg = (Dictionary<int, DanhGiaNhaCungCap>)ViewBag.DanhGia; }
+<div class="page-head"><h1>Đánh giá nhà cung cấp dịch vụ CNTT — @nam</h1><span class="text-muted small">GLD.05.00 – hợp đồng bảo trì / thuê ngoài, đánh giá hằng năm</span>
+    <div class="actions"><a asp-route-nam="@(nam - 1)" class="btn btn-sm btn-outline-secondary">‹ @(nam - 1)</a><a asp-route-nam="@(nam + 1)" class="btn btn-sm btn-outline-secondary">@(nam + 1) ›</a></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Hợp đồng</th><th>Nhà cung cấp</th><th>Hiệu lực</th><th>Hồ sơ theo GLD.05.00</th><th>Đánh giá @nam</th><th></th></tr></thead><tbody>
+@foreach (var h in Model) { dg.TryGetValue(h.Id, out var d); var thieu = h.ThieuGld05();
+    <tr><td><a asp-controller="HopDong" asp-action="Details" asp-route-id="@h.Id">@h.SoHopDong</a> <span class="small">@h.Ten</span></td><td class="small">@h.NhaCungCap?.Ten</td><td class="small">@h.HieuLucDen?.ToString("dd/MM/yyyy")</td>
+    <td class="small">@if (thieu.Count == 0) { <span class="badge bg-success">Đủ</span> } else { <span class="text-warning">Thiếu: @string.Join("; ", thieu)</span> }</td>
+    <td>@if (d?.NgayDanhGia is not null) { <span class="badge bg-@(d.KetLuan == KetLuanNhaCungCap.TiepTuc ? "success" : "warning text-dark")">@d.KetLuan.Ten() · @d.DiemTb</span> } else if (d is not null) { <span class="badge bg-secondary">Nháp</span> } else { <span class="text-muted small">Chưa đánh giá</span> }</td>
+    <td>@if (User.LaCNTT() && d?.NgayDanhGia is null) { <a asp-action="Form" asp-route-hopDongId="@h.Id" asp-route-nam="@nam" class="btn btn-sm btn-outline-primary">Đánh giá</a> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Chưa có hợp đồng bảo trì / thuê ngoài.</td></tr> }
+</tbody></table></div></div>

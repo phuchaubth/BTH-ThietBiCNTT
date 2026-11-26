@@ -108,6 +108,12 @@ public static class TS
     public const string JciRaSoatQuyenHanNgay = "Jci.RaSoatQuyenHanNgay";
     public const string JciTaiKhoanKhongDangNhapNgay = "Jci.TaiKhoanKhongDangNhapNgay";
     public const string JciThuHoiNghiViecNgayLam = "Jci.ThuHoiNghiViecNgayLam";
+    public const string JciVaNghiemTrongNgay = "Jci.VaLoHongNghiemTrongNgay";
+    public const string JciVaCaoNgay = "Jci.VaLoHongCaoNgay";
+    public const string JciVaTrungBinhNgay = "Jci.VaLoHongTrungBinhNgay";
+    public const string JciVaThapNgay = "Jci.VaLoHongThapNgay";
+    public const string JciXemXetRuiRoCaoNgay = "Jci.XemXetRuiRoCaoNgay";
+    public const string JciSaoLuuApiKey = "Jci.SaoLuuApiKey";
 }
 
 public static class ThamSoMacDinh
@@ -203,6 +209,12 @@ public static class ThamSoMacDinh
         T(254, "JCI 8 – Tài liệu & chương trình", TS.JciThuNguonDuPhongThang, "Chu kỳ tối đa thử nguồn điện dự phòng", KieuThamSo.SoNguyen, "3", "tháng", 1, 12, "FMS.08.01 ME3: ít nhất mỗi quý. Phiếu mẫu có chu kỳ dài hơn sẽ bị cảnh báo."),
         T(255, "JCI 8 – An ninh mạng", TS.JciNhomAnToanThongTin, "Tài khoản được xử lý sự cố an ninh mạng", KieuThamSo.VanBan, "admin", moTa: "FR-AN-06: chỉ nhóm này và Lãnh đạo xem chi tiết sự cố an ninh mạng. Tên đăng nhập, cách nhau bởi dấu phẩy."),
         T(256, "JCI 8 – An ninh mạng", TS.JciHanBaoCaoSuCoGio, "Hạn báo cáo sự cố nghiêm trọng liên quan dữ liệu cá nhân cho cơ quan chức năng", KieuThamSo.SoNguyen, "0", "giờ", 0, 720, "0 = không áp dụng. Phòng CNTT nhập theo văn bản hiện hành về ứng cứu sự cố và bảo vệ dữ liệu cá nhân."),
+        T(270, "JCI 8 – Lỗ hổng", TS.JciVaNghiemTrongNgay, "Hạn vá lỗ hổng mức Nghiêm trọng (CVSS ≥ 9)", KieuThamSo.SoNguyen, "7", "ngày", 1, 90, "FR-AN-07."),
+        T(271, "JCI 8 – Lỗ hổng", TS.JciVaCaoNgay, "Hạn vá lỗ hổng mức Cao (CVSS 7–8.9)", KieuThamSo.SoNguyen, "30", "ngày", 1, 180, "FR-AN-07."),
+        T(272, "JCI 8 – Lỗ hổng", TS.JciVaTrungBinhNgay, "Hạn vá lỗ hổng mức Trung bình (CVSS 4–6.9)", KieuThamSo.SoNguyen, "90", "ngày", 1, 365, "FR-AN-07."),
+        T(273, "JCI 8 – Lỗ hổng", TS.JciVaThapNgay, "Hạn vá lỗ hổng mức Thấp (CVSS < 4)", KieuThamSo.SoNguyen, "180", "ngày", 1, 730, "FR-AN-07."),
+        T(274, "JCI 8 – Rủi ro", TS.JciXemXetRuiRoCaoNgay, "Xem xét lại rủi ro mức Cao / Rất cao sau mỗi", KieuThamSo.SoNguyen, "90", "ngày", 7, 365, "FR-RR-07: nhắc người chịu trách nhiệm đến hạn."),
+        T(275, "JCI 8 – Sao lưu", TS.JciSaoLuuApiKey, "Khoá API nhận kết quả sao lưu tự động (để trống = tắt)", KieuThamSo.VanBan, "", "", 0, 0, "FR-SL-03: gửi POST /api/saoluu/ketqua với header X-Api-Key. Đặt chuỗi ngẫu nhiên dài ≥ 24 ký tự."),
         T(265, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenToiQuanTrongThang, "Chu kỳ rà soát quyền – hệ thống Tối quan trọng", KieuThamSo.SoNguyen, "6", "tháng", 1, 24, "MOI.01.01: danh sách người được truy cập và mức quyền theo vai trò được rà soát định kỳ."),
         T(266, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenCaoThang, "Chu kỳ rà soát quyền – hệ thống mức Cao", KieuThamSo.SoNguyen, "12", "tháng", 1, 36, "FR-TC-01."),
         T(267, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenHanNgay, "Thời hạn hoàn thành một đợt rà soát", KieuThamSo.SoNguyen, "30", "ngày", 7, 120, "Quá hạn hệ thống nhắc Trưởng phòng CNTT."),

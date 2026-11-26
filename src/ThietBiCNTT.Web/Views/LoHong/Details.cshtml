@@ -1,0 +1,13 @@
+@model LoHong
+@{ ViewData["Title"] = Model.MaCve ?? Model.TieuDe; var cntt = User.LaCNTT(); var homNay = (DateOnly)ViewBag.HomNay; }
+<div class="small text-muted mb-1"><a asp-action="Index">Lỗ hổng</a> › @Model.TieuDe</div>
+<div class="page-head"><h1>@Model.TieuDe</h1><span class="badge bg-@(Model.Muc == MucLoHong.NghiemTrong ? "danger" : "warning text-dark")">CVSS @Model.Cvss.ToString("0.0") · @Model.Muc.Ten()</span> <span class="badge bg-secondary">@Model.TrangThai.Ten()</span></div>
+@if (Model.QuaHan(homNay)) { <div class="alert alert-danger py-2">Quá hạn vá @Model.HanVa.ToString("dd/MM/yyyy").</div> }
+<div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+    <div class="col-sm-4"><dt>Mã CVE</dt><dd>@Model.MaCve</dd></div><div class="col-sm-4"><dt>Nguồn</dt><dd>@Model.Nguon.Ten()</dd></div><div class="col-sm-4"><dt>Phụ trách</dt><dd>@Model.NguoiPhuTrach</dd></div>
+    <div class="col-sm-4"><dt>Hệ thống</dt><dd>@if (Model.HeThong is not null) { <a asp-controller="HeThong" asp-action="Details" asp-route-id="@Model.HeThongId">@Model.HeThong.Ma</a> }</dd></div><div class="col-sm-4"><dt>Phát hiện</dt><dd>@Model.NgayPhatHien.ToString("dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Hạn vá</dt><dd>@Model.HanVa.ToString("dd/MM/yyyy")</dd></div>
+    <div class="col-12"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div>@if (Model.NgayXong is not null) { <div class="col-12"><dt>Xử lý xong</dt><dd>@Model.NgayXong?.ToString("dd/MM/yyyy") — @Model.NguoiXong</dd></div> }</dl></div></div>
+@if (cntt && Model.DangMo) { <div class="d-flex flex-wrap gap-2">
+    @if (Model.TrangThai == TrangThaiLoHong.Mo) { <form asp-action="DangVa" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-outline-primary">Bắt đầu vá</button></form> }
+    <form asp-action="DaVa" asp-route-id="@Model.Id" method="post"><button class="btn btn-sm btn-success">Đã vá xong</button></form>
+    <form asp-action="ChapNhan" asp-route-id="@Model.Id" method="post" class="d-flex gap-1"><input name="lyDo" class="form-control form-control-sm" placeholder="Lý do chấp nhận rủi ro (Trưởng phòng CNTT)" aria-label="Lý do" style="min-width:280px" /><button class="btn btn-sm btn-outline-secondary">Chấp nhận rủi ro</button></form></div> }

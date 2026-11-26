@@ -11,6 +11,12 @@
             <div class="col-sm-4"><dt>Ngày ký</dt><dd>@Model.NgayKy?.ToString("dd/MM/yyyy")</dd></div><div class="col-sm-4"><dt>Hiệu lực</dt><dd>@Model.HieuLucTu?.ToString("dd/MM/yyyy") – @(Model.HieuLucDen?.ToString("dd/MM/yyyy") ?? "…")</dd></div>
             <div class="col-sm-4"><dt>Giá trị</dt><dd>@Model.GiaTri.ToString("N0") đ</dd></div>
             <div class="col-12"><dt>Phạm vi / điều khoản</dt><dd style="white-space:pre-line">@Model.PhamVi</dd></div>
+            @if (Model.LaDichVuCntt) {
+                <div class="col-12"><dt>Chỉ tiêu nhà thầu báo cáo</dt><dd style="white-space:pre-line">@Model.ChiTieuNhaThau</dd></div>
+                <div class="col-sm-6"><dt>Tần suất và cách báo cáo</dt><dd>@Model.TanSuatBaoCao</dd></div><div class="col-sm-6"><dt>Cách xử lý khi không đạt</dt><dd>@Model.CachXuLyKhongDat</dd></div>
+                <div class="col-12"><dt>Kế hoạch giữ liên tục dịch vụ</dt><dd>@Model.KeHoachLienTuc</dd></div>
+                @if (Model.ThieuGld05() is { Count: > 0 } thieu) { <div class="col-12"><div class="alert alert-warning py-1 small mb-0">Còn thiếu theo GLD.05.00: @string.Join("; ", thieu).</div></div> }
+            }
             <div class="col-sm-6"><dt>Phụ trách</dt><dd>@Model.NguoiPhuTrach</dd></div><div class="col-sm-6"><dt>Ghi chú</dt><dd>@Model.GhiChu</dd></div>
         </dl></div></div>
         <div class="card"><div class="card-header">Tài sản thuộc hợp đồng (@Model.TaiSans.Count)</div>

@@ -1,0 +1,12 @@
+@model BaiTapChuDong
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm bài tập chủ động" : "Sửa bài tập"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1><span class="text-muted small">Ví dụ: ngừng HIS, mã độc tống tiền, mất nguồn phòng máy chủ</span></div>
+<div class="card" style="max-width:860px"><div class="card-body"><form asp-action="Form" method="post" class="row g-3"><input type="hidden" asp-for="Id" /><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-2"><label asp-for="Nam" class="form-label"></label><input asp-for="Nam" type="number" class="form-control" /></div><div class="col-md-6"><label asp-for="QuyTrinh" class="form-label"></label><input asp-for="QuyTrinh" class="form-control" /></div><div class="col-md-4"><label asp-for="NgayThucHien" class="form-label"></label><input asp-for="NgayThucHien" type="date" class="form-control" /></div>
+    <div class="col-12"><label asp-for="DiemCoTheHong" class="form-label"></label><textarea asp-for="DiemCoTheHong" class="form-control" rows="3"></textarea></div>
+    <div class="col-12"><label asp-for="HauQua" class="form-label"></label><textarea asp-for="HauQua" class="form-control" rows="2"></textarea></div>
+    <div class="col-12"><label asp-for="BienPhap" class="form-label"></label><textarea asp-for="BienPhap" class="form-control" rows="3"></textarea></div>
+    <div class="col-md-6"><label asp-for="ThamGia" class="form-label"></label><input asp-for="ThamGia" class="form-control" /></div>
+    <div class="col-md-6"><label asp-for="DotDienTapId" class="form-label"></label><select asp-for="DotDienTapId" asp-items="@((SelectList)ViewBag.DsDienTap)" class="form-select"><option value="">— Không —</option></select></div>
+    <div class="col-12"><button class="btn btn-primary">Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div></form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

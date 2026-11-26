@@ -1,0 +1,10 @@
+@model List<GoiYRuiRo>
+@{ ViewData["Title"] = "Gợi ý rủi ro"; var tatCa = (bool)ViewData["tatCa"]!; }
+<div class="page-head"><h1>Gợi ý rủi ro từ dữ liệu</h1><span class="text-muted small">FR-RR-03 – hệ thống đề xuất; người dùng chấp nhận hoặc bỏ qua</span>
+    <div class="actions"><a asp-controller="RuiRo" asp-action="Index" class="btn btn-sm btn-outline-secondary">Sổ rủi ro</a><form asp-action="Sinh" method="post" class="d-inline"><button class="btn btn-sm btn-outline-primary">Quét lại ngay</button></form></div></div>
+<div class="mb-2"><a asp-action="Index" asp-route-tatCa="@(!tatCa)" class="small">@(tatCa ? "Chỉ gợi ý mới" : "Hiện cả đã xử lý")</a></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-top"><thead><tr><th>Gợi ý</th><th>Nhóm</th><th>Hệ thống</th><th></th></tr></thead><tbody>
+@foreach (var g in Model) { <tr><td>@g.NoiDung<div class="small text-muted">@g.DuLieu</div></td><td class="small">@g.Nhom.Ten()</td><td class="small">@g.HeThong?.Ma</td>
+    <td class="text-nowrap">@if (g.TrangThai == TrangThaiGoiY.Moi) { <form asp-action="ChapNhan" asp-route-id="@g.Id" method="post" class="d-inline"><button class="btn btn-sm btn-primary">Tạo rủi ro</button></form> <form asp-action="BoQua" asp-route-id="@g.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-secondary">Bỏ qua</button></form> } else { <span class="badge bg-secondary">@g.TrangThai.Ten()</span> @if (g.RuiRoId is { } r) { <a asp-controller="RuiRo" asp-action="Details" asp-route-id="@r" class="small">xem rủi ro</a> } }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-3">Không có gợi ý.</td></tr> }
+</tbody></table></div></div>

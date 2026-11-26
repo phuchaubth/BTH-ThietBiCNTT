@@ -15,6 +15,11 @@
     <div class="col-md-3"><label asp-for="GiaTri" class="form-label"></label><input asp-for="GiaTri" type="number" step="1000" min="0" class="form-control" /></div>
     <div class="col-md-6"><label asp-for="NguoiPhuTrach" class="form-label"></label><input asp-for="NguoiPhuTrach" class="form-control" /></div>
     <div class="col-12"><label asp-for="PhamVi" class="form-label"></label><textarea asp-for="PhamVi" class="form-control" rows="3" placeholder="VD: bảo trì 2 lần/năm; thời gian phản hồi 4 giờ; thay thế linh kiện trong 48 giờ…"></textarea></div>
+    <div class="col-12"><div class="form-text mb-1">Hợp đồng bảo trì / thuê ngoài dịch vụ CNTT (GLD.05.00 ME2, ME4–ME6):</div></div>
+    <div class="col-12"><label asp-for="ChiTieuNhaThau" class="form-label"></label><textarea asp-for="ChiTieuNhaThau" class="form-control" rows="2" placeholder="VD: thời gian phản hồi ≤ 2 giờ, khắc phục ≤ 8 giờ, sẵn sàng ≥ 99,5%"></textarea></div>
+    <div class="col-md-6"><label asp-for="TanSuatBaoCao" class="form-label"></label><input asp-for="TanSuatBaoCao" class="form-control" placeholder="VD: báo cáo tháng bằng văn bản" /></div>
+    <div class="col-md-6"><label asp-for="CachXuLyKhongDat" class="form-label"></label><input asp-for="CachXuLyKhongDat" class="form-control" /></div>
+    <div class="col-12"><label asp-for="KeHoachLienTuc" class="form-label"></label><textarea asp-for="KeHoachLienTuc" class="form-control" rows="2"></textarea></div>
     <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
     <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
 </form>

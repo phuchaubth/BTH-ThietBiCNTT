@@ -30,6 +30,11 @@
 - Sổ rủi ro CNTT (ma trận 5×5, lịch sử điểm, chấp nhận rủi ro cần Lãnh đạo duyệt), đợt đánh giá hằng năm, đào tạo, tiện ích và thử nguồn dự phòng
 - Tiêu chuẩn JCI 8 với bằng chứng tự động, bộ chỉ số, tracer theo hệ thống, báo cáo quý cho Lãnh đạo
 
+**Giai đoạn 3.3 – Quản lý thay đổi, quyền truy cập, lỗ hổng** (HCT.01.00, MOI.01.01, MOI.01.03, FMS.10.00, GLD.05.00, QPS.04.01):
+- Quản lý thay đổi: phiếu 4 loại, duyệt theo mức trọng yếu, khẩn cấp duyệt bổ sung, PCRA, checklist hệ thống mới / AI, đánh giá sau triển khai, lịch kèm cảnh báo trùng giờ, dự án xây dựng
+- Rà soát quyền truy cập: nhập danh sách tài khoản, đánh dấu tự động, Trưởng khoa xác nhận, thu hồi, biên bản; nghỉ việc / chuyển khoa; giám sát vi phạm
+- Lỗ hổng (hạn vá theo CVSS), gợi ý rủi ro từ dữ liệu, bài tập chủ động, đánh giá nhà cung cấp, API nhận kết quả sao lưu, xuất hồ sơ bằng chứng ZIP
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -48,6 +53,7 @@
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
 # các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, thongbao.py (cần mock.py)
+python3 tests/e2e/hatang33.py                 # GĐ3.3 (chạy trên CSDL demo mới)
 python3 tests/e2e/hatang32.py                 # GĐ3.2 (chạy trên CSDL demo mới)
 python3 tests/e2e/hatang.py                   # hạ tầng CNTT theo JCI 8 (GĐ3.1) — chạy trên CSDL demo mới
 ```

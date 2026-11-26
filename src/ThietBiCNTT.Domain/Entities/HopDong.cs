@@ -26,7 +26,25 @@ public class HopDong : BaseEntity
     [StringLength(2000), Display(Name = "Phạm vi / điều khoản chính (SLA của nhà thầu…)")] public string? PhamVi { get; set; }
     [StringLength(100), Display(Name = "Cán bộ phụ trách")] public string? NguoiPhuTrach { get; set; }
     [StringLength(1000), Display(Name = "Ghi chú")] public string? GhiChu { get; set; }
+    // GĐ3.3 – GLD.05.00 (hợp đồng dịch vụ CNTT)
+    [StringLength(1500), Display(Name = "Chỉ tiêu chất lượng, hiệu năng nhà thầu phải báo cáo")] public string? ChiTieuNhaThau { get; set; }
+    [StringLength(300), Display(Name = "Tần suất và cách báo cáo")] public string? TanSuatBaoCao { get; set; }
+    [StringLength(1000), Display(Name = "Cách xử lý khi nhà thầu không đạt chỉ tiêu")] public string? CachXuLyKhongDat { get; set; }
+    [StringLength(1000), Display(Name = "Kế hoạch giữ liên tục dịch vụ khi gia hạn / chấm dứt")] public string? KeHoachLienTuc { get; set; }
     public ICollection<HopDongTaiSan> TaiSans { get; set; } = [];
+
+    public bool LaDichVuCntt => Loai is LoaiHopDong.BaoTri or LoaiHopDong.ThueNgoai;
+    /// <summary>GLD.05.00 ME2, ME4, ME5, ME6: mục còn thiếu.</summary>
+    public List<string> ThieuGld05()
+    {
+        var l = new List<string>();
+        if (string.IsNullOrWhiteSpace(PhamVi)) l.Add("phạm vi dịch vụ bằng văn bản");
+        if (string.IsNullOrWhiteSpace(ChiTieuNhaThau)) l.Add("chỉ tiêu nhà thầu phải báo cáo");
+        if (string.IsNullOrWhiteSpace(TanSuatBaoCao)) l.Add("tần suất và cách báo cáo");
+        if (string.IsNullOrWhiteSpace(CachXuLyKhongDat)) l.Add("cách xử lý khi không đạt");
+        if (string.IsNullOrWhiteSpace(KeHoachLienTuc)) l.Add("kế hoạch giữ liên tục dịch vụ");
+        return l;
+    }
 
     public bool ConHieuLuc(DateOnly d) => (HieuLucTu is null || HieuLucTu <= d) && (HieuLucDen is null || HieuLucDen >= d);
     public bool SapHetHan(DateOnly d, int soNgay) => HieuLucDen is { } den && den >= d && den <= d.AddDays(soNgay);

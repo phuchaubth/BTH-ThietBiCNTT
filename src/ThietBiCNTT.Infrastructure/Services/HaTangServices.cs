@@ -163,7 +163,7 @@ public class HanhDongService(AppDbContext db, SoPhieuService soPhieu, ThongBaoSe
 /// cảnh báo sao lưu thiếu/lỗi (FR-SL-04), nhắc & leo thang diễn tập/thử phục hồi quá hạn (BR-DT-06), hành động khắc phục (FR-HD-03).
 /// </summary>
 public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBaoService tb, ThamSoService thamSo, UserManager<AppUser> users,
-    SoPhieuService soPhieu, LichSuService lichSu, RaSoatQuyenService raSoatQuyen)
+    SoPhieuService soPhieu, LichSuService lichSu, RaSoatQuyenService raSoatQuyen, GoiYRuiRoService goiY)
 {
     public async Task ChayAsync(DateTime now, CancellationToken ct = default)
     {
@@ -191,6 +191,8 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
     {
         // FR-TC-01: sinh đợt rà soát quyền khi đến chu kỳ; nhắc đợt quá hạn
         await raSoatQuyen.SinhDotAsync(ct);
+        await goiY.SinhAsync(homNay, ct);
+        await goiY.NhacAsync(now, homNay, ct);
         await db.SaveChangesAsync(ct);
         var cnttQ = await tb.CanBoCNTTAsync();
         foreach (var d in await db.DotRaSoatQuyens.Include(x => x.HeThong).Where(x => x.TrangThai != TrangThaiRaSoat.DaDong && !x.DaNhacQuaHan && x.Han < homNay).ToListAsync(ct))

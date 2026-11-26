@@ -420,6 +420,15 @@ public static class DbSeeder
         dot.NhapDanhSach([Tk("bs.hung", "Lê Văn Hùng", "CC", "Bác sĩ", 2), Tk("dd.ha", "Phạm Thu Hà", "CC", "Điều dưỡng", 5), Tk("dd.cu", "Nguyễn Văn Cũ", "CC", "Điều dưỡng", 200), Tk("bs.mai", "Võ Thị Mai", "KB", "Bác sĩ", 1), Tk("his_admin", "Quản trị HIS", null, "Quản trị hệ thống (admin)", 1), Tk("khoa.chung", null, "HSTC", "Điều dưỡng", 3)], "ktv1", now.AddDays(-3));
         db.DotRaSoatQuyens.Add(dot);
         db.ViPhamTruyCaps.Add(new ViPhamTruyCap { Nguon = NguonViPham.BaoCaoKhoa, MoTa = "Điều dưỡng dùng chung tài khoản đăng nhập HIS trong ca trực.", HeThongId = his.Id, KhoaPhongId = khoa["CC"].Id, NgayPhatHien = hn.AddDays(-12), TrangThai = TrangThaiViPham.Moi });
+        // GĐ3.3c: lỗ hổng, bài tập chủ động, lưu giữ dữ liệu, hồ sơ hợp đồng dịch vụ
+        db.LoHongs.AddRange(
+            new LoHong { TieuDe = "Lỗ hổng thực thi mã từ xa trên máy chủ ứng dụng HIS", MaCve = "CVE-2026-1234", Nguon = NguonLoHong.KhuyenCao, Cvss = 9.1m, HeThongId = his.Id, NgayPhatHien = hn.AddDays(-3), HanVa = LoHong.TinhHan(hn.AddDays(-3), 9.1m, 7, 30, 90, 180), NguoiPhuTrach = "ktv1", NguoiTao = "ktv1" },
+            new LoHong { TieuDe = "Thư viện mã hoá cũ trên máy chủ thư điện tử", MaCve = "CVE-2026-0456", Nguon = NguonLoHong.QuetLoHong, Cvss = 5.3m, HeThongId = lis.Id, NgayPhatHien = hn.AddDays(-40), HanVa = LoHong.TinhHan(hn.AddDays(-40), 5.3m, 7, 30, 90, 180), NguoiPhuTrach = "ktv2", NguoiTao = "ktv2" });
+        his.LoaiDuLieuLuuGiu = "Bệnh án điện tử"; his.LuuGiuNam = 20; his.CanCuLuuGiu = "Luật Khám bệnh, chữa bệnh"; his.CachHuyDuLieu = "Huỷ theo quyết định của Hội đồng huỷ hồ sơ, lập biên bản";
+        db.BaiTapChuDongs.Add(new BaiTapChuDong { Nam = hn.Year, QuyTrinh = "Ngừng hoạt động HIS do mất nguồn điện phòng máy chủ", NgayThucHien = hn.AddDays(-20), ThamGia = "CNTT, Điều dưỡng trưởng khoa Cấp cứu, HCQT", DiemCoTheHong = "UPS quá tải; máy phát chưa tự chuyển nguồn; bộ biểu mẫu giấy không đủ", HauQua = "Khoa lâm sàng phải ghi giấy, nguy cơ nhập bù sai", BienPhap = "Bổ sung công tắc chuyển nguồn tự động; tăng số lượng biểu mẫu giấy; thử mỗi quý", NguoiTao = "ktv2" });
+        var hdBt = new HopDong { SoHopDong = "HĐ-BT-0001", Ten = "Bảo trì và hỗ trợ phần mềm HIS", Loai = LoaiHopDong.BaoTri, NgayKy = hn.AddMonths(-6), HieuLucTu = hn.AddMonths(-6), HieuLucDen = hn.AddMonths(6), GiaTri = 480_000_000, NguoiPhuTrach = "ktv1", PhamVi = "Bảo trì, vá lỗi, hỗ trợ 24/7 phần mềm HIS",
+            ChiTieuNhaThau = "Phản hồi ≤ 2 giờ; khắc phục sự cố nghiêm trọng ≤ 8 giờ; sẵn sàng ≥ 99,5%", TanSuatBaoCao = "Báo cáo tháng bằng văn bản", NguoiTao = "ktv1" };
+        db.HopDongs.Add(hdBt); await db.SaveChangesAsync(); his.HopDongId = hdBt.Id;
         await db.SaveChangesAsync();
     }
 }

@@ -1,0 +1,9 @@
+@model List<BaiTapChuDong>
+@{ ViewData["Title"] = "Bài tập giảm thiểu rủi ro chủ động"; var namNay = DateTime.Today.Year; }
+<div class="page-head"><h1>Bài tập giảm thiểu rủi ro chủ động</h1><span class="text-muted small">QPS.04.01 ME3–ME4 – ít nhất một quy trình rủi ro ưu tiên mỗi năm</span>
+    <div class="actions"><a asp-controller="RuiRo" asp-action="Index" class="btn btn-sm btn-outline-secondary">Sổ rủi ro</a>@if (User.LaCNTT()) { <a asp-action="Form" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm bài tập</a> }</div></div>
+@if (!Model.Any(b => b.Nam == namNay && b.DaChot)) { <div class="alert alert-warning py-2">Năm @namNay chưa có bài tập chủ động nào được chốt.</div> }
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Năm</th><th>Quy trình rủi ro</th><th>Ngày</th><th>Diễn tập liên quan</th><th></th></tr></thead><tbody>
+@foreach (var b in Model) { <tr><td>@b.Nam</td><td><a asp-action="Details" asp-route-id="@b.Id">@b.QuyTrinh</a></td><td class="small">@b.NgayThucHien.ToString("dd/MM/yyyy")</td><td class="small">@(b.DotDienTap is null ? "" : "Đợt " + b.DotDienTap.HanThucHien)</td><td>@if (b.DaChot) { <span class="badge bg-success">Đã chốt</span> } else { <span class="badge bg-secondary">Nháp</span> }</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-3">Chưa có bài tập.</td></tr> }
+</tbody></table></div></div>

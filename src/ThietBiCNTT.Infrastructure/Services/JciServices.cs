@@ -20,9 +20,9 @@ public static class DanhMucJci
         T("HCT", "HCT.01.04", 6, "Xây dựng, duy trì và thử nghiệm chương trình ứng phó downtime có kế hoạch và đột xuất", "Kế hoạch downtime, sự kiện, diễn tập (FR-DT)"),
         T("HCT", "HCT.01.05", 3, "Quy trình, thủ tục về an ninh mạng và quản lý rủi ro mạng", "An ninh mạng (FR-AN), chương trình ứng phó, rủi ro"),
         T("MOI", "MOI.01.00", 3, "Lập kế hoạch quản lý thông tin, chọn quy trình đáp ứng nhu cầu người dùng dữ liệu", "Danh mục hệ thống thông tin (FR-HTT-01..05)"),
-        T("MOI", "MOI.01.01", 6, "Bảo mật, riêng tư, toàn vẹn thông tin; kiểm soát truy cập theo vai trò", "Rà soát quyền truy cập (FR-TC, GĐ3.3)", false),
+        T("MOI", "MOI.01.01", 6, "Bảo mật, riêng tư, toàn vẹn thông tin; kiểm soát truy cập theo vai trò", "Rà soát quyền truy cập, giám sát tuân thủ (FR-TC)"),
         T("MOI", "MOI.01.02", 5, "Bảo vệ thông tin trước mất, đánh cắp, phá huỷ, mã độc tống tiền, tấn công mạng; đánh giá rủi ro ATTT hằng năm", "Sao lưu, thử phục hồi, sự cố an ninh, đánh giá rủi ro"),
-        T("MOI", "MOI.01.03", 3, "Xác định thời gian lưu giữ dữ liệu và cách huỷ", "Thời gian lưu giữ dữ liệu (FR-HTT-14, GĐ3.3)", false),
+        T("MOI", "MOI.01.03", 3, "Xác định thời gian lưu giữ dữ liệu và cách huỷ", "Thời gian lưu giữ dữ liệu (FR-HTT-14)"),
         T("MOI", "MOI.01.04", 4, "Đào tạo về hệ thống thông tin, an toàn thông tin; đào tạo an ninh mạng hằng năm", "Đào tạo (FR-DT-09)"),
         T("MOI", "MOI.02.00", 4, "Quản lý văn bản, chính sách, chương trình thống nhất", "Tài liệu có phiên bản và phê duyệt"),
         T("MOI", "MOI.02.01", 4, "Lãnh đạo xem xét, phê duyệt chính sách, quy trình", "Tài liệu duyệt hai cấp"),
@@ -32,14 +32,14 @@ public static class DanhMucJci
         T("FMS", "FMS.08.00", 5, "Chương trình quản lý tiện ích (gồm hệ thống thông tin, liên lạc, dữ liệu); danh mục và chu kỳ bảo trì", "Tiện ích CNTT (FR-HTT-15)"),
         T("FMS", "FMS.08.01", 3, "Nguồn điện thay thế luôn sẵn sàng; thử ít nhất mỗi quý và lưu kết quả", "Thử nguồn dự phòng (FR-HTT-16)"),
         T("FMS", "FMS.09.00", 4, "Chương trình ứng phó khẩn cấp và thảm hoạ; đánh giá hằng năm", "Chương trình của Phòng HCQT; tham chiếu downtime", false),
-        T("FMS", "FMS.10.00", 3, "Đánh giá rủi ro trước xây dựng / bảo trì ảnh hưởng chăm sóc; giám sát nhà thầu", "Quản lý thay đổi (FR-TD, GĐ3.3)", false),
+        T("FMS", "FMS.10.00", 3, "Đánh giá rủi ro trước xây dựng / bảo trì ảnh hưởng chăm sóc; giám sát nhà thầu", "Quản lý thay đổi, PCRA, dự án xây dựng (FR-TD)"),
         T("GLD", "GLD.04.00", 7, "Chương trình chất lượng và an toàn người bệnh; định nghĩa sự kiện an toàn, phân tích sự cố nghiêm trọng", "Cờ an toàn người bệnh trong downtime", false),
         T("GLD", "GLD.04.01", 3, "Báo cáo chất lượng và an toàn bằng văn bản cho cơ quan quản trị ít nhất hằng quý", "Báo cáo lãnh đạo (FR-JC-04)"),
         T("GLD", "GLD.05.00", 6, "Xem xét, giám sát hợp đồng; chỉ tiêu chất lượng nhà thầu báo cáo", "Hợp đồng (SRS 4.6), FR-JC-07, FR-JC-09"),
         T("GLD", "GLD.06.00", 4, "Trưởng bộ phận đủ trình độ; đề xuất nguồn lực; tài liệu dịch vụ hiện tại và dự kiến", "Hồ sơ phạm vi dịch vụ Phòng CNTT (FR-JC-10)"),
         T("QPS", "QPS.03.04", 6, "Phân tích sâu khi có sự cố hoặc xu hướng bất lợi; báo cáo rủi ro", "Rút kinh nghiệm downtime, sự cố an ninh"),
         T("QPS", "QPS.04.00", 4, "Cải tiến có dữ liệu chứng minh hiệu quả, bền vững", "Hành động khắc phục có kiểm chứng (mục 5)"),
-        T("QPS", "QPS.04.01", 6, "Bài tập giảm thiểu rủi ro chủ động ít nhất mỗi năm", "FR-RR-09 (GĐ3.3)", false),
+        T("QPS", "QPS.04.01", 6, "Bài tập giảm thiểu rủi ro chủ động ít nhất mỗi năm", "Bài tập rủi ro chủ động (FR-RR-09)"),
         T("SQE", "SQE.01.07", 7, "Đào tạo liên tục; nhu cầu từ dữ liệu; ghi hoàn thành vào hồ sơ từng người", "Đào tạo (FR-DT-09)"),
     ];
 
@@ -100,7 +100,11 @@ public class BangChungJciService(AppDbContext db, ThamSoService thamSo, HaTangSe
         kq["HCT.01.05"] = R(diemAn == 3 ? MucBangChung.Du : diemAn == 0 ? MucBangChung.Thieu : MucBangChung.MotPhan, $"Chính sách an ninh mạng {(coCs ? "✓" : "✗")}; chương trình ứng phó {(coUp ? "✓" : "✗")}; đã thử trong {thangUng} tháng {(daThuMang ? "✓" : "✗")}");
         // --- MOI ---
         kq["MOI.01.00"] = Tong(hts.Count(h => h.HoSoThieu().Count == 0), hts.Count, $"{hts.Count(h => h.HoSoThieu().Count == 0)}/{hts.Count} hệ thống có chủ sở hữu và người phụ trách");
-        kq["MOI.01.01"] = ChuaTuDong;
+        var tqt = thamSo.SoNguyen(TS.JciRaSoatQuyenToiQuanTrongThang); var cao = thamSo.SoNguyen(TS.JciRaSoatQuyenCaoThang);
+        var dotQ = await db.DotRaSoatQuyens.AsNoTracking().Where(x => x.TrangThai == TrangThaiRaSoat.DaDong).ToListAsync();
+        int qOk = trongYeu.Count(h => { var ck = DotRaSoatQuyen.ChuKyThang(h.MucTrongYeu, tqt, cao); return ck > 0 && dotQ.Any(x => x.HeThongId == h.Id && (x.NgayDong ?? DateTime.MinValue) >= now.AddMonths(-ck)); });
+        var viPhamMo = await db.ViPhamTruyCaps.AsNoTracking().CountAsync(v => v.TrangThai != TrangThaiViPham.DaDong);
+        kq["MOI.01.01"] = trongYeu.Count == 0 ? R(MucBangChung.KhongApDung, "Không có hệ thống trọng yếu") : R(qOk == trongYeu.Count && viPhamMo == 0 ? MucBangChung.Du : qOk == 0 ? MucBangChung.Thieu : MucBangChung.MotPhan, $"Rà soát quyền đúng chu kỳ {qOk}/{trongYeu.Count} hệ thống trọng yếu; {viPhamMo} vi phạm truy cập chưa đóng");
         var dotRr = await db.DotDanhGiaRuiRos.AsNoTracking().Where(x => x.DaChot).OrderByDescending(x => x.NgayChot).ToListAsync();
         bool rrNam = dotRr.Any(x => (x.NgayChot ?? DateTime.MinValue) >= thang12);
         int coBk = trongYeu.Count(h => tacVu.Any(t => t.HeThongId == h.Id));
@@ -108,7 +112,8 @@ public class BangChungJciService(AppDbContext db, ThamSoService thamSo, HaTangSe
         var thanhPhan02 = new[] { trongYeu.Count == 0 || coBk == trongYeu.Count, trongYeu.Count == 0 || phOk == trongYeu.Count, rrNam, coCs };
         kq["MOI.01.02"] = R(thanhPhan02.All(x => x) ? MucBangChung.Du : thanhPhan02.Any(x => x) ? MucBangChung.MotPhan : MucBangChung.Thieu,
             $"Sao lưu khai báo {coBk}/{trongYeu.Count}; thử phục hồi Đạt trong chu kỳ {phOk}/{trongYeu.Count}; đánh giá rủi ro ATTT năm {(rrNam ? "✓" : "✗")}; chính sách khi bị tấn công {(coCs ? "✓" : "✗")}");
-        kq["MOI.01.03"] = ChuaTuDong;
+        int coLuu = trongYeu.Count(h => h.LuuGiuNam is not null && !string.IsNullOrWhiteSpace(h.CanCuLuuGiu) && !string.IsNullOrWhiteSpace(h.CachHuyDuLieu));
+        kq["MOI.01.03"] = Tong(coLuu, trongYeu.Count, $"{coLuu}/{trongYeu.Count} hệ thống trọng yếu khai báo thời gian lưu giữ, căn cứ pháp lý và cách huỷ dữ liệu");
         var thangDt = thamSo.SoNguyen(TS.JciDaoTaoTrongThang);
         var attt = await db.BuoiDaoTaos.AsNoTracking().Include(b => b.ThamDus).Where(b => b.Loai == LoaiDaoTao.AnToanThongTin && b.Ngay >= now.AddMonths(-thangDt)).ToListAsync();
         kq["MOI.01.04"] = attt.Count == 0 ? R(MucBangChung.Thieu, $"Chưa có đào tạo an toàn thông tin / an ninh mạng trong {thangDt} tháng") : R(attt.Sum(b => b.ThamDus.Count) > 0 ? MucBangChung.Du : MucBangChung.MotPhan, $"{attt.Count} buổi đào tạo ATTT, {attt.Sum(b => b.ThamDus.Count)} lượt tham dự");
@@ -132,7 +137,12 @@ public class BangChungJciService(AppDbContext db, ThamSoService thamSo, HaTangSe
         var lanCuoi = (await db.LanKiemTras.AsNoTracking().Where(l => maus.Select(m => m.Id).Contains(l.MauKiemTraId)).ToListAsync()).GroupBy(l => l.MauKiemTraId).ToDictionary(g => g.Key, g => g.Max(x => x.ThoiGian));
         int dungHan = maus.Count(m => lanCuoi.TryGetValue(m.Id, out var t) && t >= now.AddMonths(-thangNg));
         kq["FMS.08.01"] = maus.Count == 0 ? R(MucBangChung.Thieu, "Chưa có phiếu thử nguồn điện dự phòng") : Tong(dungHan, maus.Count, $"{dungHan}/{maus.Count} nguồn dự phòng đã thử trong {thangNg} tháng gần nhất");
-        kq["FMS.09.00"] = kq["FMS.10.00"] = ChuaTuDong;
+        kq["FMS.09.00"] = ChuaTuDong;
+        var tdCs = await db.PhieuThayDois.AsNoTracking().Include(x => x.MucPcras).Where(x => x.AnhHuongChamSoc && x.NgayTao >= thang12).ToListAsync();
+        var duAn = await db.DuAnXayDungs.AsNoTracking().Where(x => !x.DaHoanThanh).ToListAsync();
+        int pcraDu = tdCs.Count(x => x.ThieuDieuKien().Count == 0), duAnThieu = duAn.Count(x => x.ThieuThongTin);
+        kq["FMS.10.00"] = tdCs.Count == 0 && duAn.Count == 0 ? R(MucBangChung.KhongApDung, "Không có thay đổi ảnh hưởng chăm sóc / dự án xây dựng trong 12 tháng")
+            : R(pcraDu == tdCs.Count && duAnThieu == 0 ? MucBangChung.Du : MucBangChung.MotPhan, $"PCRA đầy đủ {pcraDu}/{tdCs.Count} thay đổi ảnh hưởng chăm sóc; {duAn.Count - duAnThieu}/{duAn.Count} dự án xây dựng có đánh giá và biện pháp bảo vệ hạ tầng");
         // --- GLD ---
         kq["GLD.04.00"] = ChuaTuDong;
         var bc = await db.BaoCaoLanhDaos.AsNoTracking().OrderByDescending(b => b.TuNgay).ToListAsync();
@@ -140,7 +150,9 @@ public class BangChungJciService(AppDbContext db, ThamSoService thamSo, HaTangSe
         kq["GLD.04.01"] = bcQ is null ? R(MucBangChung.Thieu, $"Chưa có báo cáo quý {quyTruoc}") : !bcQ.DaGui ? R(MucBangChung.MotPhan, $"Báo cáo quý {quyTruoc} chưa gửi") : R(bcQ.DaXem ? MucBangChung.Du : MucBangChung.MotPhan, bcQ.DaXem ? $"Báo cáo quý {quyTruoc} đã gửi và được Lãnh đạo xác nhận" : $"Báo cáo quý {quyTruoc} đã gửi, chờ Lãnh đạo xác nhận đã xem");
         var hd = await db.HopDongs.AsNoTracking().Where(h => (h.Loai == LoaiHopDong.BaoTri || h.Loai == LoaiHopDong.ThueNgoai) && (h.HieuLucDen == null || h.HieuLucDen >= d)).ToListAsync();
         int coPhamVi = hd.Count(h => !string.IsNullOrWhiteSpace(h.PhamVi));
-        kq["GLD.05.00"] = hd.Count == 0 ? R(MucBangChung.Thieu, "Chưa có hợp đồng bảo trì/thuê ngoài nào") : R(coPhamVi == hd.Count ? MucBangChung.MotPhan : MucBangChung.Thieu, $"{coPhamVi}/{hd.Count} hợp đồng có mô tả phạm vi; chỉ tiêu chất lượng nhà thầu báo cáo (ME5–ME6) chưa theo dõi trong hệ thống");
+        var dgNam = await db.DanhGiaNhaCungCaps.AsNoTracking().Where(x => x.Nam == now.Year && x.NgayDanhGia != null).Select(x => x.HopDongId).ToListAsync();
+        int duHs = hd.Count(h => h.ThieuGld05().Count == 0), daDg = hd.Count(h => dgNam.Contains(h.Id));
+        kq["GLD.05.00"] = hd.Count > 0 ? R(duHs == hd.Count && daDg == hd.Count ? MucBangChung.Du : duHs == 0 && daDg == 0 ? MucBangChung.Thieu : MucBangChung.MotPhan, $"{duHs}/{hd.Count} hợp đồng dịch vụ CNTT đủ hồ sơ GLD.05.00; {daDg}/{hd.Count} đã đánh giá nhà cung cấp năm {now.Year}") : hd.Count == 0 ? R(MucBangChung.Thieu, "Chưa có hợp đồng bảo trì/thuê ngoài nào") : R(coPhamVi == hd.Count ? MucBangChung.MotPhan : MucBangChung.Thieu, $"{coPhamVi}/{hd.Count} hợp đồng có mô tả phạm vi; chỉ tiêu chất lượng nhà thầu báo cáo (ME5–ME6) chưa theo dõi trong hệ thống");
         var pvDv = taiLieu.Any(t => t.Loai == LoaiTaiLieu.PhamViDichVu); var coGs = gs.Any(x => x.HieuLuc(d));
         kq["GLD.06.00"] = R(pvDv && coGs ? MucBangChung.Du : pvDv || coGs ? MucBangChung.MotPhan : MucBangChung.Thieu, $"Người phụ trách được chỉ định {(coGs ? "✓" : "✗")}; hồ sơ phạm vi dịch vụ hiệu lực {(pvDv ? "✓" : "✗")}");
         // --- QPS ---
@@ -150,7 +162,8 @@ public class BangChungJciService(AppDbContext db, ThamSoService thamSo, HaTangSe
         var capa = await db.HanhDongKhacPhucs.AsNoTracking().ToListAsync();
         var quaHanCapa = capa.Count(h => h.QuaHan(d)); var dong = capa.Count(h => h.TrangThai == TrangThaiHanhDong.DaDong);
         kq["QPS.04.00"] = capa.Count == 0 ? R(MucBangChung.KhongApDung, "Chưa có hành động khắc phục nào") : R(quaHanCapa == 0 ? MucBangChung.Du : MucBangChung.MotPhan, $"{dong}/{capa.Count} hành động đã đóng sau kiểm chứng; {quaHanCapa} quá hạn");
-        kq["QPS.04.01"] = ChuaTuDong;
+        var btcd = await db.BaiTapChuDongs.AsNoTracking().Where(x => x.DaChot && x.NgayChot >= thang12).CountAsync();
+        kq["QPS.04.01"] = btcd > 0 ? R(MucBangChung.Du, $"{btcd} bài tập giảm thiểu rủi ro chủ động đã chốt trong 12 tháng") : R(MucBangChung.Thieu, "Chưa có bài tập giảm thiểu rủi ro chủ động trong 12 tháng");
         // --- SQE ---
         var theoNv = await db.ThamDuDaoTaos.AsNoTracking().CountAsync(t => t.MaNhanVien != null); var tong = await db.ThamDuDaoTaos.AsNoTracking().CountAsync();
         kq["SQE.01.07"] = tong == 0 ? R(MucBangChung.Thieu, "Chưa ghi nhận người tham dự đào tạo nào") : R(theoNv == tong ? MucBangChung.Du : MucBangChung.MotPhan, $"{theoNv}/{tong} lượt tham dự có mã nhân viên để lưu hồ sơ nhân sự");

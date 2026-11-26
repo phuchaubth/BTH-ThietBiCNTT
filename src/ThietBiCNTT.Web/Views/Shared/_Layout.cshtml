@@ -49,7 +49,9 @@
             <a class="nav-item @Act("TienIch")" asp-controller="TienIch" asp-action="Index"><i class="bi bi-lightning-charge"></i> Tiện ích & nguồn dự phòng</a>
             <a class="nav-item @Act("RaSoatQuyen", "NghiViec", "ViPhamTruyCap")" asp-controller="RaSoatQuyen" asp-action="Index"><i class="bi bi-person-lock"></i> Rà soát quyền truy cập</a>
             <a class="nav-item @Act("PhieuThayDoi", "DuAnXayDung")" asp-controller="PhieuThayDoi" asp-action="Index"><i class="bi bi-arrow-repeat"></i> Quản lý thay đổi</a>
-            <a class="nav-item @Act("RuiRo", "DotRuiRo")" asp-controller="RuiRo" asp-action="Index"><i class="bi bi-exclamation-diamond"></i> Sổ rủi ro CNTT</a>
+            <a class="nav-item @Act("LoHong")" asp-controller="LoHong" asp-action="Index"><i class="bi bi-bug"></i> Lỗ hổng an ninh</a>
+            <a class="nav-item @Act("NhaCungCapDanhGia")" asp-controller="NhaCungCapDanhGia" asp-action="Index"><i class="bi bi-building-check"></i> Đánh giá nhà cung cấp</a>
+            <a class="nav-item @Act("RuiRo", "DotRuiRo", "GoiYRuiRo", "BaiTapChuDong")" asp-controller="RuiRo" asp-action="Index"><i class="bi bi-exclamation-diamond"></i> Sổ rủi ro CNTT</a>
             @if (User.XemAn(ThamSo)) { <a class="nav-item @Act("AnNinh")" asp-controller="AnNinh" asp-action="Index"><i class="bi bi-shield-lock"></i> Sự cố an ninh mạng</a> }
             <a class="nav-item @Act("KenhDuLieu")" asp-controller="KenhDuLieu" asp-action="Index"><i class="bi bi-send-check"></i> Kênh truyền dữ liệu</a>
             <a class="nav-item @Act("GiamSatCntt")" asp-controller="GiamSatCntt" asp-action="Index"><i class="bi bi-person-badge"></i> Người giám sát CNTT y tế</a>

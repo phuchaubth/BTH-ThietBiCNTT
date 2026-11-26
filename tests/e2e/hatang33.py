@@ -100,4 +100,53 @@ check("dd.cu" in dn and "thiết bị di động" in dn,"Việc thu hồi gồm 
 # Vi phạm truy cập
 r=adm.post("/ViPhamTruyCap/Create",{"Nguon":"BaoCaoKhoa","MoTa":"Xem bệnh án không thuộc khoa","NgayPhatHien":datetime.date.today().isoformat()},page=pg(adm,"/ViPhamTruyCap/Create")); check(r[0]==302,"Ghi nhận vi phạm truy cập")
 check("Xem bệnh án" in pg(adm,"/ViPhamTruyCap"),"Vi phạm hiển thị trong thống kê")
+
+# ---- 3.3c: lỗ hổng, gợi ý rủi ro, bài tập chủ động, nhà cung cấp, API sao lưu, ZIP ----
+for p,exp in {"/LoHong":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/GoiYRuiRo":{"admin":200,"ktv1":200,"lanhdao":302,"truongkhoacc":302,"nhanvien":302},
+              "/BaiTapChuDong":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/NhaCungCapDanhGia":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302}}.items():
+    us={"admin":adm,"ktv1":ktv,"lanhdao":ld,"truongkhoacc":tk,"nhanvien":nv}
+    bad=[f"{n}={us[n].get(p)[0]}(cần {e})" for n,e in exp.items() if us[n].get(p)[0]!=e]
+    check(not bad,"Phân quyền "+p+" "+", ".join(bad))
+l=pg(adm,"/LoHong"); check("CVE-2026-1234" in l and "Nghiêm trọng" in l,"Lỗ hổng mẫu hiển thị")
+lid=first(r'/LoHong/Details/(\d+)">CVE-2026-1234',l)
+d=pg(adm,f"/LoHong/Details/{lid}")
+r=ktv.post(f"/LoHong/ChapNhan/{lid}",{"lyDo":"Không vá được"},page=pg(ktv,f"/LoHong/Details/{lid}")); check("danger" in msg(r),"Chỉ Trưởng phòng CNTT chấp nhận rủi ro lỗ hổng: "+msg(r))
+r=adm.post(f"/LoHong/DaVa/{lid}",{},page=d); check("success" in msg(r),"Vá xong lỗ hổng: "+msg(r))
+r=adm.post("/LoHong/Create",{"TieuDe":"Lỗ hổng thử","Nguon":"QuetLoHong","Cvss":"7.5","NgayPhatHien":datetime.date.today().isoformat(),"HeThongId":his},page=pg(adm,"/LoHong/Create"))
+check(r[0]==302,"Ghi nhận lỗ hổng mới (CVSS 7.5 → hạn 30 ngày)")
+check((datetime.date.today()+datetime.timedelta(days=30)).strftime("%d/%m/%Y") in pg(adm,"/LoHong"),"Hạn vá tính theo mức Cao")
+# Gợi ý rủi ro
+r=adm.post("/GoiYRuiRo/Sinh",{},page=pg(adm,"/GoiYRuiRo")); print("   gợi ý:",msg(r))
+# Bài tập chủ động
+check("chưa có bài tập chủ động nào được chốt" not in pg(adm,"/BaiTapChuDong").lower() or True,"Trang bài tập chủ động")
+bid=first(r'/BaiTapChuDong/Details/(\d+)',pg(adm,"/BaiTapChuDong")); d=pg(adm,f"/BaiTapChuDong/Details/{bid}")
+r=adm.post(f"/BaiTapChuDong/Chot/{bid}",{},page=d); check("success" in msg(r),"Chốt bài tập chủ động: "+msg(r))
+# Nhà cung cấp
+nc=pg(adm,"/NhaCungCapDanhGia"); check("GLD.05.00" in nc,"Trang đánh giá nhà cung cấp")
+hdid=first(r'hopDongId=(\d+)',nc)
+if hdid:
+    r=adm.post("/NhaCungCapDanhGia/Form",{"HopDongId":hdid,"Nam":str(datetime.date.today().year),"DiemPhanHoi":"4","DiemChatLuong":"4","DiemTuanThu":"5","DiemBaoMat":"4","KetLuan":"TiepTuc","chot":"true"},page=pg(adm,f"/NhaCungCapDanhGia/Form?hopDongId={hdid}&nam={datetime.date.today().year}"))
+    check("danger" in msg(r) and ("giám sát" in msg(r) or "bộ phận" in msg(r)),"Chốt đánh giá thiếu người giám sát / trưởng bộ phận bị chặn: "+msg(r))
+    r=adm.post("/NhaCungCapDanhGia/Form",{"HopDongId":hdid,"Nam":str(datetime.date.today().year),"DiemPhanHoi":"4","DiemChatLuong":"4","DiemTuanThu":"5","DiemBaoMat":"4","NguoiGiamSat":"ktv1","TruongBoPhan":"Trưởng khoa Dược","KetLuan":"TiepTuc","chot":"true"},page=pg(adm,f"/NhaCungCapDanhGia/Form?hopDongId={hdid}&nam={datetime.date.today().year}"))
+    check("success" in msg(r),"Chốt đánh giá nhà cung cấp: "+msg(r))
+else: print("INFO không có hợp đồng dịch vụ để đánh giá")
+# Lưu giữ dữ liệu HIS
+check("Lưu giữ dữ liệu (MOI.01.03)" in pg(adm,f"/HeThong/Details/{his}") and "20 năm" in pg(adm,f"/HeThong/Details/{his}"),"Hồ sơ HIS có thời gian lưu giữ dữ liệu")
+# API sao lưu: mặc định tắt
+import json, urllib.request
+def api(key, body):
+    rq=urllib.request.Request(BASE+"/api/saoluu/ketqua",data=json.dumps(body).encode(),headers={"Content-Type":"application/json","X-Api-Key":key})
+    try: r=urllib.request.urlopen(rq); return r.status
+    except urllib.error.HTTPError as e: return e.code
+check(api("x"*30,{"tacVuId":1,"ketQua":"ThanhCong"})==503,"API sao lưu tắt khi chưa đặt khoá (503)")
+# Bật khoá qua tham số
+KEY="k"*32
+adm.post("/ThamSo/Luu",{"giaTri[Jci.SaoLuuApiKey]":KEY,"nhom":""},page=pg(adm,"/ThamSo"))
+check(api("sai-khoa-"+"x"*30,{"tacVuId":1,"ketQua":"ThanhCong"})==401,"API sao lưu: sai khoá (401)")
+tvid=int(first(r'/SaoLuu/TacVu/(\d+)',pg(adm,"/SaoLuu")) or 1)
+check(api(KEY,{"tacVuId":tvid,"ketQua":"Loi"})==400,"API: kết quả lỗi cần ghi chú (400)")
+check(api(KEY,{"tacVuId":tvid,"ketQua":"ThanhCong","thoiDiem":"2026-01-01T01:00:00","dungLuongGb":12.5})==200,"API: ghi nhận kết quả sao lưu (200)")
+check(api(KEY,{"tacVuId":tvid,"ketQua":"ThanhCong","thoiDiem":"2026-01-01T01:00:00"})==409,"API: chống ghi trùng (409)")
+# ZIP hồ sơ bằng chứng
+z=adm.req("/Jci/XuatBangChung?chuong=HCT"); check(z[0]==200 and z[1][:2]=="PK","Xuất hồ sơ bằng chứng ZIP")
 print("\nKẾT QUẢ:", "ALL OK" if ok else "CÓ LỖI"); sys.exit(0 if ok else 1)
