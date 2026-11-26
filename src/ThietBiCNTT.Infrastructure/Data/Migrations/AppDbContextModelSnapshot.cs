@@ -270,6 +270,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("NoiBo")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NoiDung")
                         .IsRequired()
                         .HasMaxLength(2000)

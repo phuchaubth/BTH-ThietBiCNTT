@@ -54,3 +54,10 @@ public class PhieuSuaChuaMoRongTests
         Assert.Throws<DomainException>(() => p.ThuHoiTam(tam, T0.AddHours(6)));
     }
 }
+
+public class NhacTenTests
+{
+    [Fact]
+    public void NhacTen_BoEmailVaTrung() =>
+        Assert.Equal(["ktv2", "truong.khoa"], BinhLuanPhieu.NhacTen("Nhờ @ktv2 và @truong.khoa. Gửi a@b.vn, @KTV2 lần nữa"));
+}

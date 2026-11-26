@@ -221,13 +221,22 @@
             @foreach (var b in Model.BinhLuans)
             {
                 if (b.LaHeThong) { <div class="comment sys">@b.ThoiGian.ToString("HH:mm dd/MM") · @b.NguoiViet · @b.NoiDung</div> }
-                else { <div class="comment"><b>@b.NguoiViet</b> <span class="small text-muted">@b.ThoiGian.ToString("HH:mm dd/MM")</span><div style="white-space:pre-line">@b.NoiDung</div></div> }
+                else
+                {
+                    var nd = System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlEncode(b.NoiDung), @"(?<![\w.@])@([A-Za-z0-9][A-Za-z0-9._-]{1,99})", "<span class=\"text-primary fw-semibold\">@$1</span>");
+                    <div class="comment @(b.NoiBo ? "border-start border-warning border-3 ps-2" : "")"><b>@b.NguoiViet</b> <span class="small text-muted">@b.ThoiGian.ToString("HH:mm dd/MM")</span>
+                        @if (b.NoiBo) { <span class="badge bg-warning-subtle text-warning-emphasis border">Nội bộ CNTT</span> }
+                        <div style="white-space:pre-line">@Html.Raw(nd)</div></div>
+                }
             }
             @if (!Model.DaDong)
             {
-                <form asp-action="BinhLuan" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 mt-2">
-                    <input name="noiDung" class="form-control" placeholder="Viết trao đổi…" aria-label="Viết trao đổi" required />
-                    <button class="btn btn-primary">Gửi</button>
+                <form asp-action="BinhLuan" asp-route-id="@Model.Id" method="post" class="mt-2">
+                    <div class="d-flex gap-2">
+                        <textarea name="noiDung" rows="1" class="form-control" placeholder="Viết trao đổi… gõ @@tên_đăng_nhập để nhắc người liên quan" aria-label="Viết trao đổi" required></textarea>
+                        <button class="btn btn-primary">Gửi</button>
+                    </div>
+                    @if (cntt) { <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="noiBo" value="true" id="noiBo" /><label class="form-check-label small" for="noiBo">Nội bộ CNTT (người báo, khoa không thấy)</label></div> }
                 </form>
             }
         </div></div>

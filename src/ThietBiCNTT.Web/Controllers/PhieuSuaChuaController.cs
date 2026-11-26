@@ -115,12 +115,13 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
 
     public async Task<IActionResult> Details(int id)
     {
+        var cnttXem = User.LaCNTT();
         var p = await PhamVi().AsNoTracking()
             .Include(x => x.TaiSan).ThenInclude(t => t!.CauHinh)
             .Include(x => x.TaiSan).ThenInclude(t => t!.LoaiThietBi)
             .Include(x => x.KhoaPhong).Include(x => x.NhaCungCap).Include(x => x.KeHoachBaoTri)
             .Include(x => x.VatTus).ThenInclude(v => v.VatTu)
-            .Include(x => x.BinhLuans.OrderBy(b => b.ThoiGian))
+            .Include(x => x.BinhLuans.Where(b => !b.NoiBo || cnttXem).OrderBy(b => b.ThoiGian))
             .Include(x => x.GioCongs.OrderBy(g => g.BatDau)).Include(x => x.ThietBiTam)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (p is null) return NotFound();
@@ -357,15 +358,36 @@ public class PhieuSuaChuaController(AppDbContext db, SoPhieuService soPhieu, Lic
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> BinhLuan(int id, string noiDung)
+    public async Task<IActionResult> BinhLuan(int id, string noiDung, bool noiBo = false)
     {
         var phieu = await PhamVi().FirstOrDefaultAsync(p => p.Id == id);
         if (phieu is null) return NotFound();
+        noiBo = noiBo && User.LaCNTT();
         if (!string.IsNullOrWhiteSpace(noiDung))
         {
-            db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, NoiDung = noiDung.Trim() });
-            await tb.BinhLuanAsync(phieu, User.Identity!.Name!, noiDung.Trim());
+            noiDung = noiDung.Trim();
+            if (noiDung.Length > 2000) noiDung = noiDung[..2000];
+            // @nhắc tên: chỉ người xem được phiếu (CNTT, Lãnh đạo, người của khoa phiếu); bình luận nội bộ chỉ nhắc được cán bộ CNTT
+            var ten = BinhLuanPhieu.NhacTen(noiDung);
+            var nhac = new List<string>();
+            var boQua = new List<string>();
+            if (ten.Count > 0)
+            {
+                var ds = await db.Users.Where(u => ten.Contains(u.UserName!) && u.DangHoatDong).ToListAsync();
+                foreach (var u in ds)
+                {
+                    var vaiTro = await users.GetRolesAsync(u);
+                    var laCntt = vaiTro.Contains(VaiTro.QuanTri) || vaiTro.Contains(VaiTro.CanBoCNTT);
+                    var xem = laCntt || vaiTro.Contains(VaiTro.LanhDao) || u.KhoaPhongId == phieu.KhoaPhongId;
+                    if (xem && (!noiBo || laCntt)) nhac.Add(u.UserName!); else boQua.Add(u.UserName!);
+                }
+                boQua.AddRange(ten.Where(t => !ds.Any(u => string.Equals(u.UserName, t, StringComparison.OrdinalIgnoreCase))));
+            }
+            db.BinhLuanPhieus.Add(new BinhLuanPhieu { PhieuSuaChuaId = id, ThoiGian = DateTime.Now, NguoiViet = User.Identity!.Name!, NoiDung = noiDung, NoiBo = noiBo });
+            await tb.BinhLuanAsync(phieu, User.Identity!.Name!, noiDung, noiBo, nhac);
             await db.SaveChangesAsync();
+            if (nhac.Count > 0) TempData["ok"] = $"Đã gửi và nhắc {string.Join(", ", nhac)}.";
+            if (boQua.Count > 0) TempData["err"] = $"Không nhắc được: {string.Join(", ", boQua)} (không tồn tại hoặc không có quyền xem{(noiBo ? " bình luận nội bộ" : " phiếu")}).";
         }
         return Redirect(Url.Action(nameof(Details), new { id }) + "#trao-doi");
     }

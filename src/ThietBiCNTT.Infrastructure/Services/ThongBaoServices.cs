@@ -98,8 +98,17 @@ public class ThongBaoService(AppDbContext db, ThamSoService thamSo, UserManager<
     public Task TraLaiAsync(PhieuSuaChua p, string? nguoi) =>
         GuiAsync([p.KyThuatVien], LoaiThongBao.TraLai, $"{p.SoPhieu} bị trả lại — chưa đạt", p.YKienNguoiDung, $"/PhieuSuaChua/Details/{p.Id}", MucDoThongBao.CanhBao, boQua: nguoi);
 
-    public Task BinhLuanAsync(PhieuSuaChua p, string nguoiViet, string noiDung) =>
-        GuiAsync([p.NguoiTao, p.KyThuatVien], LoaiThongBao.BinhLuan, $"{nguoiViet} trao đổi trong {p.SoPhieu}", noiDung, $"/PhieuSuaChua/Details/{p.Id}#trao-doi", boQua: nguoiViet);
+    /// <summary>Thông báo bình luận: người báo + KTV (bình luận nội bộ chỉ KTV); người được nhắc @ nhận "nhắc tên" riêng.</summary>
+    public async Task BinhLuanAsync(PhieuSuaChua p, string nguoiViet, string noiDung, bool noiBo = false, IReadOnlyCollection<string>? nhacTen = null)
+    {
+        nhacTen ??= [];
+        var thamGia = (noiBo ? [p.KyThuatVien] : new[] { p.NguoiTao, p.KyThuatVien })
+            .Where(x => x is not null && !nhacTen.Contains(x, StringComparer.OrdinalIgnoreCase));
+        await GuiAsync(thamGia, LoaiThongBao.BinhLuan, $"{nguoiViet} trao đổi{(noiBo ? " (nội bộ)" : "")} trong {p.SoPhieu}", noiDung, $"/PhieuSuaChua/Details/{p.Id}#trao-doi", boQua: nguoiViet);
+        if (nhacTen.Count > 0)
+            await GuiAsync(nhacTen, LoaiThongBao.BinhLuan, $"{nguoiViet} nhắc bạn trong {p.SoPhieu}", noiDung, $"/PhieuSuaChua/Details/{p.Id}#trao-doi",
+                MucDoThongBao.CanhBao, boQua: nguoiViet);
+    }
 
     public async Task VatTuDuoiDinhMucAsync(VatTu v) =>
         await GuiAsync(await CanBoCNTTAsync(), LoaiThongBao.VatTu, $"Vật tư {v.Ma} dưới định mức (còn {v.TonKho:0.##} {v.DonViTinh})",

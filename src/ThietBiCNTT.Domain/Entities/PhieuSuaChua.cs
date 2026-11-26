@@ -420,4 +420,11 @@ public class BinhLuanPhieu
     [Required, StringLength(2000)] public string NoiDung { get; set; } = "";
     /// <summary>Bình luận do hệ thống sinh khi đổi trạng thái.</summary>
     public bool LaHeThong { get; set; }
+    /// <summary>Bình luận nội bộ CNTT — người báo / khoa không thấy (FR-WO-19).</summary>
+    public bool NoiBo { get; set; }
+
+    /// <summary>Tên đăng nhập được nhắc bằng @ten trong nội dung.</summary>
+    public static IReadOnlyList<string> NhacTen(string noiDung) =>
+        System.Text.RegularExpressions.Regex.Matches(noiDung, @"(?<![\w.@])@([A-Za-z0-9][A-Za-z0-9._-]{1,99})")
+            .Select(m => m.Groups[1].Value.TrimEnd('.', '-')).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 }
