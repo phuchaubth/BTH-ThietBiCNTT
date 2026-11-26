@@ -1,0 +1,24 @@
+@model BangBaoCao
+@{
+    ViewData["Title"] = Model.TieuDe; var p = (ThamSoBaoCao)ViewBag.P; var tt = (ThongTinIn)ViewBag.TT; var so = (Model.CotSo ?? []).ToHashSet();
+    string Q(string dang) => $"/BaoCaoChuan/Xem?ma={Model.Ma}&dang={dang}&tu={p.Tu:yyyy-MM-dd}&den={p.Den:yyyy-MM-dd}&khoaId={p.KhoaId}&nam={p.Nam}&soNgay={p.SoNgay}";
+}
+<div class="small text-muted mb-1 d-print-none"><a asp-action="Index">Báo cáo chuẩn</a> › @Model.Ma</div>
+<div class="page-head d-print-none"><h1>@Model.Ma · @Model.TieuDe</h1>
+    <div class="actions"><a href="@Q("pdf")" class="btn btn-sm btn-danger"><i class="bi bi-file-earmark-pdf"></i> Tải PDF</a>
+        <a href="@Q("xlsx")" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Excel</a></div></div>
+<div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between text-center small mb-3" style="font-family:'Times New Roman',serif">
+        <div>@tt.CoQuanChuQuan.ToUpper()<br /><b>@tt.TenDonVi.ToUpper()</b></div>
+        <div><b>CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br /><b>Độc lập - Tự do - Hạnh phúc</b><br /><i>@tt.DiaDanh, ngày @DateTime.Now.ToString("dd") tháng @DateTime.Now.ToString("MM") năm @DateTime.Now.ToString("yyyy")</i></div>
+    </div>
+    <h5 class="text-center fw-bold mb-0">@Model.TieuDe.ToUpper()</h5>
+    <div class="text-center fst-italic small mb-3">@Model.PhuDe</div>
+    <div class="table-responsive"><table class="table table-sm table-bordered align-middle small mb-2">
+        <thead class="table-light"><tr>@foreach (var c in Model.Cot) { <th class="text-center">@c</th> }</tr></thead>
+        <tbody>@foreach (var d in Model.Dong) { <tr>@for (var i = 0; i < Model.Cot.Length; i++) { <td class="@(so.Contains(i) ? "text-end" : "")">@(i < d.Length ? d[i] : "")</td> }</tr> }
+            @if (Model.Dong.Count == 0) { <tr><td colspan="@Model.Cot.Length" class="text-center text-muted fst-italic">Không có dữ liệu</td></tr> }</tbody>
+        @if (Model.Tong is { } t) { <tfoot><tr class="fw-semibold">@for (var i = 0; i < Model.Cot.Length; i++) { <td class="@(so.Contains(i) ? "text-end" : "")">@(i < t.Length ? t[i] : "")</td> }</tr></tfoot> }
+    </table></div>
+    @if (Model.GhiChu is not null) { <div class="small fst-italic text-muted">@Model.GhiChu</div> }
+</div></div>

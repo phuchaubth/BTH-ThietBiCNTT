@@ -85,6 +85,7 @@ builder.Services.AddOpenApi("v1", o =>
     });
 });
 builder.Services.AddScoped<BaoCaoDinhKyService>();
+builder.Services.AddScoped<BaoCaoChuanService>();
 builder.Services.AddHostedService<BaoTriBackgroundService>();
 builder.Services.AddHostedService<ThongBaoBackgroundService>();
 

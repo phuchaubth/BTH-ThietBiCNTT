@@ -24,7 +24,13 @@ public enum LoaiBaoCaoDinhKy
     [Display(Name = "KPI vận hành (SLA, MTTR, chi phí)")] KpiVanHanh = 1,
     [Display(Name = "Tổng chi phí sở hữu (TCO)")] Tco,
     [Display(Name = "Ngân sách dự toán – thực hiện")] NganSach,
-    [Display(Name = "Mẫu báo cáo tuỳ biến")] TuyBien
+    [Display(Name = "Mẫu báo cáo tuỳ biến")] TuyBien,
+    [Display(Name = "PDF chuẩn BC01 – Danh sách tài sản")] ChuanBC01 = 11,
+    [Display(Name = "PDF chuẩn BC02 – Tình hình sửa chữa, bảo trì")] ChuanBC02,
+    [Display(Name = "PDF chuẩn BC03 – Chi phí theo loại thiết bị")] ChuanBC03,
+    [Display(Name = "PDF chuẩn BC04 – Đề nghị thay thế")] ChuanBC04,
+    [Display(Name = "PDF chuẩn BC05 – Thực hiện ngân sách")] ChuanBC05,
+    [Display(Name = "PDF chuẩn BC06 – Sắp hết hạn bảo hành/hợp đồng")] ChuanBC06
 }
 
 public enum ChuKyGui

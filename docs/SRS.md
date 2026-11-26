@@ -1313,7 +1313,7 @@ gantt
 | Thanh lý có hội đồng + quyết định + bắt buộc xoá dữ liệu | FR-TL-01, 03..09; BR-TL-01 | [Đã có] | Gợi ý TS cần thanh lý, tận dụng linh kiện (FR-TL-02, 10) |
 | Danh mục dùng chung | FR-HT-06 | [Đã có] | Lịch làm việc/ngày lễ phục vụ SLA giờ làm việc (nếu chưa có) |
 | Kho vật tư (nhiều kho, nhập/xuất/chuyển, thẻ kho, kiểm kê kho) và Mua sắm (PR → PO → nhận hàng) | FR-KHO-01..09, FR-MS-01..08 | [Đã có] | — |
-| Dashboard & báo cáo: KPI, MTBF, dừng máy, TCO, báo cáo tuỳ biến, gửi định kỳ, xuất Excel | FR-BC-01..13 (trừ PDF) | [Đã có] | Xuất PDF báo cáo chuẩn |
+| Dashboard & báo cáo: KPI, MTBF, dừng máy, TCO, báo cáo tuỳ biến, gửi định kỳ (Excel/PDF), báo cáo chuẩn BC01–BC06 xuất PDF/Excel có quốc hiệu & chữ ký, đề nghị thay thế (lập đề xuất mua sắm) | FR-BC-01..13 | [Đã có] | Biểu mẫu báo cáo theo mẫu riêng của Bệnh viện/Sở Y tế (bổ sung khi có mẫu) |
 | Phân quyền 5 vai trò | FR-HT-04, mục 4.11.3 | [Đã có] | Rà soát theo ma trận cập nhật (thêm Kiểm tra, PO, Ngân sách, Cảnh báo, API) |
 | Nhật ký thao tác | FR-HT-07 | [Đã có] | Ghi log xem thông tin nhạy cảm, xuất log |
 | Kiểm tra tài sản, Ngân sách, API mở + webhook, Sơ đồ mặt bằng, Kiểm kê QR (cả ngoại tuyến), NCC-HĐ-BH, PWA, 2FA, AD, Zalo OA, số liệu kế toán | 4.12, 4.13, IF-07..10, FR-VT-05, 4.9, 4.6, NFR-SD-07, FR-HT-16, FR-HT-17 | [Đã có] | Kiểm thử trên hạ tầng thật (SQL Server, AD, Zalo OA, IIS) |

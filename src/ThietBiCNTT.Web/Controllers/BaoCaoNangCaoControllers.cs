@@ -153,7 +153,8 @@ public class LichGuiBaoCaoController(AppDbContext db, BaoCaoDinhKyService svc) :
     {
         var l = await db.LichGuiBaoCaos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         if (l?.TepCuoi is null || !System.IO.File.Exists(l.TepCuoi)) return NotFound();
-        return PhysicalFile(l.TepCuoi, Xlsx.Mime, $"{BaoCaoDinhKyService.TenTep(l.Ten)}_{l.LanGuiCuoi:yyyyMMdd}.xlsx");
+        var pdf = l.TepCuoi.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+        return PhysicalFile(l.TepCuoi, pdf ? "application/pdf" : Xlsx.Mime, $"{BaoCaoDinhKyService.TenTep(l.Ten)}_{l.LanGuiCuoi:yyyyMMdd}{(pdf ? ".pdf" : ".xlsx")}");
     }
 
     private async Task Nap(LichGuiBaoCao l)

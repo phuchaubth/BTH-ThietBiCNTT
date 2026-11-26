@@ -8,7 +8,7 @@ namespace ThietBiCNTT.Web.Infrastructure;
 
 /// <summary>Tự gửi báo cáo định kỳ qua email (FR-BC-13): dựng xlsx, lưu vào thư mục đính kèm, xếp hàng email kèm tệp.</summary>
 public class BaoCaoDinhKyService(AppDbContext db, ThamSoService ts, BaoCaoService kpi, NganSachService ns, TcoService tco,
-    BaoCaoTuyBienService tuyBien, TepService tep, ThongBaoService tb)
+    BaoCaoTuyBienService tuyBien, TepService tep, ThongBaoService tb, BaoCaoChuanService chuan, IConfiguration config)
 {
     /// <summary>Gửi các lịch đến hạn (gọi mỗi 5 phút; mỗi kỳ chỉ gửi một lần, sau giờ bản tin tổng hợp).</summary>
     public async Task<int> ChayAsync(DateTime now, CancellationToken ct = default)
@@ -31,7 +31,7 @@ public class BaoCaoDinhKyService(AppDbContext db, ThamSoService ts, BaoCaoServic
             var (byteArr, tenTep, tomTat) = await DungAsync(l, ky.Tu, ky.Den);
             var thuMuc = Path.Combine(tep.ThuMucGoc, "baocao", now.ToString("yyyyMM"));
             Directory.CreateDirectory(thuMuc);
-            var duongDan = Path.Combine(thuMuc, $"{Guid.NewGuid():N}.xlsx");
+            var duongDan = Path.Combine(thuMuc, $"{Guid.NewGuid():N}{Path.GetExtension(tenTep)}");
             await File.WriteAllBytesAsync(duongDan, byteArr, ct);
 
             // Người nhận: tên đăng nhập → email tài khoản (+ thông báo trong ứng dụng); hoặc địa chỉ email trực tiếp
@@ -42,7 +42,7 @@ public class BaoCaoDinhKyService(AppDbContext db, ThamSoService ts, BaoCaoServic
             var tieuDe = $"[Báo cáo định kỳ] {l.Ten} – kỳ {ky.Ky}";
             var noiDung = $"<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px\"><p>Kính gửi,</p><p>Hệ thống Quản lý TTB CNTT gửi <b>{System.Net.WebUtility.HtmlEncode(l.Ten)}</b> "
                 + $"(số liệu {ky.Tu:dd/MM/yyyy} – {ky.Den.AddDays(-1):dd/MM/yyyy}).</p><p style=\"white-space:pre-line\">{System.Net.WebUtility.HtmlEncode(tomTat)}</p>"
-                + "<p>Chi tiết trong tệp Excel đính kèm.</p><p style=\"color:#777;font-size:12px\">Email tự động — vui lòng không trả lời.</p></div>";
+                + $"<p>Chi tiết trong tệp {(tenTep.EndsWith(".pdf") ? "PDF" : "Excel")} đính kèm.</p><p style=\"color:#777;font-size:12px\">Email tự động — vui lòng không trả lời.</p></div>";
             var emailBat = ts.BatTat(TS.EmailBat);
             if (emailBat)
                 foreach (var e in emails)
@@ -62,6 +62,14 @@ public class BaoCaoDinhKyService(AppDbContext db, ThamSoService ts, BaoCaoServic
     public async Task<(byte[] Tep, string Ten, string TomTat)> DungAsync(LichGuiBaoCao l, DateTime tu, DateTime den)
     {
         var tenBv = ts.Chuoi(TS.TenBenhVien);
+        if (l.Loai >= LoaiBaoCaoDinhKy.ChuanBC01)
+        {
+            var ma = $"BC{(int)l.Loai - 10:00}";
+            var now = DateTime.Now;
+            var b = await chuan.LapAsync(ma, new ThamSoBaoCao(tu, den.AddDays(-1), null, tu.Year, 90), now) ?? throw new DomainException("Không có báo cáo " + ma);
+            PhongChuBaoCao.CaiDat(config["BaoCao:FontDir"]);
+            return (BaoCaoChuanXuat.Pdf(b, chuan.ThongTin("Hệ thống (gửi tự động)"), now), $"{ma}_{den.AddDays(-1):yyyyMMdd}.pdf", $"{b.TieuDe}: {b.Dong.Count} dòng · {b.PhuDe}");
+        }
         switch (l.Loai)
         {
             case LoaiBaoCaoDinhKy.KpiVanHanh:

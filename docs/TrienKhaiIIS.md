@@ -488,6 +488,12 @@ Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, ch�
 - Máy dùng chung: đăng xuất sẽ xoá trang đã lưu ngoại tuyến; ngoài màn hình quét kiểm kê, không trang nghiệp vụ nào được lưu trên máy.
 - Khi cập nhật phiên bản có thay đổi giao diện, tăng hằng `PHIEN_BAN` trong `wwwroot/sw.js` để máy người dùng tải lại thư viện/tệp tĩnh.
 
+## 15. Báo cáo chuẩn PDF
+
+- *Báo cáo & KPI → Báo cáo chuẩn (PDF)*: BC01–BC06 xuất PDF (khổ A4, quốc hiệu, tên đơn vị, địa danh – ngày, ô ký, số trang) và Excel. Lịch *Gửi định kỳ* chọn được các báo cáo "PDF chuẩn" để gửi email kèm PDF.
+- Phông chữ: dùng **Times New Roman** có sẵn trong `C:\Windows\Fonts` (app pool chỉ cần quyền đọc — mặc định nhóm Users có). Nếu máy chủ là bản Server Core thiếu phông, chép 4 tệp `times.ttf, timesbd.ttf, timesi.ttf, timesbi.ttf` vào một thư mục và điền `BaoCao:FontDir` trong `appsettings.Production.json`.
+- Ô ký cuối báo cáo, tên đơn vị, địa danh: *Tham số hệ thống → Báo cáo chuẩn / Thông tin đơn vị / Văn thư*.
+
 ---
 
 ## Phụ lục A – Cài đặt IIS thủ công (không dùng script)
@@ -533,6 +539,7 @@ Khoá API lưu ở registry và thư mục `%ProgramData%\BTH\ThietBiAgent`, ch�
 | `ThongBao:TelegramBotToken` | (trống) | Token bot Telegram (tạo bằng @BotFather). Máy chủ cần ra được `api.telegram.org:443` |
 | `ThongBao:ZaloAccessToken`, `ZaloRefreshToken`, `ZaloAppId`, `ZaloSecretKey` | (trống) | Zalo OA: token ban đầu + thông tin ứng dụng để tự làm mới token (cần ra được `openapi.zalo.me`, `oauth.zaloapp.com`) |
 | `Ldap:Server`, `Ldap:Port`, `Ldap:Ssl`, `Ldap:TenMien` | (trống), 636, true | Máy chủ AD cho tài khoản "Đăng nhập bằng AD" (LDAPS). Trống = tắt |
+| `BaoCao:FontDir` | (trống) | Thư mục phông Times New Roman cho PDF báo cáo chuẩn; trống = `C:\Windows\Fonts` (xem mục 15) |
 | `App:DiaChiTruyCap` | (trống) | BTH: `https://thietbi.bth.org.vn`. Ghi vào tham số `DonVi.DiaChiTruyCap` khi tham số còn trống (link mã QR) |
 | `SeedSampleData` | `false` | Không bật trên máy chủ thật |
 | `Logging:LogLevel:*` | Information/Warning | Mức log |

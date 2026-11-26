@@ -66,6 +66,11 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Văn thư | `VanThu.DiaDanh` | Địa danh ghi trên văn bản | Văn bản | ............ |
 | Văn thư | `VanThu.NhacTruocNgay` | Nhắc hạn xử lý trước (1 lần/ngày, cả khi quá hạn) | Số nguyên | 2 ngày |
 | Văn thư | `VanThu.HanXuLyMacDinhNgay` | Hạn xử lý gợi ý văn bản đến (khẩn = 1/3) | Số nguyên | 7 ngày |
+| Báo cáo chuẩn | `BaoCao.ChuKy` | Các ô ký cuối báo cáo PDF/Excel (cách nhau `|`, tối đa 4) | Văn bản | NGƯỜI LẬP BIỂU\|TRƯỞNG PHÒNG CNTT\|GIÁM ĐỐC |
+| Đề nghị thay thế | `ThayThe.SoLanHong12Thang` | Hỏng lặp lại từ (0 = bỏ tiêu chí) | Số nguyên | 3 lần/12 tháng |
+| Đề nghị thay thế | `ThayThe.TyLeChiPhiSuaChua` | Chi phí sửa chữa luỹ kế từ (% nguyên giá) | Số thực | 50 % |
+| Đề nghị thay thế | `ThayThe.HdhHetHoTro` | Hệ điều hành hết hỗ trợ (cách nhau ;) | Văn bản | Windows XP;Windows 7;Windows 8;Windows 10;Windows Server 2008;Windows Server 2012 |
+| Đề nghị thay thế | `ThayThe.SoTieuChiToiThieu` | Đưa vào danh sách khi thoả từ N tiêu chí (tuổi thọ, hỏng lặp, chi phí, HĐH, RAM < chuẩn agent, đang hỏng) | Số nguyên | 1 |
 | Ngân sách | `NganSach.NguongCanhBaoPhanTram` | Cảnh báo khi khoản mục đã dùng (cam kết + thực chi) đạt | Số nguyên | 80 % dự toán |
 | Ngân sách | `NganSach.ChanVuotDuToan` | Chặn duyệt đề xuất vượt dự toán còn lại (tắt = chỉ cảnh báo) | Bật/Tắt | false |
 | API & tích hợp | `Api.Bat` | Bật API mở /api/v1 | Bật/Tắt | true |

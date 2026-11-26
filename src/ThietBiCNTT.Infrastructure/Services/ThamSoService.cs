@@ -97,6 +97,12 @@ public static class TS
     public const string VanThuDiaDanh = "VanThu.DiaDanh";
     public const string VanThuNhacTruocNgay = "VanThu.NhacTruocNgay";
     public const string VanThuHanMacDinh = "VanThu.HanXuLyMacDinhNgay";
+    // Báo cáo chuẩn & đề nghị thay thế
+    public const string BaoCaoChuKy = "BaoCao.ChuKy";
+    public const string ThayTheSoLanHong = "ThayThe.SoLanHong12Thang";
+    public const string ThayTheTyLeChiPhi = "ThayThe.TyLeChiPhiSuaChua";
+    public const string ThayTheHdhHetHoTro = "ThayThe.HdhHetHoTro";
+    public const string ThayTheSoTieuChi = "ThayThe.SoTieuChiToiThieu";
 }
 
 public static class ThamSoMacDinh
@@ -191,6 +197,11 @@ public static class ThamSoMacDinh
         T(103, "Bảo mật", TS.BatBuoc2FA, "Bắt buộc xác thực 2 lớp với Quản trị & Cán bộ CNTT", KieuThamSo.BatTat, "false", moTa: "Bật: tài khoản Quản trị / CNTT chưa bật 2 lớp sẽ phải cài ứng dụng xác thực (Google/Microsoft Authenticator) ngay sau khi đăng nhập."),
         T(102, "Bảo mật", TS.ChoGhiNhoVoiKhoa, "Cho 'Ghi nhớ đăng nhập' với tài khoản khoa", KieuThamSo.BatTat, "false", moTa: "Nên tắt vì máy ở khoa dùng chung."),
 
+        T(180, "Báo cáo chuẩn", TS.BaoCaoChuKy, "Các ô ký cuối báo cáo", KieuThamSo.VanBan, "NGƯỜI LẬP BIỂU|TRƯỞNG PHÒNG CNTT|GIÁM ĐỐC", moTa: "Cách nhau dấu |, tối đa 4 ô, theo thứ tự từ trái sang phải. Địa danh lấy theo tham số Văn thư."),
+        T(181, "Đề nghị thay thế", TS.ThayTheSoLanHong, "Hỏng lặp lại từ", KieuThamSo.SoNguyen, "3", "lần / 12 tháng", 0, 100, "0 = bỏ tiêu chí."),
+        T(182, "Đề nghị thay thế", TS.ThayTheTyLeChiPhi, "Chi phí sửa chữa luỹ kế từ", KieuThamSo.SoThuc, "50", "% nguyên giá", 0, 1000, "0 = bỏ tiêu chí."),
+        T(183, "Đề nghị thay thế", TS.ThayTheHdhHetHoTro, "Hệ điều hành hết hỗ trợ", KieuThamSo.VanBan, "Windows XP;Windows 7;Windows 8;Windows 10;Windows Server 2008;Windows Server 2012", moTa: "Cách nhau dấu ;. Lấy HĐH từ agent hoặc cấu hình tài sản. RAM tối thiểu theo chuẩn cấu hình agent."),
+        T(184, "Đề nghị thay thế", TS.ThayTheSoTieuChi, "Đưa vào danh sách khi thoả từ", KieuThamSo.SoNguyen, "1", "tiêu chí", 1, 6, "Tiêu chí: quá tuổi thọ của loại, hỏng lặp lại, chi phí sửa chữa, HĐH hết hỗ trợ, RAM dưới chuẩn, đang hỏng."),
         T(170, "Văn thư", TS.VanThuNguoiVanThu, "Văn thư (vào sổ đến, cấp số phát hành)", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập, cách nhau dấu phẩy. Quản trị luôn có quyền."),
         T(171, "Văn thư", TS.VanThuNguoiPhanCong, "Người phân công xử lý văn bản đến", KieuThamSo.VanBan, "admin", moTa: "Thường là Trưởng phòng CNTT. Nhận thông báo khi có văn bản đến mới."),
         T(172, "Văn thư", TS.VanThuNguoiDuyet, "Người duyệt mặc định văn bản đi / tờ trình", KieuThamSo.VanBan, "admin", moTa: "Theo thứ tự duyệt, cách nhau dấu phẩy. Người soạn có thể thay đổi khi trình. Tờ trình gửi Lãnh đạo thì thêm tài khoản Lãnh đạo ở bước cuối."),

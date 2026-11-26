@@ -1,6 +1,7 @@
 @{ var c = ViewContext.RouteData.Values["controller"]?.ToString(); }
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item"><a class="nav-link @(c == "BaoCao" ? "active" : "")" asp-controller="BaoCao" asp-action="Index">KPI vận hành</a></li>
+    <li class="nav-item"><a class="nav-link @(c == "BaoCaoChuan" ? "active" : "")" asp-controller="BaoCaoChuan" asp-action="Index">Báo cáo chuẩn (PDF)</a></li>
     <li class="nav-item"><a class="nav-link @(c == "Tco" ? "active" : "")" asp-controller="Tco" asp-action="Index">Tổng chi phí sở hữu (TCO)</a></li>
     <li class="nav-item"><a class="nav-link @(c == "BaoCaoTuyBien" ? "active" : "")" asp-controller="BaoCaoTuyBien" asp-action="Index">Báo cáo tuỳ biến</a></li>
     <li class="nav-item"><a class="nav-link @(c == "LichGuiBaoCao" ? "active" : "")" asp-controller="LichGuiBaoCao" asp-action="Index">Gửi định kỳ</a></li>

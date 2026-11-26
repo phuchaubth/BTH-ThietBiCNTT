@@ -63,3 +63,26 @@ public class QuyTacCanhBaoTests
         Assert.Throws<DomainException>(q.KiemTra);
     }
 }
+
+public class ThayTheTests
+{
+    private static readonly string[] HetHoTro = ["Windows XP", "Windows 7", "Windows 8", "Windows 10", "Windows Server 2012"];
+
+    [Theory]
+    [InlineData("Windows 7 Professional", true)]
+    [InlineData("Microsoft Windows 10 Pro", true)]
+    [InlineData("Windows 8.1", true)]
+    [InlineData("Windows 11 Pro", false)]
+    [InlineData("Windows 70", false)]
+    [InlineData("Windows Server 2012 R2", true)]
+    [InlineData("Windows Server 2019", false)]
+    [InlineData(null, false)]
+    public void HdhHetHoTro(string? hdh, bool kq) => Assert.Equal(kq, ThietBiCNTT.Infrastructure.Services.ThayTheService.HdhHetHoTro(hdh, HetHoTro));
+
+    [Theory]
+    [InlineData("8GB DDR4", 8)]
+    [InlineData("16 GB", 16)]
+    [InlineData("4096 MB", 4)]
+    [InlineData("7,5 GB", 7.5)]
+    public void DocRam(string s, double gb) => Assert.Equal((decimal)gb, ThietBiCNTT.Infrastructure.Services.ThayTheService.DocRam(s));
+}
