@@ -1,0 +1,10 @@
+@model ViPhamTruyCap
+@{ ViewData["Title"] = "Ghi nhận vi phạm truy cập"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:720px"><div class="card-body"><form asp-action="Create" method="post" class="row g-3"><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-4"><label asp-for="Nguon" class="form-label"></label><select asp-for="Nguon" asp-items="@EnumExtensions.ToSelectList<NguonViPham>(Model.Nguon)" class="form-select"></select></div><div class="col-md-4"><label asp-for="NgayPhatHien" class="form-label"></label><input asp-for="NgayPhatHien" type="date" class="form-control" /></div>
+    <div class="col-md-4"><div class="form-check mt-4"><input asp-for="NghiemTrong" class="form-check-input" /><label asp-for="NghiemTrong" class="form-check-label"></label></div></div>
+    <div class="col-md-6"><label asp-for="HeThongId" class="form-label"></label><select asp-for="HeThongId" asp-items="@((SelectList)ViewBag.DsHeThong)" class="form-select"><option value="">—</option></select></div><div class="col-md-6"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="@((SelectList)ViewBag.DsKhoa)" class="form-select"><option value="">—</option></select></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><textarea asp-for="MoTa" class="form-control" rows="3"></textarea></div>
+    <div class="col-12"><button class="btn btn-primary">Ghi nhận</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div></form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

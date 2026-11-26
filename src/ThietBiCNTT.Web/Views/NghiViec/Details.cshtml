@@ -1,0 +1,8 @@
+@model ThongBaoNghiViec
+@{ ViewData["Title"] = Model.HoTen; var cntt = User.LaCNTT(); }
+<div class="small text-muted mb-1"><a asp-action="Index">Nghỉ việc / chuyển khoa</a> › @Model.HoTen</div>
+<div class="page-head"><h1>@Model.HoTen · @Model.Loai.Ten()</h1>@if (Model.Xong) { <span class="badge bg-success">Đã thu hồi xong</span> }</div>
+<div class="small mb-3">Hiệu lực @Model.NgayHieuLuc.ToString("dd/MM/yyyy") · hạn thu hồi @Model.Han.ToString("dd/MM/yyyy HH:mm") · @Model.KhoaPhong?.Ten @(string.IsNullOrEmpty(Model.KhoaMoi) ? "" : "→ " + Model.KhoaMoi)</div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Việc</th><th>Hệ thống</th><th>Thực hiện</th></tr></thead><tbody>
+@foreach (var v in Model.Viecs) { <tr><td class="small">@v.NoiDung</td><td>@v.HeThong?.Ma</td><td>@if (v.DaThucHien) { <span class="badge bg-success">@v.NguoiThucHien @v.NgayThucHien?.ToString("dd/MM HH:mm")</span> } else if (cntt) { <form asp-action="DaThucHien" asp-route-id="@Model.Id" asp-route-viecId="@v.Id" method="post"><button class="btn btn-sm btn-outline-success">Đã thu hồi</button></form> }</td></tr> }
+</tbody></table></div></div>

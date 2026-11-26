@@ -103,6 +103,11 @@ public static class TS
     public const string JciBaoCaoQuyNhacNgay = "Jci.BaoCaoQuyNhacSauNgay";
     public const string JciDanhGiaSauTrienKhaiNgay = "Jci.DanhGiaSauTrienKhaiNgay";
     public const string JciKhanCapDuyetNgayLam = "Jci.KhanCapDuyetBoSungNgayLam";
+    public const string JciRaSoatQuyenToiQuanTrongThang = "Jci.RaSoatQuyenToiQuanTrongThang";
+    public const string JciRaSoatQuyenCaoThang = "Jci.RaSoatQuyenCaoThang";
+    public const string JciRaSoatQuyenHanNgay = "Jci.RaSoatQuyenHanNgay";
+    public const string JciTaiKhoanKhongDangNhapNgay = "Jci.TaiKhoanKhongDangNhapNgay";
+    public const string JciThuHoiNghiViecNgayLam = "Jci.ThuHoiNghiViecNgayLam";
 }
 
 public static class ThamSoMacDinh
@@ -198,6 +203,11 @@ public static class ThamSoMacDinh
         T(254, "JCI 8 – Tài liệu & chương trình", TS.JciThuNguonDuPhongThang, "Chu kỳ tối đa thử nguồn điện dự phòng", KieuThamSo.SoNguyen, "3", "tháng", 1, 12, "FMS.08.01 ME3: ít nhất mỗi quý. Phiếu mẫu có chu kỳ dài hơn sẽ bị cảnh báo."),
         T(255, "JCI 8 – An ninh mạng", TS.JciNhomAnToanThongTin, "Tài khoản được xử lý sự cố an ninh mạng", KieuThamSo.VanBan, "admin", moTa: "FR-AN-06: chỉ nhóm này và Lãnh đạo xem chi tiết sự cố an ninh mạng. Tên đăng nhập, cách nhau bởi dấu phẩy."),
         T(256, "JCI 8 – An ninh mạng", TS.JciHanBaoCaoSuCoGio, "Hạn báo cáo sự cố nghiêm trọng liên quan dữ liệu cá nhân cho cơ quan chức năng", KieuThamSo.SoNguyen, "0", "giờ", 0, 720, "0 = không áp dụng. Phòng CNTT nhập theo văn bản hiện hành về ứng cứu sự cố và bảo vệ dữ liệu cá nhân."),
+        T(265, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenToiQuanTrongThang, "Chu kỳ rà soát quyền – hệ thống Tối quan trọng", KieuThamSo.SoNguyen, "6", "tháng", 1, 24, "MOI.01.01: danh sách người được truy cập và mức quyền theo vai trò được rà soát định kỳ."),
+        T(266, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenCaoThang, "Chu kỳ rà soát quyền – hệ thống mức Cao", KieuThamSo.SoNguyen, "12", "tháng", 1, 36, "FR-TC-01."),
+        T(267, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenHanNgay, "Thời hạn hoàn thành một đợt rà soát", KieuThamSo.SoNguyen, "30", "ngày", 7, 120, "Quá hạn hệ thống nhắc Trưởng phòng CNTT."),
+        T(268, "JCI 8 – Rà soát quyền truy cập", TS.JciTaiKhoanKhongDangNhapNgay, "Đánh dấu tài khoản không đăng nhập quá", KieuThamSo.SoNguyen, "90", "ngày", 0, 730, "FR-TC-04. 0 = không đánh dấu."),
+        T(269, "JCI 8 – Rà soát quyền truy cập", TS.JciThuHoiNghiViecNgayLam, "Hạn thu hồi quyền khi nghỉ việc / chuyển khoa", KieuThamSo.SoNguyen, "1", "ngày làm việc", 1, 10, "FR-TC-06."),
         T(260, "JCI 8 – Quản lý thay đổi", TS.JciDanhGiaSauTrienKhaiNgay, "Đánh giá sau triển khai hệ thống mới / thay đổi lớn sau", KieuThamSo.SoNguyen, "90", "ngày", 7, 365, "HCT.01.00 ME4: hệ thống mới được giám sát, đánh giá sau khi đưa vào vận hành."),
         T(261, "JCI 8 – Quản lý thay đổi", TS.JciKhanCapDuyetNgayLam, "Hạn duyệt bổ sung thay đổi khẩn cấp", KieuThamSo.SoNguyen, "2", "ngày làm việc", 1, 10, "BR-TD-02: quá hạn leo thang Trưởng phòng CNTT."),
         T(257, "JCI 8 – Báo cáo lãnh đạo", TS.JciBaoCaoQuyNhacNgay, "Nhắc lập báo cáo quý sau khi quý kết thúc", KieuThamSo.SoNguyen, "7", "ngày", 0, 60, "GLD.04.01 ME2: báo cáo bằng văn bản ít nhất hằng quý. 0 = không nhắc."),

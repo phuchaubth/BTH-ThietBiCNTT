@@ -1,0 +1,6 @@
+@model DotRaSoatQuyen
+@{ ViewData["Title"] = "Nhập danh sách tài khoản " + Model.Ma; }
+<div class="page-head"><h1>Nhập danh sách tài khoản — @Model.Ma (@Model.HeThong?.Ma)</h1><span class="text-muted small">FR-TC-02</span></div>
+<div class="card" style="max-width:720px"><div class="card-body"><form asp-action="Nhap" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    <p class="small">Xuất danh sách tài khoản từ hệ thống (Excel .xlsx hoặc .csv). Cột cần có: <b>Tên đăng nhập</b>; nên có Họ tên, Khoa, Nhóm quyền, Lần đăng nhập cuối, Trạng thái. <a asp-action="Mau">Tải tệp mẫu</a>.</p>
+    <input type="file" name="file" class="form-control mb-3" accept=".xlsx,.csv" aria-label="Tệp danh sách tài khoản" /><button class="btn btn-primary">Đọc và xem trước</button> <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Huỷ</a></form></div></div>

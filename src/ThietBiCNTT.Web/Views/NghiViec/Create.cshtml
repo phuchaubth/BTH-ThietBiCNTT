@@ -1,0 +1,12 @@
+@model ThongBaoNghiViec
+@{ ViewData["Title"] = "Ghi nhận nghỉ việc / chuyển khoa"; }
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<div class="card" style="max-width:720px"><div class="card-body"><form asp-action="Create" method="post" class="row g-3"><div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <div class="col-md-6"><label asp-for="HoTen" class="form-label"></label><input asp-for="HoTen" class="form-control" /></div><div class="col-md-6"><label asp-for="TenDangNhap" class="form-label"></label><input asp-for="TenDangNhap" class="form-control" /></div>
+    <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiNghiViec>(Model.Loai)" class="form-select"></select></div>
+    <div class="col-md-4"><label asp-for="KhoaPhongId" class="form-label"></label><select asp-for="KhoaPhongId" asp-items="@((SelectList)ViewBag.DsKhoa)" class="form-select"><option value="">—</option></select></div>
+    <div class="col-md-4"><label asp-for="NgayHieuLuc" class="form-label"></label><input asp-for="NgayHieuLuc" type="date" class="form-control" /></div>
+    <div class="col-12"><label asp-for="KhoaMoi" class="form-label"></label><input asp-for="KhoaMoi" class="form-control" /></div>
+    <div class="col-12 form-text">Hệ thống tạo việc thu hồi trên mọi hệ thống người này có tài khoản theo các đợt rà soát gần nhất, cộng việc thu hồi thiết bị di động. Nhập tay hoặc theo thông báo của Phòng Tổ chức cán bộ.</div>
+    <div class="col-12"><button class="btn btn-primary">Ghi nhận</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div></form></div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

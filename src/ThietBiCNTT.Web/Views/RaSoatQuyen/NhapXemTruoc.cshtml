@@ -1,0 +1,8 @@
+@model DotRaSoatQuyen
+@{ ViewData["Title"] = "Xem trước danh sách tài khoản"; var dong = (List<DongTaiKhoan>)ViewBag.Dong; var loiNang = dong.Count(d => d.Loi.Any(l => l.StartsWith("thiếu") || l.StartsWith("trùng"))); var canhBao = dong.Count(d => d.Loi.Count > 0) - loiNang; }
+<div class="page-head"><h1>Xem trước — @Model.Ma (@Model.HeThong?.Ma)</h1></div>
+<div class="alert alert-light border py-2 small">Tệp <b>@ViewBag.TenFile</b>: @dong.Count dòng · hợp lệ @(dong.Count - loiNang) · bỏ qua @loiNang (thiếu / trùng tên đăng nhập) · cảnh báo @canhBao (dòng vẫn được nhập, tài khoản sẽ bị đánh dấu "không thuộc khoa nào" nếu không khớp khoa).</div>
+<form asp-action="XacNhanNhap" asp-route-id="@Model.Id" method="post" class="mb-3"><input type="hidden" name="maFile" value="@ViewBag.MaFile" /><button class="btn btn-primary" disabled="@(dong.Count - loiNang == 0)">Xác nhận nhập @(dong.Count - loiNang) tài khoản</button> <a asp-action="Nhap" asp-route-id="@Model.Id" class="btn btn-link">Chọn tệp khác</a></form>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Dòng</th><th>Tên đăng nhập</th><th>Họ tên</th><th>Khoa</th><th>Nhóm quyền</th><th>Đăng nhập cuối</th><th>Kiểm tra</th></tr></thead><tbody>
+@foreach (var d in dong) { <tr class="@(d.Loi.Count > 0 ? "table-warning" : "")"><td>@d.Dong</td><td>@d.TenDangNhap</td><td>@d.HoTen</td><td>@d.Khoa</td><td class="small">@d.NhomQuyen</td><td class="small">@d.LanDangNhapCuoi?.ToString("dd/MM/yyyy")</td><td class="small">@string.Join("; ", d.Loi)</td></tr> }
+</tbody></table></div></div>

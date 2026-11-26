@@ -163,7 +163,7 @@ public class HanhDongService(AppDbContext db, SoPhieuService soPhieu, ThongBaoSe
 /// cảnh báo sao lưu thiếu/lỗi (FR-SL-04), nhắc & leo thang diễn tập/thử phục hồi quá hạn (BR-DT-06), hành động khắc phục (FR-HD-03).
 /// </summary>
 public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBaoService tb, ThamSoService thamSo, UserManager<AppUser> users,
-    SoPhieuService soPhieu, LichSuService lichSu)
+    SoPhieuService soPhieu, LichSuService lichSu, RaSoatQuyenService raSoatQuyen)
 {
     public async Task ChayAsync(DateTime now, CancellationToken ct = default)
     {
@@ -189,6 +189,22 @@ public class HaTangCanhBaoService(AppDbContext db, HaTangService haTang, ThongBa
     /// <summary>GĐ3.3: thay đổi khẩn cấp quá hạn duyệt bổ sung (BR-TD-02), đánh giá sau triển khai đến hạn (HCT.01.00 ME4).</summary>
     private async Task GD33Async(DateTime now, DateOnly homNay, CancellationToken ct)
     {
+        // FR-TC-01: sinh đợt rà soát quyền khi đến chu kỳ; nhắc đợt quá hạn
+        await raSoatQuyen.SinhDotAsync(ct);
+        await db.SaveChangesAsync(ct);
+        var cnttQ = await tb.CanBoCNTTAsync();
+        foreach (var d in await db.DotRaSoatQuyens.Include(x => x.HeThong).Where(x => x.TrangThai != TrangThaiRaSoat.DaDong && !x.DaNhacQuaHan && x.Han < homNay).ToListAsync(ct))
+        {
+            d.DaNhacQuaHan = true;
+            await tb.GuiAsync(cnttQ, LoaiThongBao.RaSoatQuyen, $"[Quá hạn] Rà soát quyền {d.HeThong?.Ma} ({d.Ma})", $"Hạn {d.Han:dd/MM/yyyy}.", $"/RaSoatQuyen/Details/{d.Id}", MucDoThongBao.CanhBao);
+        }
+        // FR-TC-06: việc thu hồi quá hạn
+        foreach (var n in await db.ThongBaoNghiViecs.Include(x => x.Viecs).Where(x => !x.DaLeoThang && x.Han < now).ToListAsync(ct))
+        {
+            if (n.Xong) continue;
+            n.DaLeoThang = true;
+            await tb.GuiAsync(cnttQ.Concat(thamSo.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)).Distinct(), LoaiThongBao.RaSoatQuyen, $"[Quá hạn] Thu hồi quyền của {n.HoTen}", $"Hạn {n.Han:dd/MM/yyyy HH:mm}, còn {n.Viecs.Count(v => !v.DaThucHien)} việc.", $"/NghiViec/Details/{n.Id}", MucDoThongBao.KhanCap);
+        }
         var duyet = thamSo.Chuoi(TS.JciNguoiDuyetCntt).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
         foreach (var p in await db.PhieuThayDois.Where(x => x.Loai == LoaiThayDoi.KhanCap && x.NguoiDuyetCntt == null && !x.DaLeoThang && x.HanDuyetBoSung != null && x.HanDuyetBoSung < now &&
             (x.TrangThai == TrangThaiThayDoi.DangThucHien || x.TrangThai == TrangThaiThayDoi.HoanThanh || x.TrangThai == TrangThaiThayDoi.ThatBai || x.TrangThai == TrangThaiThayDoi.DaQuayLui)).ToListAsync(ct))

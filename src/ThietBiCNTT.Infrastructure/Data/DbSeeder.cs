@@ -414,6 +414,12 @@ public static class DbSeeder
         db.PhieuThayDois.AddRange(done, kc, moi);
         db.DuAnXayDungs.Add(new DuAnXayDung { Ten = "Cải tạo khu Cấp cứu giai đoạn 2", ViTri = "Tầng 1, khu A", TuNgay = hn.AddDays(20), DenNgay = hn.AddDays(110), HaTangAnhHuong = "Tuyến cáp quang tầng 1, tủ mạng khu Cấp cứu, nguồn điện tầng 1", NguoiThamGiaCntt = "Trần Minh Bảo", NgayDanhGia = hn.AddDays(-5),
             BienPhapBaoVe = "Di dời tủ mạng tạm, bọc ống bảo vệ cáp, kiểm tra mạng hằng ngày trong thi công", NhaThau = "Công ty Xây dựng ABC", NguoiTao = "ktv2" });
+        // Rà soát quyền truy cập HIS: đang chờ các khoa xác nhận
+        var dot = new DotRaSoatQuyen { Ma = $"RQ-{now:yyMM}-0001", HeThongId = his.Id, LyDo = "Định kỳ 6 tháng", Han = hn.AddDays(20), SoNgayKhongDangNhap = 90, NguoiTao = "ktv1" };
+        TaiKhoanRaSoat Tk(string u, string? ten, string? khoaMa, string quyen, int dnNgay) => new() { TenDangNhap = u, HoTen = ten, KhoaPhongId = khoaMa is null ? null : khoa[khoaMa].Id, KhoaText = khoaMa is null ? null : khoa[khoaMa].Ten, NhomQuyen = quyen, LanDangNhapCuoi = dnNgay < 0 ? null : now.AddDays(-dnNgay), TrangThaiTk = "Hoạt động" };
+        dot.NhapDanhSach([Tk("bs.hung", "Lê Văn Hùng", "CC", "Bác sĩ", 2), Tk("dd.ha", "Phạm Thu Hà", "CC", "Điều dưỡng", 5), Tk("dd.cu", "Nguyễn Văn Cũ", "CC", "Điều dưỡng", 200), Tk("bs.mai", "Võ Thị Mai", "KB", "Bác sĩ", 1), Tk("his_admin", "Quản trị HIS", null, "Quản trị hệ thống (admin)", 1), Tk("khoa.chung", null, "HSTC", "Điều dưỡng", 3)], "ktv1", now.AddDays(-3));
+        db.DotRaSoatQuyens.Add(dot);
+        db.ViPhamTruyCaps.Add(new ViPhamTruyCap { Nguon = NguonViPham.BaoCaoKhoa, MoTa = "Điều dưỡng dùng chung tài khoản đăng nhập HIS trong ca trực.", HeThongId = his.Id, KhoaPhongId = khoa["CC"].Id, NgayPhatHien = hn.AddDays(-12), TrangThai = TrangThaiViPham.Moi });
         await db.SaveChangesAsync();
     }
 }

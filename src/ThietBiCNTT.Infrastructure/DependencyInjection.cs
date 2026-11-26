@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<HangDoiGuiService>();
         services.AddScoped<HaTangService>();
         services.AddScoped<ThayDoiService>();
+        services.AddScoped<RaSoatQuyenService>();
         services.AddScoped<HanhDongService>();
         services.AddScoped<HaTangCanhBaoService>();
         services.AddScoped<BangChungJciService>();

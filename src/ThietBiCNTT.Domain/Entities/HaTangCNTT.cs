@@ -803,7 +803,8 @@ public enum NguonHanhDong
     [Display(Name = "Báo cáo lãnh đạo")] BaoCaoLanhDao,
     [Display(Name = "Phiếu thay đổi")] PhieuThayDoi,
     [Display(Name = "Rà soát quyền truy cập")] RaSoatQuyen,
-    [Display(Name = "Lỗ hổng")] LoHong
+    [Display(Name = "Lỗ hổng")] LoHong,
+    [Display(Name = "Vi phạm truy cập")] ViPhamTruyCap
 }
 
 public enum LoaiHanhDong

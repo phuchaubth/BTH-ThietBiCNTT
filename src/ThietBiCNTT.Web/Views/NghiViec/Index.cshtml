@@ -1,0 +1,9 @@
+@model List<ThongBaoNghiViec>
+@{ ViewData["Title"] = "Nghỉ việc / chuyển khoa – thu hồi quyền"; var chiMo = (bool)ViewData["chiMo"]!; var now = DateTime.Now; }
+<div class="page-head"><h1>Nghỉ việc / chuyển khoa — thu hồi quyền</h1><span class="text-muted small">FR-TC-06</span>
+    <div class="actions"><a asp-controller="RaSoatQuyen" asp-action="Index" class="btn btn-sm btn-outline-secondary">Rà soát quyền</a>@if (User.LaCNTT()) { <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Ghi nhận</a> }</div></div>
+<div class="mb-2"><a asp-action="Index" asp-route-chiMo="@(!chiMo)" class="small">@(chiMo ? "Hiện cả đã xong" : "Chỉ việc chưa xong")</a></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Họ tên</th><th>Loại</th><th>Khoa</th><th>Hiệu lực</th><th>Hạn thu hồi</th><th>Việc</th></tr></thead><tbody>
+@foreach (var t in Model) { <tr><td><a asp-action="Details" asp-route-id="@t.Id">@t.HoTen</a></td><td>@t.Loai.Ten()</td><td class="small">@t.KhoaPhong?.Ten</td><td class="small">@t.NgayHieuLuc.ToString("dd/MM/yyyy")</td><td class="small @(!t.Xong && t.Han < now ? "overdue" : "")">@t.Han.ToString("dd/MM/yyyy HH:mm")</td><td>@t.Viecs.Count(v => v.DaThucHien)/@t.Viecs.Count</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-3">Không có.</td></tr> }
+</tbody></table></div></div>

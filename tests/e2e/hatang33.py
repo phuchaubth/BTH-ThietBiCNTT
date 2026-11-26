@@ -57,4 +57,47 @@ d=pg(adm,f"/PhieuThayDoi/Details/{nid}")
 r=adm.post(f"/PhieuThayDoi/GuiDuyet/{nid}",{},page=d); check("danger" in msg(r) and "quay lui" in msg(r),"Thiếu phương án quay lui chặn gửi duyệt: "+msg(r))
 check("Trùng khung giờ" not in d,"Chưa trùng lịch")
 check("Đánh giá rủi ro trước thực hiện (PCRA)" in d,"Phiếu ảnh hưởng chăm sóc hiển thị PCRA")
+
+# ---- TC: rà soát quyền truy cập ----
+for p,exp in {"/RaSoatQuyen":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/NghiViec":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},
+              "/ViPhamTruyCap":{"admin":200,"ktv1":200,"lanhdao":200,"truongkhoacc":302,"nhanvien":302},"/RaSoatQuyen/Cho":{"truongkhoacc":200}}.items():
+    us={"admin":adm,"ktv1":ktv,"lanhdao":ld,"truongkhoacc":tk,"nhanvien":nv}
+    bad=[f"{n}={us[n].get(p)[0]}(cần {e})" for n,e in exp.items() if us[n].get(p)[0]!=e]
+    check(not bad,"Phân quyền "+p+" "+", ".join(bad))
+l=pg(adm,"/RaSoatQuyen"); rid=first(r'/RaSoatQuyen/Details/(\d+)">RQ-',l); check(rid is not None,"Có đợt rà soát mẫu")
+d=pg(adm,f"/RaSoatQuyen/Details/{rid}")
+check("lâu không đăng nhập" in d and "quyền quản trị" in d and "dùng chung" in d,"Tự đánh dấu: lâu không đăng nhập, quản trị, dùng chung")
+tids=sorted(set(re.findall(r'name="taiKhoanId" value="(\d+)"',d)))
+r=adm.post(f"/RaSoatQuyen/ChuyenThucHien/{rid}",{},page=d); check("danger" in msg(r) and "chưa được xác nhận" in msg(r),"Chưa xác nhận hết → không chốt: "+msg(r))
+# Trưởng khoa CC chỉ xác nhận tài khoản khoa CC
+dk=pg(tk,f"/RaSoatQuyen/Details/{rid}"); check("bs.hung" in dk and "bs.mai" not in dk,"Trưởng khoa chỉ thấy tài khoản của khoa mình")
+tk_ids=re.findall(r'name="taiKhoanId" value="(\d+)"',dk)
+r=tk.post(f"/RaSoatQuyen/XacNhan/{rid}",{"taiKhoanId":tk_ids,"quyetDinh":["ThuHoi","Giu","DoiQuyen"][:len(tk_ids)],"quyenMoi":["","",""][:len(tk_ids)],"ghiChu":["","",""][:len(tk_ids)]},page=dk); check("danger" in msg(r),"Đổi quyền thiếu quyền mới bị chặn: "+msg(r))
+r=tk.post(f"/RaSoatQuyen/XacNhan/{rid}",{"taiKhoanId":tk_ids,"quyetDinh":["ThuHoi","Giu","Giu"][:len(tk_ids)],"quyenMoi":["","",""][:len(tk_ids)],"ghiChu":["","",""][:len(tk_ids)]},page=dk); check("success" in msg(r),"Trưởng khoa xác nhận tài khoản khoa mình: "+msg(r))
+# CNTT xác nhận phần còn lại (khoa khác dùng admin vì admin xác nhận mọi tài khoản)
+d=pg(adm,f"/RaSoatQuyen/Details/{rid}"); conlai=[t for t in re.findall(r'name="taiKhoanId" value="(\d+)"',d) if t not in tk_ids]
+qd=[]; gc=[]
+for t in conlai:
+    row=d[d.index(f'value="{t}"'):][:900]; qd.append("Giu"); gc.append("Cần cho quản trị HIS")
+r=adm.post(f"/RaSoatQuyen/XacNhan/{rid}",{"taiKhoanId":conlai,"quyetDinh":qd,"quyenMoi":[""]*len(conlai),"ghiChu":gc},page=d); print("   xác nhận còn lại:",msg(r))
+r=adm.post(f"/RaSoatQuyen/ChuyenThucHien/{rid}",{},page=pg(adm,f"/RaSoatQuyen/Details/{rid}")); check("success" in msg(r),"Chuyển sang bước thực hiện: "+msg(r))
+d=pg(adm,f"/RaSoatQuyen/Details/{rid}")
+r=adm.post(f"/RaSoatQuyen/Dong/{rid}",{},page=d); check("danger" in msg(r),"Chưa thực hiện thu hồi → không đóng: "+msg(r))
+for t in sorted(set(re.findall(r'/RaSoatQuyen/DaThucHien/\d+\?taiKhoanId=(\d+)',d))): adm.post(f"/RaSoatQuyen/DaThucHien/{rid}?taiKhoanId={t}",{},page=d)
+r=adm.post(f"/RaSoatQuyen/Dong/{rid}",{},page=pg(adm,f"/RaSoatQuyen/Details/{rid}")); check("success" in msg(r),"Đóng đợt: "+msg(r))
+check("Thu hồi:" in pg(adm,f"/RaSoatQuyen/BienBan/{rid}"),"Biên bản rà soát có số liệu")
+check(adm.get(f"/RaSoatQuyen/Xuat/{rid}")[0]==200,"Xuất Excel")
+# Nhập danh sách CSV cho đợt mới
+hid=first(r'/HeThong/Details/(\d+)">LIS</a>',pg(adm,"/HeThong"))
+r=adm.post("/RaSoatQuyen/Tao",{"heThongId":hid,"lyDo":"thử"},page=pg(adm,"/RaSoatQuyen")); check(r[0]==302,"Mở đợt rà soát LIS: "+msg(r))
+nid=first(r'/RaSoatQuyen/Details/(\d+)">RQ-[0-9-]*-0002',pg(adm,"/RaSoatQuyen"))
+check(nid is not None and "Nhập danh sách" in pg(adm,f"/RaSoatQuyen/Details/{nid}"),"Đợt mới chờ nhập danh sách")
+# Nghỉ việc
+r=adm.post("/NghiViec/Create",{"HoTen":"Nguyễn Văn Cũ","TenDangNhap":"dd.cu","Loai":"NghiViec","NgayHieuLuc":datetime.date.today().isoformat()},page=pg(adm,"/NghiViec/Create"))
+check(r[0]==302,"Ghi nhận nghỉ việc: "+msg(r))
+nv_id=first(r'/NghiViec/Details/(\d+)',pg(adm,"/NghiViec")); dn=pg(adm,f"/NghiViec/Details/{nv_id}") if nv_id else ""
+check("dd.cu" in dn and "thiết bị di động" in dn,"Việc thu hồi gồm tài khoản HIS và thiết bị di động")
+# Vi phạm truy cập
+r=adm.post("/ViPhamTruyCap/Create",{"Nguon":"BaoCaoKhoa","MoTa":"Xem bệnh án không thuộc khoa","NgayPhatHien":datetime.date.today().isoformat()},page=pg(adm,"/ViPhamTruyCap/Create")); check(r[0]==302,"Ghi nhận vi phạm truy cập")
+check("Xem bệnh án" in pg(adm,"/ViPhamTruyCap"),"Vi phạm hiển thị trong thống kê")
 print("\nKẾT QUẢ:", "ALL OK" if ok else "CÓ LỖI"); sys.exit(0 if ok else 1)

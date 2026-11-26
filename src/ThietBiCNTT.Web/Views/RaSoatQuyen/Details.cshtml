@@ -1,0 +1,36 @@
+@model DotRaSoatQuyen
+@{
+    ViewData["Title"] = Model.Ma; var xemAll = (bool)ViewBag.XemAll; var khoa = (int?)ViewBag.Khoa; var cntt = User.LaCNTT(); var homNay = (DateOnly)ViewBag.HomNay;
+    var ds = Model.TaiKhoans.Where(t => xemAll || t.KhoaPhongId == khoa).OrderBy(t => t.KhoaPhong?.Ten).ThenBy(t => t.TenDangNhap).ToList();
+    bool DuocXn(TaiKhoanRaSoat t) => Model.TrangThai == TrangThaiRaSoat.DangXacNhan && (User.IsInRole(VaiTro.QuanTri) || (t.KhoaPhongId is null ? cntt : (User.IsInRole(VaiTro.TruongKhoa) && t.KhoaPhongId == khoa)));
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Rà soát quyền truy cập</a> › @Model.Ma</div>
+<div class="page-head"><h1>@Model.Ma · @Model.HeThong?.Ma</h1><span class="badge bg-@(Model.TrangThai == TrangThaiRaSoat.DaDong ? "success" : "primary")">@Model.TrangThai.Ten()</span>
+    <div class="actions">@if (xemAll && Model.TaiKhoans.Count > 0) { <a asp-action="Xuat" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a> }
+    @if (Model.BienBan is not null) { <a asp-action="BienBan" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">Biên bản</a> }</div></div>
+<div class="small text-muted mb-2">Hạn @Model.Han.ToString("dd/MM/yyyy") · @Model.LyDo · đánh dấu tài khoản không đăng nhập quá @Model.SoNgayKhongDangNhap ngày</div>
+@if (Model.TrangThai == TrangThaiRaSoat.ChoNhapDanhSach && cntt) { <div class="alert alert-info py-2">Chưa có danh sách tài khoản. <a asp-action="Nhap" asp-route-id="@Model.Id" class="btn btn-sm btn-primary ms-2">Nhập danh sách</a></div> }
+@if (Model.TaiKhoans.Count > 0 && xemAll) { <div class="row g-2 mb-3 text-center">
+    <div class="col"><div class="card"><div class="card-body py-2"><div class="fs-4">@Model.TaiKhoans.Count</div><div class="small text-muted">Tài khoản</div></div></div></div>
+    <div class="col"><div class="card"><div class="card-body py-2"><div class="fs-4">@Model.TaiKhoans.Count(t => t.CoDauHieu)</div><div class="small text-muted">Bị đánh dấu</div></div></div></div>
+    <div class="col"><div class="card"><div class="card-body py-2"><div class="fs-4">@Model.SoChuaXacNhan</div><div class="small text-muted">Chưa xác nhận</div></div></div></div>
+    <div class="col"><div class="card"><div class="card-body py-2"><div class="fs-4">@Model.SoCanThucHien</div><div class="small text-muted">Cần thu hồi / đổi</div></div></div></div>
+    <div class="col"><div class="card"><div class="card-body py-2"><div class="fs-4">@Model.SoChuaThucHien</div><div class="small text-muted">Chưa thực hiện</div></div></div></div></div> }
+@if (ds.Count > 0)
+{
+    <form asp-action="XacNhan" asp-route-id="@Model.Id" method="post">
+    <div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Tài khoản</th><th>Khoa</th><th>Nhóm quyền</th><th>Đăng nhập cuối</th><th>Dấu hiệu</th><th style="min-width:130px">Quyết định</th><th>Quyền mới / ghi chú</th><th></th></tr></thead><tbody>
+    @foreach (var t in ds) {
+        <tr class="@(t.CoDauHieu ? "table-warning" : "")"><td><b>@t.TenDangNhap</b><div class="small text-muted">@t.HoTen</div></td><td class="small">@(t.KhoaPhong?.Ten ?? t.KhoaText)</td><td class="small">@t.NhomQuyen</td><td class="small">@t.LanDangNhapCuoi?.ToString("dd/MM/yyyy")</td>
+        <td class="small">@foreach (var dh in t.DauHieu()) { <span class="badge bg-warning text-dark">@dh</span> }</td>
+        <td>@if (DuocXn(t)) { <input type="hidden" name="taiKhoanId" value="@t.Id" /><select name="quyetDinh" asp-items="@EnumExtensions.ToSelectList<QuyetDinhTaiKhoan>(t.QuyetDinh)" class="form-select form-select-sm" aria-label="Quyết định @t.TenDangNhap"></select> } else { <span class="badge bg-@(t.QuyetDinh == QuyetDinhTaiKhoan.ChuaXacNhan ? "secondary" : t.QuyetDinh == QuyetDinhTaiKhoan.Giu ? "success" : "danger")">@t.QuyetDinh.Ten()</span> }</td>
+        <td>@if (DuocXn(t)) { <input name="quyenMoi" value="@t.QuyenMoi" class="form-control form-control-sm mb-1" placeholder="Quyền mới (nếu đổi)" aria-label="Quyền mới @t.TenDangNhap" /><input name="ghiChu" value="@t.GhiChu" class="form-control form-control-sm" placeholder="Ghi chú / lý do giữ" aria-label="Ghi chú @t.TenDangNhap" /> } else { <span class="small">@t.QuyenMoi @t.GhiChu <span class="text-muted">@t.NguoiXacNhan</span></span> }</td>
+        <td>@if (t.QuyetDinh is QuyetDinhTaiKhoan.ThuHoi or QuyetDinhTaiKhoan.DoiQuyen) { if (t.DaThucHien) { <span class="badge bg-success" title="@t.NguoiThucHien @t.NgayThucHien?.ToString("dd/MM/yyyy")">Đã thực hiện</span> } else if (cntt && Model.TrangThai == TrangThaiRaSoat.ChoThucHien) { <button formaction="@Url.Action("DaThucHien", new { id = Model.Id, taiKhoanId = t.Id })" class="btn btn-sm btn-outline-success">Đã làm trên HT</button> } }</td></tr> }
+    </tbody></table></div></div>
+    @if (Model.TrangThai == TrangThaiRaSoat.DangXacNhan) { <button class="btn btn-primary mt-3">Lưu xác nhận</button> }
+    </form>
+    <div class="d-flex gap-2 mt-3">
+    @if (cntt && Model.TrangThai == TrangThaiRaSoat.DangXacNhan) { <form asp-action="ChuyenThucHien" asp-route-id="@Model.Id" method="post"><button class="btn btn-outline-primary">Chốt xác nhận — chuyển CNTT thực hiện</button></form> }
+    @if (cntt && Model.TrangThai == TrangThaiRaSoat.ChoThucHien) { <form asp-action="Dong" asp-route-id="@Model.Id" method="post"><button class="btn btn-success">Đóng đợt và lập biên bản</button></form> }
+    </div>
+}

@@ -358,3 +358,227 @@ public class DuAnXayDung : BaseEntity
 }
 
 #endregion
+
+#region Rà soát quyền truy cập (FR-TC-01..07, MOI.01.01)
+
+public enum TrangThaiRaSoat
+{
+    [Display(Name = "Chờ nhập danh sách")] ChoNhapDanhSach = 1,
+    [Display(Name = "Đang xác nhận")] DangXacNhan,
+    [Display(Name = "Chờ thực hiện")] ChoThucHien,
+    [Display(Name = "Đã đóng")] DaDong
+}
+
+public enum QuyetDinhTaiKhoan
+{
+    [Display(Name = "Chưa xác nhận")] ChuaXacNhan = 0,
+    [Display(Name = "Giữ")] Giu = 1,
+    [Display(Name = "Thu hồi")] ThuHoi,
+    [Display(Name = "Đổi quyền")] DoiQuyen
+}
+
+/// <summary>Một đợt rà soát quyền truy cập của một hệ thống (FR-TC-01, 03, 05).</summary>
+public class DotRaSoatQuyen : BaseEntity
+{
+    [Required, StringLength(20), Display(Name = "Số đợt")] public string Ma { get; set; } = "";
+    public int HeThongId { get; set; }
+    public HeThongThongTin? HeThong { get; set; }
+    [Display(Name = "Trạng thái")] public TrangThaiRaSoat TrangThai { get; set; } = TrangThaiRaSoat.ChoNhapDanhSach;
+    [Display(Name = "Hạn hoàn thành")] public DateOnly Han { get; set; }
+    [StringLength(300), Display(Name = "Lý do mở")] public string? LyDo { get; set; }
+    /// <summary>Số ngày không đăng nhập bị đánh dấu — chốt tại thời điểm nhập (FR-TC-04).</summary>
+    public int SoNgayKhongDangNhap { get; set; } = 90;
+    public bool DaNhacQuaHan { get; set; }
+    public DateTime? NgayNhapDanhSach { get; set; }
+    [StringLength(100)] public string? NguoiNhap { get; set; }
+    public DateTime? NgayDong { get; set; }
+    [StringLength(100)] public string? NguoiDong { get; set; }
+    /// <summary>Biên bản rà soát (ảnh chụp lúc đóng đợt).</summary>
+    public string? BienBan { get; set; }
+    public List<TaiKhoanRaSoat> TaiKhoans { get; set; } = [];
+
+    public int SoChuaXacNhan => TaiKhoans.Count(t => t.QuyetDinh == QuyetDinhTaiKhoan.ChuaXacNhan);
+    public int SoCanThucHien => TaiKhoans.Count(t => t.QuyetDinh is QuyetDinhTaiKhoan.ThuHoi or QuyetDinhTaiKhoan.DoiQuyen);
+    public int SoChuaThucHien => TaiKhoans.Count(t => t.QuyetDinh is QuyetDinhTaiKhoan.ThuHoi or QuyetDinhTaiKhoan.DoiQuyen && !t.DaThucHien);
+
+    public void NhapDanhSach(IEnumerable<TaiKhoanRaSoat> ds, string nguoi, DateTime now)
+    {
+        if (TrangThai != TrangThaiRaSoat.ChoNhapDanhSach) throw new DomainException("Đợt đã có danh sách tài khoản.");
+        var l = ds.ToList();
+        if (l.Count == 0) throw new DomainException("Danh sách tài khoản trống.");
+        foreach (var t in l) { t.PhatHien(SoNgayKhongDangNhap, now); TaiKhoans.Add(t); }
+        TrangThai = TrangThaiRaSoat.DangXacNhan; NgayNhapDanhSach = now; NguoiNhap = nguoi;
+    }
+
+    public void ChuyenThucHien()
+    {
+        if (TrangThai != TrangThaiRaSoat.DangXacNhan) throw new DomainException("Đợt không ở trạng thái Đang xác nhận.");
+        if (SoChuaXacNhan > 0) throw new DomainException($"Còn {SoChuaXacNhan} tài khoản chưa được xác nhận (Giữ / Thu hồi / Đổi quyền).");
+        TrangThai = TrangThaiRaSoat.ChoThucHien;
+    }
+
+    /// <summary>FR-TC-05: đóng đợt khi mọi yêu cầu thu hồi / đổi quyền đã được cán bộ CNTT thực hiện.</summary>
+    public void Dong(string nguoi, DateTime now)
+    {
+        if (TrangThai == TrangThaiRaSoat.DaDong) throw new DomainException("Đợt đã đóng.");
+        if (TrangThai == TrangThaiRaSoat.ChoNhapDanhSach) throw new DomainException("Chưa nhập danh sách tài khoản.");
+        if (SoChuaXacNhan > 0) throw new DomainException($"Còn {SoChuaXacNhan} tài khoản chưa được xác nhận.");
+        if (SoChuaThucHien > 0) throw new DomainException($"Còn {SoChuaThucHien} yêu cầu thu hồi / đổi quyền chưa được thực hiện trên hệ thống.");
+        TrangThai = TrangThaiRaSoat.DaDong; NgayDong = now; NguoiDong = nguoi;
+        var nguoiXn = string.Join(", ", TaiKhoans.Select(t => t.NguoiXacNhan).Where(n => !string.IsNullOrEmpty(n)).Distinct());
+        BienBan = $"Biên bản rà soát quyền truy cập {Ma} – hệ thống {HeThong?.Ma}\nNgày đóng: {now:dd/MM/yyyy HH:mm} · Người đóng: {nguoi}\n" +
+                  $"Số tài khoản: {TaiKhoans.Count} · Giữ: {TaiKhoans.Count(t => t.QuyetDinh == QuyetDinhTaiKhoan.Giu)} · Thu hồi: {TaiKhoans.Count(t => t.QuyetDinh == QuyetDinhTaiKhoan.ThuHoi)} · Đổi quyền: {TaiKhoans.Count(t => t.QuyetDinh == QuyetDinhTaiKhoan.DoiQuyen)}\n" +
+                  $"Tài khoản bị đánh dấu tự động: {TaiKhoans.Count(t => t.CoDauHieu)} · Người xác nhận: {nguoiXn}";
+    }
+
+    /// <summary>Hạn rà soát theo mức trọng yếu (tháng).</summary>
+    public static int ChuKyThang(MucTrongYeu m, int thangToiQuanTrong, int thangCao) => m switch { MucTrongYeu.ToiQuanTrong => thangToiQuanTrong, MucTrongYeu.Cao => thangCao, _ => 0 };
+}
+
+public class TaiKhoanRaSoat
+{
+    public int Id { get; set; }
+    public int DotRaSoatQuyenId { get; set; }
+    public DotRaSoatQuyen? DotRaSoatQuyen { get; set; }
+    [Required, StringLength(100)] public string TenDangNhap { get; set; } = "";
+    [StringLength(200)] public string? HoTen { get; set; }
+    [StringLength(200)] public string? KhoaText { get; set; }
+    public int? KhoaPhongId { get; set; }
+    public KhoaPhong? KhoaPhong { get; set; }
+    [StringLength(200)] public string? NhomQuyen { get; set; }
+    public DateTime? LanDangNhapCuoi { get; set; }
+    [StringLength(50)] public string? TrangThaiTk { get; set; }
+    // FR-TC-04
+    public bool KhongDangNhapLau { get; set; }
+    public bool DungChung { get; set; }
+    public bool QuyenQuanTri { get; set; }
+    public bool KhongThuocKhoa { get; set; }
+    // FR-TC-03
+    public QuyetDinhTaiKhoan QuyetDinh { get; set; }
+    [StringLength(200)] public string? QuyenMoi { get; set; }
+    [StringLength(500)] public string? GhiChu { get; set; }
+    [StringLength(100)] public string? NguoiXacNhan { get; set; }
+    public DateTime? NgayXacNhan { get; set; }
+    // FR-TC-05
+    public bool DaThucHien { get; set; }
+    [StringLength(100)] public string? NguoiThucHien { get; set; }
+    public DateTime? NgayThucHien { get; set; }
+
+    public bool CoDauHieu => KhongDangNhapLau || DungChung || QuyenQuanTri || KhongThuocKhoa;
+    public List<string> DauHieu()
+    {
+        var l = new List<string>();
+        if (KhongDangNhapLau) l.Add(LanDangNhapCuoi is null ? "chưa từng đăng nhập" : "lâu không đăng nhập");
+        if (DungChung) l.Add("tài khoản dùng chung / không gắn người");
+        if (QuyenQuanTri) l.Add("quyền quản trị");
+        if (KhongThuocKhoa) l.Add("không thuộc khoa nào");
+        return l;
+    }
+
+    static readonly string[] MauDungChung = ["chung", "shared", "dungchung", "test", "demo", "guest", "temp", "tam"];
+    static readonly string[] MauQuanTri = ["admin", "quản trị", "quan tri", "administrator", "root", "dba", "sa ", "superuser", "super user"];
+
+    /// <summary>FR-TC-04: đánh dấu tự động.</summary>
+    public void PhatHien(int soNgay, DateTime now)
+    {
+        KhongDangNhapLau = soNgay > 0 && (LanDangNhapCuoi is null || LanDangNhapCuoi < now.AddDays(-soNgay));
+        var u = TenDangNhap.ToLowerInvariant();
+        DungChung = string.IsNullOrWhiteSpace(HoTen) || MauDungChung.Any(m => u.Contains(m));
+        var q = (NhomQuyen ?? "").ToLowerInvariant() + " ";
+        QuyenQuanTri = MauQuanTri.Any(m => q.Contains(m)) || u is "sa" or "root" or "admin" or "administrator";
+        KhongThuocKhoa = KhoaPhongId is null;
+    }
+
+    public void XacNhan(QuyetDinhTaiKhoan qd, string? quyenMoi, string? ghiChu, string nguoi, DateTime now)
+    {
+        if (DotRaSoatQuyen is { TrangThai: not TrangThaiRaSoat.DangXacNhan }) throw new DomainException("Đợt không còn ở bước xác nhận.");
+        if (qd == QuyetDinhTaiKhoan.ChuaXacNhan) throw new DomainException("Chọn Giữ, Thu hồi hoặc Đổi quyền.");
+        if (qd == QuyetDinhTaiKhoan.DoiQuyen && string.IsNullOrWhiteSpace(quyenMoi)) throw new DomainException($"Tài khoản {TenDangNhap}: ghi quyền mới khi đổi quyền.");
+        if (qd == QuyetDinhTaiKhoan.Giu && (QuyenQuanTri || DungChung) && string.IsNullOrWhiteSpace(ghiChu)) throw new DomainException($"Tài khoản {TenDangNhap} (quản trị / dùng chung): ghi lý do giữ.");
+        QuyetDinh = qd; QuyenMoi = qd == QuyetDinhTaiKhoan.DoiQuyen ? quyenMoi!.Trim() : null; GhiChu = ghiChu?.Trim(); NguoiXacNhan = nguoi; NgayXacNhan = now;
+        DaThucHien = false; NguoiThucHien = null; NgayThucHien = null;
+    }
+
+    public void DaThucHienTrenHeThong(string nguoi, DateTime now)
+    {
+        if (QuyetDinh is not (QuyetDinhTaiKhoan.ThuHoi or QuyetDinhTaiKhoan.DoiQuyen)) throw new DomainException("Tài khoản này không có yêu cầu thu hồi / đổi quyền.");
+        if (DotRaSoatQuyen is { TrangThai: not TrangThaiRaSoat.ChoThucHien }) throw new DomainException("Đợt chưa chuyển sang bước thực hiện.");
+        DaThucHien = true; NguoiThucHien = nguoi; NgayThucHien = now;
+    }
+}
+
+public enum LoaiNghiViec
+{
+    [Display(Name = "Nghỉ việc")] NghiViec = 1,
+    [Display(Name = "Chuyển khoa")] ChuyenKhoa
+}
+
+/// <summary>FR-TC-06: thông báo nghỉ việc / chuyển khoa → việc thu hồi quyền.</summary>
+public class ThongBaoNghiViec : BaseEntity
+{
+    [Required, StringLength(200), Display(Name = "Họ tên")] public string HoTen { get; set; } = "";
+    [StringLength(100), Display(Name = "Tên đăng nhập")] public string? TenDangNhap { get; set; }
+    [Display(Name = "Loại")] public LoaiNghiViec Loai { get; set; } = LoaiNghiViec.NghiViec;
+    [Display(Name = "Khoa/phòng")] public int? KhoaPhongId { get; set; }
+    public KhoaPhong? KhoaPhong { get; set; }
+    [Display(Name = "Ngày hiệu lực")] public DateOnly NgayHieuLuc { get; set; }
+    [StringLength(200), Display(Name = "Khoa chuyển đến")] public string? KhoaMoi { get; set; }
+    [Display(Name = "Hạn thu hồi")] public DateTime Han { get; set; }
+    public bool DaLeoThang { get; set; }
+    public List<ViecThuHoiQuyen> Viecs { get; set; } = [];
+    public bool Xong => Viecs.Count > 0 && Viecs.All(v => v.DaThucHien);
+}
+
+public class ViecThuHoiQuyen
+{
+    public int Id { get; set; }
+    public int ThongBaoNghiViecId { get; set; }
+    public int? HeThongId { get; set; }
+    public HeThongThongTin? HeThong { get; set; }
+    [StringLength(300)] public string NoiDung { get; set; } = "";
+    public bool DaThucHien { get; set; }
+    [StringLength(100)] public string? NguoiThucHien { get; set; }
+    public DateTime? NgayThucHien { get; set; }
+}
+
+public enum NguonViPham
+{
+    [Display(Name = "Nhật ký hệ thống")] NhatKyHeThong = 1,
+    [Display(Name = "Báo cáo của khoa")] BaoCaoKhoa,
+    [Display(Name = "Kết quả rà soát quyền")] KetQuaRaSoat
+}
+
+public enum TrangThaiViPham
+{
+    [Display(Name = "Mới")] Moi = 1,
+    [Display(Name = "Đang xử lý")] DangXuLy,
+    [Display(Name = "Đã đóng")] DaDong
+}
+
+/// <summary>FR-TC-07 (MOI.01.01 ME6): giám sát tuân thủ truy cập, hành động khi có vi phạm.</summary>
+public class ViPhamTruyCap : BaseEntity
+{
+    [Display(Name = "Nguồn phát hiện")] public NguonViPham Nguon { get; set; } = NguonViPham.BaoCaoKhoa;
+    [Required, StringLength(2000), Display(Name = "Mô tả vi phạm")] public string MoTa { get; set; } = "";
+    [Display(Name = "Hệ thống")] public int? HeThongId { get; set; }
+    public HeThongThongTin? HeThong { get; set; }
+    [Display(Name = "Khoa/phòng liên quan")] public int? KhoaPhongId { get; set; }
+    public KhoaPhong? KhoaPhong { get; set; }
+    [Display(Name = "Ngày phát hiện")] public DateOnly NgayPhatHien { get; set; }
+    [Display(Name = "Nghiêm trọng")] public bool NghiemTrong { get; set; }
+    [Display(Name = "Trạng thái")] public TrangThaiViPham TrangThai { get; set; } = TrangThaiViPham.Moi;
+    [StringLength(100), Display(Name = "Người xử lý")] public string? NguoiXuLy { get; set; }
+    [StringLength(2000), Display(Name = "Hành động đã thực hiện")] public string? HanhDong { get; set; }
+    public DateTime? NgayDong { get; set; }
+    public int? SuCoAnNinhId { get; set; }
+
+    public void GhiHanhDong(string nguoi, string hanhDong, bool dong, DateTime now)
+    {
+        if (TrangThai == TrangThaiViPham.DaDong) throw new DomainException("Vi phạm đã đóng.");
+        if (string.IsNullOrWhiteSpace(hanhDong)) throw new DomainException("Nhập hành động đã thực hiện.");
+        NguoiXuLy = nguoi; HanhDong = hanhDong.Trim();
+        if (dong) { TrangThai = TrangThaiViPham.DaDong; NgayDong = now; } else TrangThai = TrangThaiViPham.DangXuLy;
+    }
+}
+
+#endregion

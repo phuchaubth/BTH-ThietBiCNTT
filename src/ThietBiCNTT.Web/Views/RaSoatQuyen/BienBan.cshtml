@@ -1,0 +1,4 @@
+@model DotRaSoatQuyen
+@{ ViewData["Title"] = "Biên bản " + Model.Ma; }
+<div class="page-head"><h1>Biên bản rà soát quyền truy cập @Model.Ma</h1><div class="actions"><button onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> In</button><a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-link">Quay lại</a></div></div>
+<div class="card"><div class="card-body" style="white-space:pre-line">@Model.BienBan</div></div>
