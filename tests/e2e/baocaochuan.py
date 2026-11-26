@@ -23,20 +23,20 @@ for ma in ["BC01","BC02","BC03","BC04","BC05","BC06"]:
     check(st==200 and "application/pdf" in ct and "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM" in t and "Độc lập - Tự do - Hạnh phúc" in t and "GIÁM ĐỐC" in t and f"{ma} · in lúc" in t,
           f"{ma}: PDF có quốc hiệu, tiêu ngữ, ô ký, số trang (tiếng Việt có dấu)")
     st2,b2,_=raw(a, f"/BaoCaoChuan/Xem?ma={ma}&dang=xlsx"); check(st2==200 and b2[:2]==b"PK", f"{ma}: Excel")
-nts=q("select count(*) from TaiSans where TrangThai<>7")[0][0]
+nts=q("select count(*) from TaiSans where TrangThai<>6")[0][0]
 w=a.get("/BaoCaoChuan/Xem?ma=BC01")[1]; check(f"{nts} tài sản" in w, f"BC01 đếm đủ {nts} tài sản (trừ đã thanh lý)")
 st,b,_=raw(a,"/BaoCaoChuan/Xem?ma=BC01&dang=pdf"); t=pdftext(b)
 check("DANH SÁCH TÀI SẢN CÔNG NGHỆ THÔNG TIN" in t and "trang 1/" in t, "BC01 PDF: tiêu đề in hoa, phân trang")
-cc=q("select Id from KhoaPhongs where Ma='CC'")[0][0]; ncc=q("select count(*) from TaiSans where TrangThai<>7 and KhoaPhongId=?",cc)[0][0]
+cc=q("select Id from KhoaPhongs where Ma='CC'")[0][0]; ncc=q("select count(*) from TaiSans where TrangThai<>6 and KhoaPhongId=?",cc)[0][0]
 check(f"{ncc} tài sản" in a.get(f"/BaoCaoChuan/Xem?ma=BC01&khoaId={cc}")[1], "lọc theo khoa")
 kp=q("select count(*) from KhoanMucNganSachs where Nam=strftime('%Y','now')")[0][0]
 w=a.get("/BaoCaoChuan/Xem?ma=BC05")[1]; check(w.count("<tr>")-1>=kp and "Tổng cộng" in w, "BC05 ngân sách có đủ khoản mục và dòng tổng")
 check(ld.get("/BaoCaoChuan/Xem?ma=BC02")[0]==200, "lãnh đạo xem được báo cáo chuẩn")
 check(a.req("/BaoCaoChuan/Xem?ma=BC99")[0]==404, "mã báo cáo không tồn tại → 404")
 # Đề nghị thay thế
-tsid,ma=q("select t.Id, t.MaTaiSan from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where l.Ma='PC' and t.TrangThai=2 and t.NgaySuDung>date('now','-2 year') limit 1")[0]
+tsid,ma=q("select t.Id, t.MaTaiSan from TaiSans t join LoaiThietBis l on l.Id=t.LoaiThietBiId where l.Ma='PC' and t.TrangThai=2 and t.NgaySuDung>date('now','-2 year') and t.Id not in (select TaiSanId from MayTramAgents where TaiSanId is not null) limit 1")[0]
 DB.execute("update CauHinhs set HeDieuHanh='Windows 7 Professional', RAM='4GB DDR3' where TaiSanId=?",(tsid,)); DB.commit()
-tt=a.get("/BaoCaoChuan/ThayThe")[1]
+tt=a.get("/BaoCaoChuan/ThayThe")[1]; tt=tt[tt.index("<tbody>"):]
 row=re.search(re.escape(ma)+r".*?</tr>", tt, re.S)
 check(row is not None and "HĐH hết hỗ trợ (Windows 7 Professional)" in row.group(0) and "RAM 4 GB dưới chuẩn 8 GB" in row.group(0), "máy Windows 7, RAM 4GB → vào danh sách thay thế với 2 lý do")
 w=a.get("/BaoCaoChuan/Xem?ma=BC04")[1]; check(ma in w and "Windows 7 Professional" in w, "BC04 có thiết bị và lý do")
