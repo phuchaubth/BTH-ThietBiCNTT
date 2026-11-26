@@ -59,6 +59,8 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Mua sắm | `MuaSam.NguoiDuyetVatTu` | Người duyệt cấp 2 (Phòng Vật tư - TTB); trống = bỏ qua cấp | Văn bản | (trống) |
 | Mua sắm | `MuaSam.NguongDuyetLanhDao` | Ngưỡng giá trị đề xuất / đơn hàng cần Lãnh đạo | Số nguyên | 50000000 đ |
 | Mua sắm | `MuaSam.TuDongDeXuatTonThap` | Tự lập đề xuất nháp khi vật tư dưới định mức (hằng ngày) | Bật/Tắt | true |
+| SLA sửa chữa | `SuaChua.DonGiaGioCong` | Đơn giá giờ công nội bộ (chi phí nhân công = giờ công × đơn giá; vào tổng chi phí phiếu, KPI, TCO — không vào ngân sách thực chi) | Số nguyên | 0 đ/giờ (không tính) |
+| SLA sửa chữa | `SuaChua.BatBuocNhomNguyenNhan` | Bắt buộc chọn nhóm nguyên nhân khi hoàn thành phiếu sửa chữa | Bật/Tắt | true |
 | Văn thư | `VanThu.NguoiVanThu` | Văn thư: vào sổ đến, cấp số phát hành (Quản trị luôn có quyền) | Văn bản | admin |
 | Văn thư | `VanThu.NguoiPhanCong` | Người phân công xử lý văn bản đến (Trưởng phòng CNTT) | Văn bản | admin |
 | Văn thư | `VanThu.NguoiDuyetMacDinh` | Người duyệt mặc định văn bản đi / tờ trình, theo thứ tự | Văn bản | admin |

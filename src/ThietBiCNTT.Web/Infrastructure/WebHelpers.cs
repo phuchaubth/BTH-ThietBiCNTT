@@ -12,6 +12,7 @@ namespace ThietBiCNTT.Web.Infrastructure;
 public class CurrentUser(IHttpContextAccessor http) : ICurrentUser
 {
     public string? UserName => http.HttpContext?.User?.Identity?.Name;
+    public string? DiaChiIp => http.HttpContext?.Connection.RemoteIpAddress?.ToString();
 }
 
 public static class EnumExtensions

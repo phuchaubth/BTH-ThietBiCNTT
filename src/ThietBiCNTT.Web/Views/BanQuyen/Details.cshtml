@@ -11,7 +11,16 @@
         <dt>Hợp đồng</dt><dd>@if (Model.HopDong is not null) { <a asp-controller="HopDong" asp-action="Details" asp-route-id="@Model.HopDongId">@Model.HopDong.SoHopDong</a> }</dd>
         @if (User.LaCNTT() && Model.KhoaKichHoat is not null)
         {
-            <dt>Khoá kích hoạt</dt><dd><details><summary class="small">Hiện khoá</summary><code class="user-select-all">@Model.KhoaKichHoat</code></details></dd>
+            <dt>Khoá kích hoạt</dt><dd><code id="khoa" class="user-select-all">••••••••</code>
+                <form asp-action="XemKhoa" asp-route-id="@Model.Id" method="post" class="d-inline" id="frmKhoa"><button class="btn btn-link btn-sm p-0 ms-2">Hiện khoá</button></form>
+                <div class="form-text mt-0">Mỗi lần xem được ghi vào nhật ký hệ thống.</div>
+                <script>
+                    document.getElementById('frmKhoa').addEventListener('submit', async e => {
+                        e.preventDefault();
+                        const r = await fetch(e.target.action, { method: 'POST', body: new FormData(e.target) });
+                        if (r.ok) { document.getElementById('khoa').textContent = (await r.json()).khoa; e.target.remove(); }
+                    });
+                </script></dd>
         }
         <dt>Ghi chú</dt><dd>@Model.GhiChu</dd>
     </dl></div></div></div>

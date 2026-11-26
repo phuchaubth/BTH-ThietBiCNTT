@@ -85,4 +85,5 @@ public class NhatKyHeThong
     [StringLength(100)] public string DoiTuong { get; set; } = "";
     [StringLength(50)] public string? DoiTuongId { get; set; }
     public string? ChiTiet { get; set; }
+    [StringLength(45)] public string? DiaChiIp { get; set; }
 }

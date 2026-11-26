@@ -92,12 +92,46 @@ public class VatTuController(AppDbContext db) : DanhMucController<VatTu>(db)
 [Authorize(Roles = VaiTro.QuanTri)]
 public class NhatKyController(AppDbContext db) : Controller
 {
-    public async Task<IActionResult> Index(string? doiTuong, string? nguoi, int page = 1)
+    private IQueryable<NhatKyHeThong> Loc(string? doiTuong, string? nguoi, string? hanhDong, DateTime? tu, DateTime? den, string? ip, string? q)
     {
-        var q = db.NhatKyHeThongs.AsNoTracking();
-        if (!string.IsNullOrEmpty(doiTuong)) q = q.Where(x => x.DoiTuong == doiTuong);
-        if (!string.IsNullOrEmpty(nguoi)) q = q.Where(x => x.NguoiDung == nguoi);
-        ViewData["doiTuong"] = doiTuong; ViewData["nguoi"] = nguoi; ViewData["page"] = page;
-        return View(await q.OrderByDescending(x => x.Id).Skip((page - 1) * 50).Take(50).ToListAsync());
+        var x = db.NhatKyHeThongs.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(doiTuong)) x = x.Where(n => n.DoiTuong == doiTuong.Trim());
+        if (!string.IsNullOrWhiteSpace(nguoi)) x = x.Where(n => n.NguoiDung == nguoi.Trim());
+        if (!string.IsNullOrWhiteSpace(hanhDong)) x = x.Where(n => n.HanhDong == hanhDong);
+        if (tu is not null) x = x.Where(n => n.ThoiGian >= tu.Value.Date);
+        if (den is not null) { var d = den.Value.Date.AddDays(1); x = x.Where(n => n.ThoiGian < d); }
+        if (!string.IsNullOrWhiteSpace(ip)) x = x.Where(n => n.DiaChiIp == ip.Trim());
+        if (!string.IsNullOrWhiteSpace(q)) x = x.Where(n => (n.ChiTiet != null && n.ChiTiet.Contains(q)) || n.DoiTuongId == q);
+        return x;
+    }
+
+    public async Task<IActionResult> Index(string? doiTuong, string? nguoi, string? hanhDong, DateTime? tu, DateTime? den, string? ip, string? q, int page = 1)
+    {
+        ViewBag.Loc = new { doiTuong, nguoi, hanhDong, tu, den, ip, q };
+        ViewData["page"] = page;
+        var homNay = DateTime.Today;
+        ViewBag.LoiDangNhap = await db.NhatKyHeThongs.CountAsync(n => n.HanhDong == ThietBiCNTT.Web.Infrastructure.ThaoTac.DangNhapLoi && n.ThoiGian >= homNay);
+        return View(await Loc(doiTuong, nguoi, hanhDong, tu, den, ip, q).OrderByDescending(x => x.Id).Skip((page - 1) * 50).Take(50).ToListAsync());
+    }
+
+    /// <summary>Xuất nhật ký theo bộ lọc (tối đa 50.000 dòng) — bản thân việc xuất cũng được ghi nhật ký.</summary>
+    public async Task<IActionResult> Xuat(string? doiTuong, string? nguoi, string? hanhDong, DateTime? tu, DateTime? den, string? ip, string? q)
+    {
+        var ds = await Loc(doiTuong, nguoi, hanhDong, tu, den, ip, q).OrderByDescending(x => x.Id).Take(50_000).ToListAsync();
+        using var wb = new ClosedXML.Excel.XLWorkbook();
+        var ws = wb.AddWorksheet("NhatKy");
+        string[] cot = ["Thời gian", "Người dùng", "IP", "Thao tác", "Đối tượng", "Id", "Chi tiết"];
+        for (var i = 0; i < cot.Length; i++) ws.Cell(1, i + 1).Value = cot[i];
+        var r = 2;
+        foreach (var n in ds)
+        {
+            ws.Cell(r, 1).Value = n.ThoiGian; ws.Cell(r, 2).Value = n.NguoiDung; ws.Cell(r, 3).Value = n.DiaChiIp; ws.Cell(r, 4).Value = ThietBiCNTT.Web.Infrastructure.ThaoTac.Ten(n.HanhDong);
+            ws.Cell(r, 5).Value = n.DoiTuong; ws.Cell(r, 6).Value = n.DoiTuongId; ws.Cell(r, 7).Value = n.ChiTiet; r++;
+        }
+        ws.Column(1).Style.DateFormat.Format = "dd/MM/yyyy HH:mm:ss";
+        ThietBiCNTT.Infrastructure.Services.ExcelTaiSanService.DinhDangBang(ws, 1, Math.Max(1, r - 1), cot.Length);
+        using var ms = new MemoryStream(); wb.SaveAs(ms);
+        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"NhatKy_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
     }
 }
+

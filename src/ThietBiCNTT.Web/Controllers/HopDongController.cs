@@ -98,7 +98,7 @@ public class HopDongController(AppDbContext db, ThamSoService thamSo) : Controll
 }
 
 [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
-public class BanQuyenController(AppDbContext db, ThamSoService thamSo) : Controller
+public class BanQuyenController(AppDbContext db, ThamSoService thamSo, NhatKyService nhatKy) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -118,12 +118,14 @@ public class BanQuyenController(AppDbContext db, ThamSoService thamSo) : Control
     {
         var b = id is null ? new BanQuyenPhanMem() : await db.BanQuyenPhanMems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         if (b is null) return NotFound();
+        // Không đưa khoá kích hoạt ra form: để trống = giữ nguyên (xem khoá qua nút "Hiện khoá" có ghi nhật ký)
+        ViewBag.CoKhoa = !string.IsNullOrEmpty(b.KhoaKichHoat); b.KhoaKichHoat = null;
         ViewBag.DsHopDong = new SelectList(await db.HopDongs.OrderByDescending(h => h.Id).Select(h => new { h.Id, Ten = h.SoHopDong + " – " + h.Ten }).ToListAsync(), "Id", "Ten");
         return View(b);
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
-    public async Task<IActionResult> Form(BanQuyenPhanMem input)
+    public async Task<IActionResult> Form(BanQuyenPhanMem input, bool xoaKhoa = false)
     {
         if (!ModelState.IsValid) return await Form(input.Id == 0 ? null : input.Id);
         if (input.Id == 0) db.BanQuyenPhanMems.Add(input);
@@ -131,11 +133,22 @@ public class BanQuyenController(AppDbContext db, ThamSoService thamSo) : Control
         {
             var b = await db.BanQuyenPhanMems.FirstAsync(x => x.Id == input.Id);
             input.NgayTao = b.NgayTao; input.NguoiTao = b.NguoiTao;
+            if (string.IsNullOrWhiteSpace(input.KhoaKichHoat) && !xoaKhoa) input.KhoaKichHoat = b.KhoaKichHoat;
             db.Entry(b).CurrentValues.SetValues(input);
         }
         await db.SaveChangesAsync();
         TempData["ok"] = $"Đã lưu bản quyền {input.Ten}.";
         return RedirectToAction(nameof(Details), new { id = input.Id });
+    }
+
+    /// <summary>Xem khoá kích hoạt — thông tin nhạy cảm, mỗi lần xem ghi nhật ký (FR-HT-07).</summary>
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> XemKhoa(int id)
+    {
+        var b = await db.BanQuyenPhanMems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        if (b?.KhoaKichHoat is null) return NotFound();
+        await nhatKy.GhiAsync(ThaoTac.Xem, nameof(BanQuyenPhanMem), id.ToString(), $"Xem khoá kích hoạt: {b.Ten}");
+        return Json(new { khoa = b.KhoaKichHoat });
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]

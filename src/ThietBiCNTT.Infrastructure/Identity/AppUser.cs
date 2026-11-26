@@ -50,4 +50,5 @@ public static class VaiTro
 public interface ICurrentUser
 {
     string? UserName { get; }
+    string? DiaChiIp => null;
 }

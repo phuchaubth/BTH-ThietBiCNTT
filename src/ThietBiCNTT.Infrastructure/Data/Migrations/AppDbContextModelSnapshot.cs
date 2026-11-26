@@ -2433,6 +2433,10 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<string>("ChiTiet")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DiaChiIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
                     b.Property<string>("DoiTuong")
                         .IsRequired()
                         .HasMaxLength(100)

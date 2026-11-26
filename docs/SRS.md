@@ -1305,17 +1305,17 @@ gantt
 | Hạng mục | Mã yêu cầu chính | Trạng thái | Việc còn lại |
 |---|---|---|---|
 | Hồ sơ tài sản, cấu hình, lịch sử thay đổi cấu hình, QR, import Excel, agent cấu hình, trường tuỳ chỉnh, mã thông minh, hồ sơ vận hành | FR-TS-01..09, 11, 12, 15..17; FR-CH-01..09 | [Đã có] | — |
-| Phiếu sửa chữa (báo hỏng → tiếp nhận → xử lý → hoàn thành → nghiệm thu) | FR-WR-01..04, FR-WO-01..05, FR-WO-12 | [Đã có] | Giờ công, linh kiện, chi phí chi tiết, gửi hãng, tự đóng (FR-WO-06..11, 13) |
+| Phiếu sửa chữa: báo hỏng → tiếp nhận → xử lý → hoàn thành → nghiệm thu; giờ công theo KTV, xuất kho linh kiện, nguyên nhân/khắc phục theo danh mục, chi phí (vật tư + thuê ngoài + nhân công nội bộ), gửi hãng, thiết bị thay thế tạm, tự nghiệm thu | FR-WR-01..04, FR-WO-01..13 | [Đã có] | — |
 | SLA theo ưu tiên & khoa trọng yếu, tạm dừng khi chờ, escalation 3 cấp | FR-WO-04, FR-WO-14, BR-WO-02 | [Đã có] | — |
-| Chống trùng yêu cầu, bình luận trong phiếu, Kanban | FR-WR-05, FR-WO-19, FR-WO-15 | [Đã có] | Nhắc tên @, bình luận nội bộ/công khai (nếu chưa có) |
+| Chống trùng yêu cầu, bình luận trong phiếu (nhắc tên @, nội bộ CNTT / công khai), Kanban | FR-WR-05, FR-WO-19, FR-WO-15 | [Đã có] | Đính kèm tệp ngay trong từng bình luận (hiện đính kèm ở cấp phiếu) |
 | Bảo trì định kỳ: kế hoạch thẩm định/duyệt, thời gian/chỉ số/kết hợp, checklist, phát sinh CM, lịch, dự trù, gợi ý chu kỳ | FR-PM-01..15 | [Đã có] | Ký xác nhận điện tử khi hoàn thành PM trên điện thoại (hiện dùng bước nghiệm thu của khoa) |
-| Điều chuyển có duyệt + bàn giao | FR-DC-01..06, 08 | [Đã có] | Điều chuyển ra ngoài BV (FR-DC-07) |
-| Thanh lý có hội đồng + quyết định + bắt buộc xoá dữ liệu | FR-TL-01, 03..09; BR-TL-01 | [Đã có] | Gợi ý TS cần thanh lý, tận dụng linh kiện (FR-TL-02, 10) |
-| Danh mục dùng chung | FR-HT-06 | [Đã có] | Lịch làm việc/ngày lễ phục vụ SLA giờ làm việc (nếu chưa có) |
+| Điều chuyển có duyệt + bàn giao, ra ngoài bệnh viện (quyết định, ghi giảm sang TCKT) | FR-DC-01..08 | [Đã có] | — |
+| Thanh lý có hội đồng + quyết định + bắt buộc xoá dữ liệu, gợi ý tài sản cần thanh lý, thu hồi linh kiện về kho | FR-TL-01..10; BR-TL-01 | [Đã có] | — |
+| Danh mục dùng chung, ngày nghỉ lễ cho SLA giờ hành chính | FR-HT-06 | [Đã có] | — |
 | Kho vật tư (nhiều kho, nhập/xuất/chuyển, thẻ kho, kiểm kê kho) và Mua sắm (PR → PO → nhận hàng) | FR-KHO-01..09, FR-MS-01..08 | [Đã có] | — |
 | Dashboard & báo cáo: KPI, MTBF, dừng máy, TCO, báo cáo tuỳ biến, gửi định kỳ (Excel/PDF), báo cáo chuẩn BC01–BC06 xuất PDF/Excel có quốc hiệu & chữ ký, đề nghị thay thế (lập đề xuất mua sắm) | FR-BC-01..13 | [Đã có] | Biểu mẫu báo cáo theo mẫu riêng của Bệnh viện/Sở Y tế (bổ sung khi có mẫu) |
 | Phân quyền 5 vai trò | FR-HT-04, mục 4.11.3 | [Đã có] | Rà soát theo ma trận cập nhật (thêm Kiểm tra, PO, Ngân sách, Cảnh báo, API) |
-| Nhật ký thao tác | FR-HT-07 | [Đã có] | Ghi log xem thông tin nhạy cảm, xuất log |
+| Nhật ký thao tác: thêm/sửa/xoá (trước/sau), đăng nhập/đăng xuất/đăng nhập lỗi, xem thông tin nhạy cảm, xuất dữ liệu, IP; lọc, xuất Excel; không sửa/xoá được | FR-HT-07 | [Đã có] | Đẩy nhật ký sang SIEM / lưu trữ ngoài (nếu Bệnh viện có) |
 | Kiểm tra tài sản, Ngân sách, API mở + webhook, Sơ đồ mặt bằng, Kiểm kê QR (cả ngoại tuyến), NCC-HĐ-BH, PWA, 2FA, AD, Zalo OA, số liệu kế toán | 4.12, 4.13, IF-07..10, FR-VT-05, 4.9, 4.6, NFR-SD-07, FR-HT-16, FR-HT-17 | [Đã có] | Kiểm thử trên hạ tầng thật (SQL Server, AD, Zalo OA, IIS) |
 | Văn thư Phòng CNTT: sổ văn bản đến/đi, tờ trình, trình duyệt nhiều bước, cấp số NĐ 30, phân công, tiến độ, nhắc hạn | FR-VB-01..10 | [Đã có] | Ký số (chữ ký số) văn bản điện tử; liên thông văn bản với hệ thống quản lý văn bản của bệnh viện |
 | Quy tắc cảnh báo tuỳ chỉnh: 10 đối tượng, tối đa 5 điều kiện (số/chữ/ngày/có-không, còn N ngày, quá N ngày), phạm vi khoa/loại/ưu tiên, người nhận (cụ thể, vai trò, phụ trách, trưởng khoa), kênh, nhắc lại, hành động tự động (mở phiếu SC, nâng ưu tiên), chạy thử | FR-HT-15 | [Đã có] | Điều kiện theo sự kiện tức thời (hiện đánh giá 5 phút/lần); điều kiện HOẶC |

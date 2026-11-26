@@ -12,7 +12,9 @@
     <div class="col-md-3"><label asp-for="NgayMua" class="form-label"></label><input asp-for="NgayMua" type="date" class="form-control" /></div>
     <div class="col-md-3"><label asp-for="NgayHetHan" class="form-label"></label><input asp-for="NgayHetHan" type="date" class="form-control" /></div>
     <div class="col-12"><label asp-for="HopDongId" class="form-label"></label><select asp-for="HopDongId" asp-items="ViewBag.DsHopDong" class="form-select"><option value="">—</option></select></div>
-    <div class="col-12"><label asp-for="KhoaKichHoat" class="form-label"></label><input asp-for="KhoaKichHoat" class="form-control font-monospace" autocomplete="off" />
+    <div class="col-12"><label asp-for="KhoaKichHoat" class="form-label"></label><input asp-for="KhoaKichHoat" class="form-control font-monospace" autocomplete="off"
+            placeholder="@((bool?)ViewBag.CoKhoa == true ? "Đã lưu khoá — để trống để giữ nguyên, nhập khoá mới để thay" : "")" />
+        @if ((bool?)ViewBag.CoKhoa == true) { <div class="form-check"><input class="form-check-input" type="checkbox" name="xoaKhoa" value="true" id="xoaKhoa" /><label class="form-check-label small" for="xoaKhoa">Xoá khoá đã lưu</label></div> }
         <div class="form-text">Chỉ Phòng CNTT xem được. Không ghi mật khẩu tài khoản quản trị dùng chung nếu có kho mật khẩu riêng.</div></div>
     <div class="col-12"><label asp-for="GhiChu" class="form-label"></label><textarea asp-for="GhiChu" class="form-control" rows="2"></textarea></div>
     <div class="col-12"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>

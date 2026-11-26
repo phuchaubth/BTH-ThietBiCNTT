@@ -293,8 +293,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         var logs = new List<(NhatKyHeThong Log, EntityEntry Entry)>();
         var suKien = ThuSuKienWebhook();
 
+        var ip = currentUser?.DiaChiIp;
         foreach (var entry in ChangeTracker.Entries().ToList())
         {
+            // FR-HT-07: nhật ký không ai được sửa/xoá
+            if (entry.Entity is NhatKyHeThong nk)
+            {
+                if (entry.State is EntityState.Modified or EntityState.Deleted) throw new InvalidOperationException("Nhật ký hệ thống không được sửa hoặc xoá.");
+                if (entry.State == EntityState.Added) nk.DiaChiIp ??= ip;
+                continue;
+            }
             if (entry.Entity is BaseEntity be)
             {
                 if (entry.State == EntityState.Added) { be.NgayTao = now; be.NguoiTao ??= user; }
@@ -309,7 +317,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         if (logs.Count > 0 || suKien.Count > 0)
         {
             // Id của bản ghi mới chỉ có sau khi lưu.
-            foreach (var (l, e) in logs) l.DoiTuongId ??= e.Property("Id").CurrentValue?.ToString();
+            foreach (var (l, e) in logs) { l.DoiTuongId ??= e.Property("Id").CurrentValue?.ToString(); l.DiaChiIp ??= ip; }
             NhatKyHeThongs.AddRange(logs.Select(x => x.Log));
             if (suKien.Count > 0)
             {
@@ -368,12 +376,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         moTa = p.MoTaSuCo, p.NgayYeuCau, p.HanXuLy, p.KyThuatVien, p.NgayHoanThanh
     };
 
+    /// <summary>Không ghi giá trị trường nhạy cảm vào nhật ký (khoá kích hoạt, mã băm khoá API…).</summary>
+    private static readonly HashSet<string> TruongNhayCam = ["KhoaKichHoat", "BamKhoa", "BiMat", "PasswordHash", "SecurityStamp"];
+
     private static NhatKyHeThong TaoNhatKy(EntityEntry e, DateTime now, string user)
     {
         var changes = e.State == EntityState.Modified
             ? e.Properties.Where(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)
                                        && p.Metadata.Name is not (nameof(BaseEntity.NgayCapNhat) or nameof(BaseEntity.NguoiCapNhat)))
-                          .ToDictionary(p => p.Metadata.Name, p => new { Cu = p.OriginalValue, Moi = p.CurrentValue })
+                          .ToDictionary(p => p.Metadata.Name, p => TruongNhayCam.Contains(p.Metadata.Name)
+                              ? new { Cu = (object?)"***", Moi = (object?)"***" } : new { Cu = p.OriginalValue, Moi = p.CurrentValue })
             : null;
         return new NhatKyHeThong
         {

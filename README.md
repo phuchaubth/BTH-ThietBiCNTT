@@ -35,7 +35,8 @@
 - Bảo trì định kỳ đầy đủ: kế hoạch có thẩm định → xét duyệt (chỉ kế hoạch Hiệu lực mới sinh lệnh), chu kỳ theo thời gian / bộ đếm / điều kiện nào đến trước, checklist mẫu (đạt/không đạt, số đo có ngưỡng) bắt buộc trước khi hoàn thành — mục không đạt tự tạo phiếu sửa chữa, lịch tháng theo nhiệm vụ/tài sản kéo-thả dời lịch có lý do, vật tư chuẩn & dự trù 12 tháng (Excel), gợi ý chu kỳ theo khuyến cáo và rút ngắn cho thiết bị trọng yếu/hỏng nhiều
 - Văn thư Phòng CNTT: sổ văn bản đến/đi (số đến/số đi tự cấp theo năm, ký hiệu theo NĐ 30), soạn tờ trình/công văn từ mẫu (kể cả từ đề xuất mua sắm, trả lời văn bản đến), trình duyệt tuần tự nhiều bước có trả lại/trình lại, cấp số phát hành, bản in đúng thể thức, phân công chủ trì/phối hợp, cập nhật tiến độ %, nhắc hạn hằng ngày, tìm kiếm, xuất sổ Excel
 - Quy tắc cảnh báo tuỳ chỉnh (không sửa mã): chọn đối tượng (tài sản, phiếu, kế hoạch bảo trì, kết quả kiểm tra, vật tư, hợp đồng, bản quyền, ngân sách, đề xuất mua sắm, văn bản) → điều kiện AND trên danh mục trường (kể cả trường bổ sung) → phạm vi → người nhận/kênh → nhắc lại → hành động tự động (mở phiếu sửa chữa, nâng ưu tiên); chạy thử trước khi bật, chống gửi trùng, gộp khi nhiều đối tượng; 5 quy tắc mẫu (đang tắt)
-- Báo cáo chuẩn BC01–BC06 (danh sách tài sản, tình hình sửa chữa theo khoa, chi phí theo loại, đề nghị thay thế, thực hiện ngân sách, sắp hết hạn) xuất PDF đúng thể thức (quốc hiệu, đơn vị, địa danh – ngày, ô ký, số trang) và Excel, gửi định kỳ kèm PDF; đề nghị thay thế theo tiêu chí cấu hình được và lập ngay đề xuất mua sắm thay thế
+- Báo cáo chuẩn BC01–BC07 (danh sách tài sản, tình hình sửa chữa theo khoa, chi phí theo loại, đề nghị thay thế, thực hiện ngân sách, sắp hết hạn, thống kê nguyên nhân sự cố) xuất PDF đúng thể thức (quốc hiệu, đơn vị, địa danh – ngày, ô ký, số trang) và Excel, gửi định kỳ kèm PDF; đề nghị thay thế theo tiêu chí cấu hình được và lập ngay đề xuất mua sắm thay thế
+- Hoàn thiện nghiệp vụ (GĐ6): phiếu sửa chữa có nhóm nguyên nhân/hành động khắc phục, nhật ký giờ công theo từng KTV và chi phí nhân công nội bộ, cho mượn thiết bị thay thế tạm (nhắc thu hồi); bình luận nhắc tên @ và bình luận nội bộ CNTT; điều chuyển ra ngoài bệnh viện có quyết định và ghi giảm sang số liệu kế toán; gợi ý tài sản cần thanh lý, thu hồi linh kiện về kho; nhật ký ghi đăng nhập/đăng xuất, xem thông tin nhạy cảm, xuất dữ liệu kèm IP, không sửa/xoá được, xuất Excel
 
 ## Tài liệu
 
@@ -53,7 +54,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, taisan2.py, baotri.py, vanthu.py, canhbao.py, baocaochuan.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, taisan2.py, baotri.py, vanthu.py, canhbao.py, baocaochuan.py, suachua2.py, binhluan.py, vongdoi.py, nhatky.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

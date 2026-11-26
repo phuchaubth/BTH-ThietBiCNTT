@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ThietBiCNTT.Infrastructure.Identity;
+using ThietBiCNTT.Web.Infrastructure;
 
 namespace ThietBiCNTT.Web.Controllers;
 
 /// <summary>Đăng nhập / đăng xuất / bước 2 lớp: cho phép ẩn danh từng action; đổi mật khẩu cần đăng nhập (quy ước mặc định).</summary>
-public class AccountController(AppSignInManager signIn, UserManager<AppUser> users, ThietBiCNTT.Infrastructure.Services.ThamSoService thamSo, LdapService ldap) : Controller
+public class AccountController(AppSignInManager signIn, UserManager<AppUser> users, ThietBiCNTT.Infrastructure.Services.ThamSoService thamSo, LdapService ldap, NhatKyService nhatKy) : Controller
 {
     [HttpGet, AllowAnonymous]
     public IActionResult Login(string? returnUrl = null) { ViewData["ReturnUrl"] = returnUrl; return View(); }
@@ -17,6 +18,7 @@ public class AccountController(AppSignInManager signIn, UserManager<AppUser> use
         var user = await users.FindByNameAsync(userName ?? "");
         if (user is { DangHoatDong: false })
         {
+            await nhatKy.GhiAsync(ThaoTac.DangNhapLoi, "NguoiDung", user.UserName, "Tài khoản đã vô hiệu hoá", user.UserName);
             ViewData["ReturnUrl"] = returnUrl;
             ViewData["Error"] = "Tài khoản đã bị vô hiệu hoá. Liên hệ Phòng CNTT.";
             return View();
@@ -41,8 +43,15 @@ public class AccountController(AppSignInManager signIn, UserManager<AppUser> use
             }
         }
         else rs = await signIn.PasswordSignInAsync(userName ?? "", password ?? "", remember, lockoutOnFailure: true);
-        if (rs.Succeeded) return LocalRedirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : "/");
+        var ten = user?.UserName ?? (userName ?? "").Trim();
+        if (ten.Length > 100) ten = ten[..100];
+        if (rs.Succeeded)
+        {
+            await nhatKy.GhiAsync(ThaoTac.DangNhap, "NguoiDung", ten, user is { XacThucAD: true } ? "Mật khẩu tên miền (AD)" : "Mật khẩu", ten);
+            return LocalRedirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : "/");
+        }
         if (rs.RequiresTwoFactor) return RedirectToAction(nameof(XacThuc2Lop), new { returnUrl, remember });
+        await nhatKy.GhiAsync(ThaoTac.DangNhapLoi, "NguoiDung", ten, rs.IsLockedOut ? "Tài khoản bị khoá tạm" : user is null ? "Tên đăng nhập không tồn tại" : "Sai mật khẩu", ten);
         ViewData["Error"] = rs.IsLockedOut ? "Tài khoản tạm khoá do đăng nhập sai nhiều lần. Thử lại sau 15 phút."
             : user is { XacThucAD: true } ? "Sai mật khẩu tên miền (AD)." : "Sai tên đăng nhập hoặc mật khẩu.";
         return View();
@@ -68,16 +77,23 @@ public class AccountController(AppSignInManager signIn, UserManager<AppUser> use
                               : await signIn.TwoFactorAuthenticatorSignInAsync(code, remember, rememberClient: false);
         if (rs.Succeeded)
         {
+            await nhatKy.GhiAsync(ThaoTac.DangNhap, "NguoiDung", u.UserName, laMaKhoiPhuc ? "Mật khẩu + mã khôi phục 2 lớp" : "Mật khẩu + xác thực 2 lớp", u.UserName);
             if (laMaKhoiPhuc) TempData["err"] = $"Bạn vừa dùng mã khôi phục — còn {await users.CountRecoveryCodesAsync(u)} mã. Nên tạo bộ mã mới ở trang Tài khoản.";
             return LocalRedirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : "/");
         }
+        await nhatKy.GhiAsync(ThaoTac.DangNhapLoi, "NguoiDung", u.UserName, "Sai mã xác thực 2 lớp", u.UserName);
         ViewData["ReturnUrl"] = returnUrl; ViewData["Remember"] = remember;
         ViewData["Error"] = rs.IsLockedOut ? "Tài khoản tạm khoá do nhập sai nhiều lần. Thử lại sau 15 phút." : "Mã không đúng hoặc đã hết hạn.";
         return View();
     }
 
     [HttpPost, ValidateAntiForgeryToken, AllowAnonymous]
-    public async Task<IActionResult> Logout() { await signIn.SignOutAsync(); return RedirectToAction(nameof(Login)); }
+    public async Task<IActionResult> Logout()
+    {
+        if (User.Identity?.IsAuthenticated == true) await nhatKy.GhiAsync(ThaoTac.DangXuat, "NguoiDung", User.Identity.Name, null);
+        await signIn.SignOutAsync();
+        return RedirectToAction(nameof(Login));
+    }
 
     [AllowAnonymous]
     public IActionResult AccessDenied() => View();
