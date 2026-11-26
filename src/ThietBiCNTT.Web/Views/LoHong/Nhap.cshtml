@@ -1,0 +1,8 @@
+@{ ViewData["Title"] = "Nhập lỗ hổng từ công cụ quét"; }
+<div class="page-head"><h1>Nhập lỗ hổng từ công cụ quét</h1><span class="text-muted small">FR-AN-07</span></div>
+<div class="card" style="max-width:720px"><div class="card-body"><form asp-action="Nhap" method="post" enctype="multipart/form-data">
+    <p class="small">Tệp .xlsx hoặc .csv, dòng đầu là tiêu đề. Cột bắt buộc: <b>Tiêu đề</b>, <b>CVSS</b>. Nên có: CVE, Hệ thống (mã), Tài sản (mã), Ngày phát hiện. Dòng trùng (cùng CVE và hệ thống / tài sản đang mở) được bỏ qua; hạn vá tính theo mức CVSS.</p>
+    <input type="file" name="file" class="form-control mb-3" accept=".xlsx,.csv" aria-label="Tệp lỗ hổng" />
+    <label class="form-label small" for="hm">Hệ thống mặc định khi dòng không ghi hệ thống / tài sản</label>
+    <select id="hm" name="heThongMacDinh" class="form-select mb-3" asp-items="@(new SelectList(((IEnumerable<HeThongThongTin>)(ViewBag.DsHeThong ?? new List<HeThongThongTin>())), "Id", "Ma"))"><option value="">— Không —</option></select>
+    <button class="btn btn-primary">Nhập</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></form></div></div>

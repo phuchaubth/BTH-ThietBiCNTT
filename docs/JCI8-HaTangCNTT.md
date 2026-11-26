@@ -8,7 +8,7 @@
 | Phạm vi | **Chỉ hạ tầng CNTT**: hệ thống thông tin, máy chủ, lưu trữ, mạng, thiết bị đầu cuối, tiện ích phục vụ CNTT (UPS, điều hoà phòng máy chủ). Không bao gồm thiết bị y tế. |
 | Loại tài liệu | Đặc tả yêu cầu phần mềm bổ sung (SRS – Phụ lục GĐ3) |
 | Căn cứ tiêu chuẩn | *JCI Accreditation Standards for Hospitals, 8th Edition* (hiệu lực **01/01/2025**): chương **HCT – Health Care Technology** (mới), MOI, FMS, GLD, QPS, SQE; *Standards Interpretation FAQs* (cập nhật 04/2025) |
-| Phiên bản | 0.9 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường các chương HCT, MOI, FMS, GLD, QPS, SQE theo toàn văn bản JCI 8) |
+| Phiên bản | 1.0 (Dự thảo – đã đối chiếu đến mức yếu tố đo lường các chương HCT, MOI, FMS, GLD, QPS, SQE theo toàn văn bản JCI 8) |
 | Ngày lập | 24/11/2026 |
 | Đơn vị chủ trì | Phòng Công nghệ thông tin |
 | Đơn vị phối hợp | Phòng Quản lý chất lượng (đầu mối JCI), Phòng Hành chính quản trị (điện, điều hoà) |
@@ -18,6 +18,7 @@
 | Phiên bản | Ngày | Người thực hiện | Nội dung thay đổi |
 |---|---|---|---|
 | 0.1 | 24/11/2026 | Phòng CNTT | Khởi tạo dự thảo: phân tích khoảng trống so với JCI 8, đặc tả 8 phân hệ mới |
+| 1.0 | 26/11/2026 | Phòng CNTT | Hoàn thiện: gợi ý rủi ro thêm hỏng lặp lại, UPS quá tuổi, kiểm tra phòng máy chủ bất thường lặp lại; nhập lỗ hổng từ báo cáo công cụ quét (.xlsx/.csv) |
 | 0.9 | 26/11/2026 | Phòng CNTT | **Hoàn thành GĐ3.3**: quản lý thay đổi (TD), rà soát quyền truy cập (TC), lỗ hổng, gợi ý rủi ro, bài tập chủ động, đánh giá nhà cung cấp, API nhận kết quả sao lưu, xuất hồ sơ bằng chứng; cập nhật mục 10.1c |
 | 0.8 | 24/11/2026 | Phòng CNTT | **Hoàn thành GĐ3.2**: cập nhật mục 10.1b (hiện trạng), đánh dấu FR đã triển khai và hạn chế còn lại |
 | 0.7 | 24/11/2026 | Phòng CNTT | **Chỉnh phân công: UPS do Phòng CNTT quản lý và thử hằng quý; nguồn điện lưới/máy phát điện dự phòng của bệnh viện do Phòng HCQT quản lý và thử.** Cập nhật FR-HTT-15, FR-HTT-16, phân quyền, câu hỏi 12 |
@@ -871,8 +872,8 @@ Ký hiệu: **F** toàn quyền, **D** duyệt, **E** thêm/sửa, **R** xem, **
 |---|---|---|
 | TD | FR-TD-01..10, BR-TD-01..04: phiếu thay đổi 4 loại, duyệt nhiều cấp theo loại và mức trọng yếu, khẩn cấp duyệt bổ sung ≤ 2 ngày làm việc (job leo thang), tạo downtime có kế hoạch, lịch tháng kèm cảnh báo trùng giờ (kể cả chuỗi phụ thuộc), kết quả (thành công / có vấn đề / quay lui / thất bại), PCRA theo 10 mục FMS.10.00, checklist hệ thống mới và công cụ hỗ trợ quyết định / AI, đánh giá sau triển khai (mặc định 90 ngày), danh mục thay đổi chuẩn, dự án xây dựng; FR-SL-09 (thay đổi hệ thống sao lưu → tự tạo lần thử phục hồi ngoài lịch) | Cảnh báo trùng giờ tính theo phụ thuộc đã khai báo; chưa gửi email khi lịch thay đổi |
 | TC | FR-TC-01..07: sinh đợt theo chu kỳ (6/12 tháng theo mức trọng yếu), nhập .xlsx/.csv có xem trước và kiểm tra từng dòng, đánh dấu tự động (lâu không đăng nhập, quản trị, dùng chung, không thuộc khoa), Trưởng khoa xác nhận theo khoa, CNTT thực hiện và đóng đợt có biên bản, xuất Excel; nghỉ việc / chuyển khoa tạo việc thu hồi (kể cả thiết bị di động); giám sát vi phạm truy cập theo quý | Chưa đọc quyền trực tiếp từ AD/LDAP (mức C) |
-| RR | FR-RR-03 (job sinh gợi ý: điểm lỗi đơn, hết bảo hành, hợp đồng sắp hết hạn, thử phục hồi không đạt, sao lưu lỗi lặp lại, lỗ hổng quá hạn), FR-RR-07 (nhắc xem xét lại rủi ro Cao / Rất cao), FR-RR-09 (bài tập chủ động, gắn diễn tập) | Gợi ý từ MTBF thấp, kiểm tra phòng máy lặp lại, ắc quy UPS quá tuổi chưa có |
-| AN | FR-AN-07: lỗ hổng, hạn vá theo CVSS (tham số), chấp nhận rủi ro do Trưởng phòng CNTT, nhắc quá hạn | Chưa nhập tự động từ công cụ quét |
+| RR | FR-RR-03 (job sinh gợi ý: điểm lỗi đơn, hết bảo hành, hợp đồng sắp hết hạn, thử phục hồi không đạt, sao lưu lỗi lặp lại, lỗ hổng quá hạn), FR-RR-07 (nhắc xem xét lại rủi ro Cao / Rất cao), FR-RR-09 (bài tập chủ động, gắn diễn tập) | Đã đủ các quy tắc gợi ý trong đặc tả (MTBF qua số phiếu sửa chữa lặp lại, UPS quá tuổi theo tham số `Jci.UpsTuoiToiDaNam`, kiểm tra phòng máy chủ bất thường lặp lại) |
+| AN | FR-AN-07: lỗ hổng, hạn vá theo CVSS (tham số), chấp nhận rủi ro do Trưởng phòng CNTT, nhắc quá hạn | Nhập từ báo cáo công cụ quét qua tệp .xlsx / .csv; chưa có kết nối trực tiếp tới công cụ quét |
 | HTT | FR-HTT-14 (thời gian lưu giữ, căn cứ, cách huỷ; cảnh báo so với tác vụ sao lưu) | FR-HTT-04 đã có từ GĐ3.1 |
 | SL | FR-SL-03: `POST /api/saoluu/ketqua` với header `X-Api-Key` (tham số `Jci.SaoLuuApiKey`, mặc định tắt) | Chưa đọc email báo cáo |
 | JC | FR-JC-05 (ZIP: mục lục tiêu chuẩn, dữ liệu theo phân hệ, tệp đính kèm gốc; hồ sơ sự cố an ninh chỉ cho người có quyền), FR-JC-07, FR-JC-09 (đánh giá nhà cung cấp hằng năm, hồ sơ hợp đồng GLD.05.00); bằng chứng tự động thêm MOI.01.01, MOI.01.03, FMS.10.00, GLD.05.00, QPS.04.01 | FMS.09.00 và GLD.04.00 vẫn do người phụ trách tự đánh giá (chương trình của Phòng HCQT, QLCL); PDF bằng cách in từ trình duyệt |

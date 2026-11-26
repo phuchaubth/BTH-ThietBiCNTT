@@ -1,7 +1,7 @@
 @model List<LoHong>
 @{ ViewData["Title"] = "Lỗ hổng an ninh"; var chiMo = (bool)ViewData["chiMo"]!; var homNay = (DateOnly)ViewBag.HomNay; string Mau(MucLoHong m) => m switch { MucLoHong.NghiemTrong => "danger", MucLoHong.Cao => "warning text-dark", MucLoHong.TrungBinh => "info text-dark", _ => "secondary" }; }
 <div class="page-head"><h1>Lỗ hổng an ninh</h1><span class="text-muted small">FR-AN-07 – hạn vá theo mức CVSS</span>
-    <div class="actions"><a asp-controller="AnNinh" asp-action="Index" class="btn btn-sm btn-outline-secondary">Sự cố an ninh</a>@if (User.LaCNTT()) { <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Ghi nhận lỗ hổng</a> }</div></div>
+    <div class="actions"><a asp-controller="AnNinh" asp-action="Index" class="btn btn-sm btn-outline-secondary">Sự cố an ninh</a>@if (User.LaCNTT()) { <a asp-action="Nhap" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload"></i> Nhập từ công cụ quét</a> <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Ghi nhận lỗ hổng</a> }</div></div>
 <div class="mb-2"><a asp-action="Index" asp-route-chiMo="@(!chiMo)" class="small">@(chiMo ? "Hiện cả đã xử lý" : "Chỉ lỗ hổng đang mở")</a></div>
 <div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle"><thead><tr><th>Lỗ hổng</th><th>CVSS</th><th>Hệ thống</th><th>Nguồn</th><th>Hạn vá</th><th>Trạng thái</th></tr></thead><tbody>
 @foreach (var l in Model) { <tr><td><a asp-action="Details" asp-route-id="@l.Id">@(l.MaCve ?? "—")</a> @l.TieuDe</td><td><span class="badge bg-@Mau(l.Muc)">@l.Cvss.ToString("0.0") · @l.Muc.Ten()</span></td><td class="small">@l.HeThong?.Ma</td><td class="small">@l.Nguon.Ten()</td>

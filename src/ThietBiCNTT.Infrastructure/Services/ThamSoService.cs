@@ -114,6 +114,7 @@ public static class TS
     public const string JciVaThapNgay = "Jci.VaLoHongThapNgay";
     public const string JciXemXetRuiRoCaoNgay = "Jci.XemXetRuiRoCaoNgay";
     public const string JciSaoLuuApiKey = "Jci.SaoLuuApiKey";
+    public const string JciUpsTuoiNam = "Jci.UpsTuoiToiDaNam";
 }
 
 public static class ThamSoMacDinh
@@ -214,6 +215,7 @@ public static class ThamSoMacDinh
         T(272, "JCI 8 – Lỗ hổng", TS.JciVaTrungBinhNgay, "Hạn vá lỗ hổng mức Trung bình (CVSS 4–6.9)", KieuThamSo.SoNguyen, "90", "ngày", 1, 365, "FR-AN-07."),
         T(273, "JCI 8 – Lỗ hổng", TS.JciVaThapNgay, "Hạn vá lỗ hổng mức Thấp (CVSS < 4)", KieuThamSo.SoNguyen, "180", "ngày", 1, 730, "FR-AN-07."),
         T(274, "JCI 8 – Rủi ro", TS.JciXemXetRuiRoCaoNgay, "Xem xét lại rủi ro mức Cao / Rất cao sau mỗi", KieuThamSo.SoNguyen, "90", "ngày", 7, 365, "FR-RR-07: nhắc người chịu trách nhiệm đến hạn."),
+        T(276, "JCI 8 – Rủi ro", TS.JciUpsTuoiNam, "Gợi ý rủi ro khi UPS dùng quá", KieuThamSo.SoNguyen, "3", "năm", 0, 15, "FR-RR-03: ắc quy UPS thường cần thay sau 3–5 năm. 0 = không gợi ý."),
         T(275, "JCI 8 – Sao lưu", TS.JciSaoLuuApiKey, "Khoá API nhận kết quả sao lưu tự động (để trống = tắt)", KieuThamSo.VanBan, "", "", 0, 0, "FR-SL-03: gửi POST /api/saoluu/ketqua với header X-Api-Key. Đặt chuỗi ngẫu nhiên dài ≥ 24 ký tự."),
         T(265, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenToiQuanTrongThang, "Chu kỳ rà soát quyền – hệ thống Tối quan trọng", KieuThamSo.SoNguyen, "6", "tháng", 1, 24, "MOI.01.01: danh sách người được truy cập và mức quyền theo vai trò được rà soát định kỳ."),
         T(266, "JCI 8 – Rà soát quyền truy cập", TS.JciRaSoatQuyenCaoThang, "Chu kỳ rà soát quyền – hệ thống mức Cao", KieuThamSo.SoNguyen, "12", "tháng", 1, 36, "FR-TC-01."),

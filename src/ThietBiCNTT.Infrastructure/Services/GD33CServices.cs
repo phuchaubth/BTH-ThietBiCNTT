@@ -26,6 +26,31 @@ public class GoiYRuiRoService(AppDbContext db, HaTangService haTang, ThongBaoSer
             if (hetBh.Count > 0) Them($"BH:{h.Ma}", $"{hetBh.Count} tài sản phục vụ hệ thống {h.Ma} đã hết bảo hành: nguy cơ chậm sửa chữa, thiếu phụ tùng.", NhomRuiRo.PhanCung, h.Id, string.Join(", ", hetBh.Take(8)));
             if (h.HopDong is { } hd && hd.SapHetHan(homNay, 60)) Them($"HD:{hd.Id}:{hd.HieuLucDen:yyyyMMdd}", $"Hợp đồng hỗ trợ {hd.SoHopDong} của hệ thống {h.Ma} sắp hết hạn {hd.HieuLucDen:dd/MM/yyyy}: nguy cơ gián đoạn hỗ trợ.", NhomRuiRo.NhaCungCap, h.Id, hd.SoHopDong);
         }
+        // Hỏng lặp lại: tài sản phụ thuộc có từ 3 phiếu sửa chữa trong 6 tháng (MTBF thấp)
+        var tu6 = DateTime.Now.AddMonths(-6);
+        foreach (var h in trongYeu)
+        {
+            var tsH = canh.Where(c => c.HeThongId == h.Id && c.TaiSanId != null).Select(c => c.TaiSanId!.Value).Distinct().ToList();
+            var lap = await db.PhieuSuaChuas.AsNoTracking().Where(p => tsH.Contains(p.TaiSanId) && p.NgayTao >= tu6).GroupBy(p => p.TaiSanId).Where(g => g.Count() >= 3).Select(g => new { g.Key, N = g.Count() }).ToListAsync(ct);
+            foreach (var x in lap)
+            {
+                var ma = await db.TaiSans.AsNoTracking().Where(t => t.Id == x.Key).Select(t => t.MaTaiSan).FirstAsync(ct);
+                Them($"MTBF:{h.Ma}:{ma}:{DateTime.Now:yyyyMM}", $"Tài sản {ma} phục vụ hệ thống {h.Ma} hỏng lặp lại ({x.N} phiếu sửa chữa trong 6 tháng): nguy cơ hỏng hẳn, cần xem xét thay thế.", NhomRuiRo.PhanCung, h.Id, $"{x.N} phiếu / 6 tháng");
+            }
+        }
+        // Ắc quy UPS quá tuổi (tham số)
+        var tuoiUps = thamSo.SoNguyen(TS.JciUpsTuoiNam);
+        if (tuoiUps > 0)
+            foreach (var t in await db.TaiSans.AsNoTracking().Include(x => x.LoaiThietBi).Where(x => x.TrangThai != TrangThaiTaiSan.DaThanhLy && x.LoaiThietBi!.Ten.ToLower().Contains("ups")).ToListAsync(ct))
+                if ((t.NgaySuDung ?? t.NgayMua) is { } m && m.AddYears(tuoiUps) < homNay)
+                    Them($"UPS:{t.MaTaiSan}", $"UPS {t.MaTaiSan} đã dùng trên {tuoiUps} năm (từ {m:dd/MM/yyyy}): ắc quy có thể xuống cấp, nguy cơ mất nguồn khi mất điện lưới.", NhomRuiRo.DienDieuHoa, null, $"Dùng từ {m:dd/MM/yyyy}");
+        // Kiểm tra phòng máy chủ bất thường lặp lại: từ 3 lần bất thường trong 30 ngày trên cùng một phiếu mẫu
+        var t30 = DateTime.Now.AddDays(-30);
+        foreach (var m in await db.LanKiemTras.AsNoTracking().Where(l => l.CoBatThuong && l.ThoiGian >= t30).GroupBy(l => l.MauKiemTraId).Where(g => g.Count() >= 3).Select(g => new { g.Key, N = g.Count() }).ToListAsync(ct))
+        {
+            var ten = await db.MauKiemTras.AsNoTracking().Where(x => x.Id == m.Key).Select(x => x.Ten).FirstOrDefaultAsync(ct);
+            if (ten is not null && ten.Contains("máy chủ", StringComparison.OrdinalIgnoreCase)) Them($"KT:{m.Key}:{DateTime.Now:yyyyMM}", $"Kiểm tra \"{ten}\" bất thường {m.N} lần trong 30 ngày: điều kiện phòng máy chủ không ổn định.", NhomRuiRo.HaTangVatLy, null, $"{m.N} lần / 30 ngày");
+        }
         var nam = homNay.AddMonths(-12).ToDateTime(TimeOnly.MinValue);
         foreach (var l in await db.LanThuPhucHois.AsNoTracking().Include(x => x.HeThong).Where(x => x.DaChot && x.Dat == false && x.NgayChot >= nam).ToListAsync(ct))
             Them($"PH:{l.Id}", $"Thử phục hồi {l.HeThong?.Ma} ngày {l.HanThucHien:dd/MM/yyyy} không đạt: chưa chắc phục hồi được dữ liệu khi sự cố.", NhomRuiRo.DuLieu, l.HeThongId, null);

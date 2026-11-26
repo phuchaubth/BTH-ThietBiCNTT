@@ -149,4 +149,18 @@ check(api(KEY,{"tacVuId":tvid,"ketQua":"ThanhCong","thoiDiem":"2026-01-01T01:00:
 check(api(KEY,{"tacVuId":tvid,"ketQua":"ThanhCong","thoiDiem":"2026-01-01T01:00:00"})==409,"API: chống ghi trùng (409)")
 # ZIP hồ sơ bằng chứng
 z=adm.req("/Jci/XuatBangChung?chuong=HCT"); check(z[0]==200 and z[1][:2]=="PK","Xuất hồ sơ bằng chứng ZIP")
+# Nhập lỗ hổng từ CSV (multipart)
+import uuid
+def upload(u, path, fname, content, extra):
+    page=u.get(path)[1]; tok=u.token(page); bd=uuid.uuid4().hex
+    parts=[f'--{bd}\r\nContent-Disposition: form-data; name="__RequestVerificationToken"\r\n\r\n{tok}\r\n']
+    for k,v in extra.items(): parts.append(f'--{bd}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n')
+    parts.append(f'--{bd}\r\nContent-Disposition: form-data; name="file"; filename="{fname}"\r\nContent-Type: text/csv\r\n\r\n{content}\r\n--{bd}--\r\n')
+    rq=urllib.request.Request(BASE+path,data="".join(parts).encode(),headers={"Content-Type":"multipart/form-data; boundary="+bd})
+    try: r=u.op.open(rq); return r.status, norm(r.headers.get("Location"))
+    except urllib.error.HTTPError as e: return e.code, norm(e.headers.get("Location"))
+csv="Tiêu đề,CVE,CVSS,Hệ thống,Tài sản,Ngày phát hiện\nSMB cũ,CVE-2026-7777,8.1,HIS,,\nTrùng,CVE-2026-7777,8.1,HIS,,\nXấu,CVE-X,abc,HIS,,\n"
+st,loc=upload(adm,"/LoHong/Nhap","scan.csv",csv,{})
+check(st==302,"Nhập lỗ hổng từ CSV")
+l=pg(adm,"/LoHong"); check("CVE-2026-7777" in l and l.count("CVE-2026-7777")==1,"Lỗ hổng nhập vào, dòng trùng bị bỏ qua")
 print("\nKẾT QUẢ:", "ALL OK" if ok else "CÓ LỖI"); sys.exit(0 if ok else 1)
