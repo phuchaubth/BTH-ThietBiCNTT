@@ -61,6 +61,13 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
         if (dsTs.Any(t => t.KhoaPhongId != input.TuKhoaPhongId)) ModelState.AddModelError("", "Có tài sản không thuộc khoa đi.");
         if (dsTs.Any(t => t.TrangThai is TrangThaiTaiSan.DaThanhLy or TrangThaiTaiSan.ChoThanhLy)) ModelState.AddModelError("", "Có tài sản đang/đã thanh lý.");
         foreach (var loi in await KiemTraXungDot(taiSanIds, 0)) ModelState.AddModelError("", loi);
+        if (input.RaNgoai)
+        {
+            if (!User.LaCNTT()) ModelState.AddModelError("", "Chỉ Phòng CNTT lập phiếu điều chuyển ra ngoài bệnh viện.");
+            if (string.IsNullOrWhiteSpace(input.DonViNhanNgoai)) ModelState.AddModelError(nameof(input.DonViNhanNgoai), "Nhập đơn vị nhận ngoài bệnh viện.");
+            input.DenKhoaPhongId = null; input.DenViTriId = null;
+        }
+        else if (input.DenKhoaPhongId is null) ModelState.AddModelError(nameof(input.DenKhoaPhongId), "Chọn khoa/phòng đến.");
         if (!ModelState.IsValid) { await Nap(input.TuKhoaPhongId); ViewData["chon"] = taiSanIds; return View(input); }
 
         input.ChiTiets = dsTs.Select(t => new ChiTietDieuChuyen { TaiSanId = t.Id, TaiSan = t }).ToList();
@@ -167,13 +174,16 @@ public class DieuChuyenController(AppDbContext db, SoPhieuService soPhieu, LichS
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> BanGiao(int id) => ThucHien(id, p =>
+    public Task<IActionResult> BanGiao(int id, string? soQuyetDinh, DateOnly? ngayQuyetDinh, bool daXoaDuLieu = false) => ThucHien(id, p =>
     {
         if (!User.LaCNTT()) throw new DomainException("Chỉ Phòng CNTT xác nhận bàn giao.");
-        p.BanGiao(DateTime.Now);
+        p.BanGiao(DateTime.Now, soQuyetDinh, ngayQuyetDinh, daXoaDuLieu);
         foreach (var ct in p.ChiTiets)
-            lichSu.Ghi(ct.TaiSanId, LoaiSuKien.DieuChuyen, $"{p.SoPhieu}: {p.TuKhoaPhong?.Ten ?? "Kho CNTT"} → {p.DenKhoaPhong?.Ten}" + (p.NguoiNhan is null ? "" : $", người nhận {p.NguoiNhan}"), User.Identity?.Name);
-        return Task.FromResult("Đã bàn giao, tài sản đã được cập nhật khoa/phòng mới.");
+            lichSu.Ghi(ct.TaiSanId, p.RaNgoai ? LoaiSuKien.ThanhLy : LoaiSuKien.DieuChuyen,
+                p.RaNgoai ? $"{p.SoPhieu}: chuyển ra ngoài bệnh viện cho {p.DonViNhanNgoai} theo QĐ {p.SoQuyetDinh} ngày {p.NgayQuyetDinh:dd/MM/yyyy} — ghi giảm tài sản"
+                    : $"{p.SoPhieu}: {p.TuKhoaPhong?.Ten ?? "Kho CNTT"} → {p.DenKhoaPhong?.Ten}" + (p.NguoiNhan is null ? "" : $", người nhận {p.NguoiNhan}"), User.Identity?.Name);
+        return Task.FromResult(p.RaNgoai ? "Đã bàn giao ra ngoài bệnh viện, tài sản đã ghi giảm (có trong Số liệu kế toán – ghi giảm)."
+            : "Đã bàn giao, tài sản đã được cập nhật khoa/phòng mới.");
     });
 
     [HttpPost, ValidateAntiForgeryToken]

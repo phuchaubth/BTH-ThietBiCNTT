@@ -137,7 +137,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         {
             e.HasIndex(x => x.SoPhieu).IsUnique();
             e.HasOne(x => x.TuKhoaPhong).WithMany().HasForeignKey(x => x.TuKhoaPhongId);
-            e.HasOne(x => x.DenKhoaPhong).WithMany().HasForeignKey(x => x.DenKhoaPhongId);
+            e.HasOne(x => x.DenKhoaPhong).WithMany().HasForeignKey(x => x.DenKhoaPhongId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.ChiTiets).WithOne(x => x.PhieuDieuChuyen).HasForeignKey(x => x.PhieuDieuChuyenId)
              .OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.BuocDuyets).WithOne(x => x.PhieuDieuChuyen).HasForeignKey(x => x.PhieuDieuChuyenId)

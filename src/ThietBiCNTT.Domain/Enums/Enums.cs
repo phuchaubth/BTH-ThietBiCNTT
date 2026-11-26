@@ -23,7 +23,7 @@ public enum TrangThaiTaiSan
     [Display(Name = "Đang sửa chữa")] DangSuaChua,
     [Display(Name = "Hỏng")] Hong,
     [Display(Name = "Chờ thanh lý")] ChoThanhLy,
-    [Display(Name = "Đã thanh lý")] DaThanhLy
+    [Display(Name = "Đã thanh lý / chuyển đi")] DaThanhLy
 }
 
 public enum NguonVon

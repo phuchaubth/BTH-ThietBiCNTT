@@ -23,7 +23,7 @@
     {
         <tr class="@(coQuyen.Contains(p.Id) ? "table-warning" : "")">
             <td class="fw-semibold"><a asp-action="Details" asp-route-id="@p.Id">@p.SoPhieu</a><div class="small text-muted fw-normal">@p.NgayTao.ToString("dd/MM/yyyy")</div></td>
-            <td class="small">@(p.TuKhoaPhong?.Ten ?? "Kho CNTT") <i class="bi bi-arrow-right"></i> @p.DenKhoaPhong?.Ten</td>
+            <td class="small">@(p.TuKhoaPhong?.Ten ?? "Kho CNTT") <i class="bi bi-arrow-right"></i> @p.TenNoiDen</td>
             <td>@p.ChiTiets.Count</td>
             <td class="text-end small">@(p.TongNguyenGia > 0 ? p.TongNguyenGia.ToString("N0") : "—")</td>
             <td class="small">@p.NguoiTao</td>

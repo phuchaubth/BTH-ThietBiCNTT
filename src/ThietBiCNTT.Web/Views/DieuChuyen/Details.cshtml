@@ -17,7 +17,20 @@
         }
         @if (Model.TrangThai == TrangThaiDieuChuyen.DaDuyet && User.LaCNTT())
         {
-            <form asp-action="BanGiao" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-success"><i class="bi bi-box-arrow-right"></i> Xác nhận bàn giao</button></form>
+            @if (Model.RaNgoai)
+            {
+                var coDuLieu = Model.ChiTiets.Any(c => c.TaiSan?.LoaiThietBi?.CoLuuTruDuLieu == true);
+                <form asp-action="BanGiao" asp-route-id="@Model.Id" method="post" class="d-inline-flex flex-wrap gap-2 align-items-center">
+                    <input name="soQuyetDinh" value="@Model.SoQuyetDinh" class="form-control form-control-sm" style="width:150px" placeholder="Số quyết định" aria-label="Số quyết định" required />
+                    <input name="ngayQuyetDinh" type="date" value="@Model.NgayQuyetDinh?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="width:150px" aria-label="Ngày quyết định" required />
+                    @if (coDuLieu) { <div class="form-check"><input class="form-check-input" type="checkbox" name="daXoaDuLieu" value="true" id="xoaDl" /><label class="form-check-label small" for="xoaDl">Đã xoá dữ liệu / tháo ổ lưu trữ</label></div> }
+                    <button class="btn btn-sm btn-success"><i class="bi bi-box-arrow-right"></i> Bàn giao ra ngoài & ghi giảm</button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="BanGiao" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-success"><i class="bi bi-box-arrow-right"></i> Xác nhận bàn giao</button></form>
+            }
         }
     </div>
 </div>
@@ -26,7 +39,9 @@
         <div class="card mb-3"><div class="card-body">
             <dl class="row info mb-0">
                 <div class="col-sm-6"><dt>Từ khoa/phòng</dt><dd>@(Model.TuKhoaPhong?.Ten ?? "Kho CNTT")</dd></div>
-                <div class="col-sm-6"><dt>Đến khoa/phòng</dt><dd>@Model.DenKhoaPhong?.Ten @(Model.DenViTri is null ? "" : "· " + Model.DenViTri.Ten)</dd></div>
+                <div class="col-sm-6"><dt>@(Model.RaNgoai ? "Đơn vị nhận (ngoài bệnh viện)" : "Đến khoa/phòng")</dt><dd>@(Model.RaNgoai ? Model.DonViNhanNgoai : Model.DenKhoaPhong?.Ten) @(Model.DenViTri is null ? "" : "· " + Model.DenViTri.Ten)
+                    @if (Model.RaNgoai) { <span class="badge bg-danger">Ra ngoài BV · ghi giảm</span> }</dd></div>
+                @if (Model.SoQuyetDinh is not null) { <div class="col-sm-6"><dt>Quyết định</dt><dd>Số @Model.SoQuyetDinh ngày @Model.NgayQuyetDinh?.ToString("dd/MM/yyyy")</dd></div> }
                 <div class="col-sm-6"><dt>Người nhận</dt><dd>@Model.NguoiNhan</dd></div>
                 <div class="col-sm-6"><dt>Người lập · ngày</dt><dd>@Model.NguoiTao · @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd></div>
                 <div class="col-12"><dt>Lý do</dt><dd>@Model.LyDo</dd></div>

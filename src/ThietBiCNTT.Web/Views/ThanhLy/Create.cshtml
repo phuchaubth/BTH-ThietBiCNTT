@@ -3,23 +3,28 @@
     ViewData["Title"] = "Lập đề xuất thanh lý";
     var ds = (List<TaiSan>)ViewBag.TaiSan;
     var homNay = DateOnly.FromDateTime(DateTime.Today);
+    var goiY = (HashSet<int>)ViewBag.GoiY; var danhGia = (Dictionary<int, DeNghiThayThe>)ViewBag.DanhGia;
 }
 <div class="page-head"><h1>Lập đề xuất thanh lý</h1></div>
 <form asp-action="Create" method="post">
     <div class="row g-3">
         <div class="col-lg-8">
-            <div class="card"><div class="card-header">Chọn tài sản <span class="small fw-normal text-muted">— ưu tiên hiển thị thiết bị hỏng và quá tuổi thọ</span></div>
+            <div class="card"><div class="card-header d-flex align-items-center">Chọn tài sản <span class="small fw-normal text-muted ms-1">— @goiY.Count gợi ý thanh lý xếp đầu</span>
+                @if (goiY.Count > 0) { <button type="button" class="btn btn-sm btn-outline-primary ms-auto" onclick="document.querySelectorAll('.goi-y').forEach(c => c.checked = true)">Chọn tất cả gợi ý</button> }</div>
+                <div class="px-3 pt-2 small text-muted">Gợi ý: thiết bị đang hỏng, hoặc quá tuổi thọ và hỏng lặp lại / chi phí sửa chữa luỹ kế cao (ngưỡng ở <i>Tham số → Đề nghị thay thế</i>).</div>
                 <div class="table-responsive" style="max-height:560px">
                 <table class="table table-sm table-hover mb-0 align-middle">
-                    <thead><tr><th></th><th>Mã TS</th><th>Tên · khoa</th><th>Tuổi</th><th>Trạng thái</th><th class="text-end">Nguyên giá</th></tr></thead>
+                    <thead><tr><th></th><th>Mã TS</th><th>Tên · khoa</th><th>Tuổi</th><th>Trạng thái</th><th class="text-end">Nguyên giá</th><th>Đánh giá</th></tr></thead>
                     <tbody>
                     @foreach (var t in ds)
                     {
                         var tuoi = t.TuoiNam(homNay);
                         var qua = tuoi >= (t.LoaiThietBi?.TuoiThoNam ?? 5);
-                        <tr><td><input type="checkbox" class="form-check-input" name="taiSanIds" value="@t.Id" id="t@(t.Id)" /></td>
+                        var dg = danhGia.GetValueOrDefault(t.Id); var laGoiY = goiY.Contains(t.Id);
+                        <tr class="@(laGoiY ? "table-warning" : "")"><td><input type="checkbox" class="form-check-input @(laGoiY ? "goi-y" : "")" name="taiSanIds" value="@t.Id" id="t@(t.Id)" /></td>
                             <td><label for="t@(t.Id)" class="fw-semibold">@t.MaTaiSan</label></td><td class="small">@t.Ten<div class="text-muted">@t.KhoaPhong?.Ten</div></td>
-                            <td class="small @(qua ? "text-danger fw-semibold" : "")">@tuoi năm</td><td>@Html.Raw(Badge.Html(t.TrangThai))</td><td class="text-end small">@t.NguyenGia.ToString("N0")</td></tr>
+                            <td class="small @(qua ? "text-danger fw-semibold" : "")">@tuoi năm</td><td>@Html.Raw(Badge.Html(t.TrangThai))</td><td class="text-end small">@t.NguyenGia.ToString("N0")</td>
+                            <td class="small">@if (laGoiY) { <span class="badge bg-danger">Gợi ý</span> } @if (dg is not null) { @string.Join("; ", dg.LyDo) }</td></tr>
                     }
                     </tbody>
                 </table>

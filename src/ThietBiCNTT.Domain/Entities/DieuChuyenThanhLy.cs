@@ -16,8 +16,14 @@ public class PhieuDieuChuyen : BaseEntity
     [Required, StringLength(20), Display(Name = "Số phiếu")] public string SoPhieu { get; set; } = "";
     [Display(Name = "Từ khoa/phòng")] public int? TuKhoaPhongId { get; set; }
     public KhoaPhong? TuKhoaPhong { get; set; }
-    [Display(Name = "Đến khoa/phòng")] public int DenKhoaPhongId { get; set; }
+    [Display(Name = "Đến khoa/phòng")] public int? DenKhoaPhongId { get; set; }
     public KhoaPhong? DenKhoaPhong { get; set; }
+    // Điều chuyển ra ngoài bệnh viện (FR-DC-07)
+    [Display(Name = "Điều chuyển ra ngoài bệnh viện")] public bool RaNgoai { get; set; }
+    [StringLength(300), Display(Name = "Đơn vị nhận")] public string? DonViNhanNgoai { get; set; }
+    [StringLength(50), Display(Name = "Số quyết định")] public string? SoQuyetDinh { get; set; }
+    [Display(Name = "Ngày quyết định"), DataType(DataType.Date)] public DateOnly? NgayQuyetDinh { get; set; }
+    public string TenNoiDen => RaNgoai ? $"{DonViNhanNgoai} (ngoài bệnh viện)" : DenKhoaPhong?.Ten ?? "";
     [Display(Name = "Vị trí mới")] public int? DenViTriId { get; set; }
     public ViTri? DenViTri { get; set; }
     [StringLength(100), Display(Name = "Người nhận")] public string? NguoiNhan { get; set; }
@@ -48,10 +54,17 @@ public class PhieuDieuChuyen : BaseEntity
     {
         if (TrangThai is not (TrangThaiDieuChuyen.Nhap or TrangThaiDieuChuyen.TuChoi)) throw new DomainException("Chỉ gửi duyệt phiếu nháp hoặc bị từ chối.");
         if (ChiTiets.Count == 0) throw new DomainException("Phiếu chưa có tài sản nào.");
-        if (TuKhoaPhongId == DenKhoaPhongId) throw new DomainException("Khoa đi và khoa đến phải khác nhau.");
+        if (RaNgoai)
+        {
+            if (string.IsNullOrWhiteSpace(DonViNhanNgoai)) throw new DomainException("Nhập đơn vị nhận ngoài bệnh viện.");
+            DenKhoaPhongId = null; DenViTriId = null;
+        }
+        else if (DenKhoaPhongId is null) throw new DomainException("Chọn khoa/phòng đến.");
+        else if (TuKhoaPhongId == DenKhoaPhongId) throw new DomainException("Khoa đi và khoa đến phải khác nhau.");
         if (ChiTiets.Any(c => c.TaiSan is null)) throw new DomainException("Thiếu thông tin tài sản.");
         TongNguyenGia = ChiTiets.Sum(c => c.TaiSan!.NguyenGia);
-        CapCuoi = TongNguyenGia >= nguongLanhDao ? CapLanhDao : CapCNTT;
+        // Chuyển ra ngoài làm giảm tài sản bệnh viện → luôn cần Lãnh đạo duyệt
+        CapCuoi = RaNgoai || TongNguyenGia >= nguongLanhDao ? CapLanhDao : CapCNTT;
         CapHienTai = CacCap().First();
         TrangThai = TrangThaiDieuChuyen.ChoDuyet;
     }
@@ -75,13 +88,28 @@ public class PhieuDieuChuyen : BaseEntity
     public int LuotGui { get; set; } = 1;
 
     /// <summary>Bàn giao: cập nhật khoa/phòng, vị trí, người dùng của từng tài sản.</summary>
-    public void BanGiao(DateTime now)
+    /// <param name="daXoaDuLieu">Chuyển ra ngoài: xác nhận đã xoá/tháo ổ lưu trữ với thiết bị có dữ liệu (QĐ-03).</param>
+    public void BanGiao(DateTime now, string? soQuyetDinh = null, DateOnly? ngayQuyetDinh = null, bool daXoaDuLieu = false)
     {
         if (TrangThai != TrangThaiDieuChuyen.DaDuyet) throw new DomainException("Phiếu chưa được duyệt đủ các cấp.");
+        if (RaNgoai)
+        {
+            SoQuyetDinh = string.IsNullOrWhiteSpace(soQuyetDinh) ? SoQuyetDinh : soQuyetDinh.Trim();
+            NgayQuyetDinh = ngayQuyetDinh ?? NgayQuyetDinh;
+            if (string.IsNullOrWhiteSpace(SoQuyetDinh) || NgayQuyetDinh is null) throw new DomainException("Chuyển ra ngoài bệnh viện phải có số và ngày quyết định.");
+            var coDuLieu = ChiTiets.Where(c => c.TaiSan?.LoaiThietBi?.CoLuuTruDuLieu == true).Select(c => c.TaiSan!.MaTaiSan).ToList();
+            if (coDuLieu.Count > 0 && !daXoaDuLieu) throw new DomainException("Xác nhận đã xoá dữ liệu / tháo ổ lưu trữ cho: " + string.Join(", ", coDuLieu));
+        }
         foreach (var ct in ChiTiets)
         {
             var ts = ct.TaiSan ?? throw new DomainException("Thiếu thông tin tài sản.");
             if (ts.DaThanhLy || ts.TrangThai == TrangThaiTaiSan.ChoThanhLy) throw new DomainException($"Tài sản {ts.MaTaiSan} đang/đã thanh lý.");
+            if (RaNgoai)
+            {
+                // Ghi giảm khỏi sổ tài sản bệnh viện (dữ liệu gửi TCKT qua Số liệu kế toán)
+                ts.TrangThai = TrangThaiTaiSan.DaThanhLy; ts.KhoaPhongId = null; ts.ViTriId = null; ts.NguoiSuDung = DonViNhanNgoai;
+                continue;
+            }
             ts.KhoaPhongId = DenKhoaPhongId;
             ts.ViTriId = DenViTriId;
             ts.NguoiSuDung = NguoiNhan;

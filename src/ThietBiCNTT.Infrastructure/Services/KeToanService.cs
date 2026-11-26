@@ -34,6 +34,9 @@ public class KeToanService(AppDbContext db)
             var (tong, so) = tongCl[c.DeXuatThanhLyId];
             return Math.Round(c.DeXuatThanhLy!.GiaTriThuHoi * (tong > 0 ? c.GiaTriConLai / tong : 1m / so), 0);
         }
+        var raNgoai = await db.ChiTietDieuChuyens.AsNoTracking().Include(c => c.TaiSan!).ThenInclude(t => t.LoaiThietBi).Include(c => c.PhieuDieuChuyen)
+            .Where(c => c.PhieuDieuChuyen!.RaNgoai && c.PhieuDieuChuyen.TrangThai == TrangThaiDieuChuyen.DaBanGiao
+                && c.PhieuDieuChuyen.NgayBanGiao >= tu && c.PhieuDieuChuyen.NgayBanGiao < den).ToListAsync();
         var nhan = await db.PhieuNhanHangs.AsNoTracking().Include(p => p.DonMuaHang!).ThenInclude(d => d.NhaCungCap).Include(p => p.DonMuaHang!).ThenInclude(d => d.KhoanMucNganSach)
             .Where(p => p.NgayNhan >= tu && p.NgayNhan < den).ToListAsync();
         var chi = await db.ChiNganSachs.AsNoTracking().Where(c => c.Ngay >= d0 && c.Ngay < d1).ToListAsync();
@@ -53,7 +56,10 @@ public class KeToanService(AppDbContext db)
                 t.KhoaPhong?.Ten, t.NhaCungCap?.Ten, t.SoHopDong)).ToList(),
             giam.OrderBy(c => c.DeXuatThanhLy!.NgayHoanTat).Select(c => new DongGhiGiam(c.TaiSan!.MaTaiSan, c.TaiSan.Ten, c.TaiSan.LoaiThietBi?.Ten, c.TaiSan.NguyenGia,
                 c.GiaTriConLai, c.DeXuatThanhLy!.SoPhieu, c.DeXuatThanhLy.SoQuyetDinh, c.DeXuatThanhLy.NgayQuyetDinh, c.DeXuatThanhLy.NgayHoanTat,
-                c.DeXuatThanhLy.HinhThuc is { } h ? ExcelTaiSanService.Ten(h) : null, PhanBo(c))).ToList(),
+                c.DeXuatThanhLy.HinhThuc is { } h ? ExcelTaiSanService.Ten(h) : null, PhanBo(c)))
+                .Concat(raNgoai.OrderBy(c => c.PhieuDieuChuyen!.NgayBanGiao).Select(c => new DongGhiGiam(c.TaiSan!.MaTaiSan, c.TaiSan.Ten, c.TaiSan.LoaiThietBi?.Ten,
+                    c.TaiSan.NguyenGia, 0, c.PhieuDieuChuyen!.SoPhieu, c.PhieuDieuChuyen.SoQuyetDinh, c.PhieuDieuChuyen.NgayQuyetDinh, c.PhieuDieuChuyen.NgayBanGiao,
+                    $"Điều chuyển ra ngoài: {c.PhieuDieuChuyen.DonViNhanNgoai}", 0))).ToList(),
             thucChi);
     }
 }

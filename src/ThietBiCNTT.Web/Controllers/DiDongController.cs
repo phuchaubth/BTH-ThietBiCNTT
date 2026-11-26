@@ -66,7 +66,7 @@ public class DiDongController(AppDbContext db, ThamSoService ts, MuaSamService m
         var dc = await db.PhieuDieuChuyens.AsNoTracking().Include(p => p.TuKhoaPhong).Include(p => p.DenKhoaPhong)
             .Where(p => p.TrangThai == TrangThaiDieuChuyen.ChoDuyet).ToListAsync();
         kq.AddRange(dc.Where(p => DieuChuyenController.CoQuyenDuyet(p, User))
-            .Select(p => new ViecChoDuyet("Điều chuyển", p.SoPhieu, $"{p.TuKhoaPhong?.Ten} → {p.DenKhoaPhong?.Ten}", $"/DieuChuyen/Details/{p.Id}", p.NgayTao)));
+            .Select(p => new ViecChoDuyet("Điều chuyển", p.SoPhieu, $"{p.TuKhoaPhong?.Ten} → {p.TenNoiDen}", $"/DieuChuyen/Details/{p.Id}", p.NgayTao)));
         if (User.LaCNTT() || User.IsInRole(VaiTro.LanhDao))
         {
             foreach (var x in await db.DeXuatMuaSams.Include(x => x.Dongs).Where(x => x.TrangThai == TrangThaiDeXuat.ChoDuyet).ToListAsync())

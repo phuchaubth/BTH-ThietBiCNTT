@@ -76,6 +76,30 @@
             @if (suaChiTiet) { <div class="card-footer bg-white"><button form="frmCt" class="btn btn-sm btn-outline-primary">Lưu tình trạng & giá trị</button></div> }
         </div>
 
+        @{ var thuHoi = (List<PhieuKho>)ViewBag.ThuHoi; var choThuHoi = cntt && tt is TrangThaiThanhLy.ChoHoiDong or TrangThaiThanhLy.DaDanhGia or TrangThaiThanhLy.DaPheDuyet; }
+        @if (thuHoi.Count > 0 || choThuHoi)
+        {
+            <div class="card mb-3" id="thu-hoi"><div class="card-header">Linh kiện tận dụng — thu hồi về kho</div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Phiếu nhập</th><th>Từ tài sản</th><th>Linh kiện</th><th class="text-end">SL</th><th class="text-end">Giá trị</th><th>Kho</th></tr></thead>
+                    <tbody>@foreach (var k in thuHoi) { foreach (var c in k.ChiTiets) {
+                        <tr><td class="small"><a asp-controller="Kho" asp-action="ChiTiet" asp-route-id="@k.Id">@k.SoPhieu</a></td><td class="small">@c.GhiChu</td><td>@c.VatTu?.Ten</td><td class="text-end">@c.SoLuong.ToString("0.##")</td><td class="text-end">@c.ThanhTien.ToString("N0")</td><td class="small">@k.Kho?.Ten</td></tr> } }
+                    @if (thuHoi.Count == 0) { <tr><td colspan="6" class="small text-muted">Chưa thu hồi. Tháo RAM, nguồn, SSD… còn tốt trước khi giao máy cho đơn vị mua/huỷ.</td></tr> }</tbody>
+                </table>
+                @if (choThuHoi)
+                {
+                    <form asp-action="ThuHoiLinhKien" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 p-3 border-top">
+                        <select name="chiTietId" class="form-select form-select-sm" style="width:150px" aria-label="Tài sản">@foreach (var c in Model.ChiTiets) { <option value="@c.Id">@c.TaiSan?.MaTaiSan</option> }</select>
+                        <select name="vatTuId" asp-items="ViewBag.DsVatTu" class="form-select form-select-sm" style="flex:1 1 220px" aria-label="Vật tư"></select>
+                        <input name="soLuong" type="number" min="1" step="1" value="1" class="form-control form-control-sm" style="width:70px" aria-label="Số lượng" />
+                        <input name="donGia" type="number" min="0" step="1000" value="0" class="form-control form-control-sm" style="width:120px" aria-label="Đơn giá đánh giá lại" title="Giá trị đánh giá lại (đ/đơn vị)" />
+                        <select name="khoId" asp-items="ViewBag.DsKho" class="form-select form-select-sm" style="width:150px" aria-label="Kho nhập"></select>
+                        <input name="ghiChu" class="form-control form-control-sm" style="width:160px" placeholder="Tình trạng" aria-label="Tình trạng linh kiện" />
+                        <button class="btn btn-sm btn-outline-primary">Nhập kho</button>
+                    </form>
+                }
+            </div>
+        }
         @if (tt == TrangThaiThanhLy.ChoHoiDong)
         {
             <div class="card mb-3 border-primary"><div class="card-header">Kết quả đánh giá của hội đồng</div><div class="card-body">

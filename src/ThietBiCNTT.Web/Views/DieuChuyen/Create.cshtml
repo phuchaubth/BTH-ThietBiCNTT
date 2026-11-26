@@ -38,8 +38,14 @@
         </div>
         <div class="col-lg-5">
             <div class="card"><div class="card-body">
-                <div class="mb-3"><label asp-for="DenKhoaPhongId" class="form-label"></label><select asp-for="DenKhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select" required><option value="">—</option></select></div>
-                <div class="mb-3"><label asp-for="DenViTriId" class="form-label"></label><select asp-for="DenViTriId" asp-items="ViewBag.DsViTri" class="form-select"><option value="">—</option></select></div>
+                @if (User.LaCNTT())
+                {
+                    <div class="form-check mb-2"><input asp-for="RaNgoai" class="form-check-input" id="raNgoai" /><label asp-for="RaNgoai" class="form-check-label" for="raNgoai"></label></div>
+                    <div class="mb-3 o-ngoai"><label asp-for="DonViNhanNgoai" class="form-label"></label><input asp-for="DonViNhanNgoai" class="form-control" placeholder="VD: Trung tâm Y tế huyện …" />
+                        <div class="form-text">Luôn qua Lãnh đạo duyệt. Khi bàn giao phải có số/ngày quyết định; tài sản được ghi giảm và đưa vào Số liệu kế toán gửi TCKT.</div></div>
+                }
+                <div class="mb-3 o-trong"><label asp-for="DenKhoaPhongId" class="form-label"></label><select asp-for="DenKhoaPhongId" asp-items="ViewBag.DsKhoa" class="form-select" id="denKhoa"><option value="">—</option></select></div>
+                <div class="mb-3 o-trong"><label asp-for="DenViTriId" class="form-label"></label><select asp-for="DenViTriId" asp-items="ViewBag.DsViTri" class="form-select"><option value="">—</option></select></div>
                 <div class="mb-3"><label asp-for="NguoiNhan" class="form-label"></label><input asp-for="NguoiNhan" class="form-control" /></div>
                 <div class="mb-3"><label asp-for="LyDo" class="form-label"></label><textarea asp-for="LyDo" class="form-control" rows="3" required></textarea></div>
                 <div class="alert alert-info small py-2" id="capDuyet">Duyệt: Trưởng khoa đi → Phòng CNTT.</div>
@@ -54,14 +60,19 @@
 (function () {
     var nguong = @nguong;
     function cap() {
+        var ngoai = document.getElementById('raNgoai')?.checked;
+        document.querySelectorAll('.o-ngoai').forEach(e => e.classList.toggle('d-none', !ngoai));
+        document.querySelectorAll('.o-trong').forEach(e => e.classList.toggle('d-none', !!ngoai));
         var tong = 0;
         document.querySelectorAll('.chon:checked').forEach(function (c) { tong += +c.dataset.gia; });
         document.getElementById('tong').textContent = tong.toLocaleString('vi-VN');
         document.getElementById('capDuyet').textContent = tong >= nguong
             ? 'Tổng ≥ ' + nguong.toLocaleString('vi-VN') + ' đ → duyệt 3 cấp: Trưởng khoa đi → Phòng CNTT → Lãnh đạo.'
             : 'Tổng < ' + nguong.toLocaleString('vi-VN') + ' đ → duyệt 2 cấp: Trưởng khoa đi → Phòng CNTT.';
+        if (ngoai) document.getElementById('capDuyet').textContent = 'Chuyển ra ngoài bệnh viện → luôn duyệt đến Lãnh đạo (Trưởng khoa đi → Phòng CNTT → Lãnh đạo).';
     }
     document.querySelectorAll('.chon').forEach(function (c) { c.addEventListener('change', cap); });
+    document.getElementById('raNgoai')?.addEventListener('change', cap);
     cap();
 })();
 </script>

@@ -12,7 +12,7 @@ using ThietBiCNTT.Web.Infrastructure;
 namespace ThietBiCNTT.Web.Controllers;
 
 [Authorize(Roles = VaiTro.NhomCNTT + "," + VaiTro.LanhDao)]
-public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo, ThongBaoService tb) : Controller
+public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuService lichSu, ThamSoService thamSo, ThongBaoService tb, KhoService kho, ThayTheService thayThe) : Controller
 {
     public async Task<IActionResult> Index(TrangThaiThanhLy? trangThai)
     {
@@ -30,7 +30,14 @@ public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuSe
         var ds = await db.TaiSans.Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).AsNoTracking()
             .Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy && t.TrangThai != TrangThaiTaiSan.ChoThanhLy)
             .OrderBy(t => t.MaTaiSan).ToListAsync();
-        ViewBag.TaiSan = ds.OrderByDescending(t => t.TrangThai == TrangThaiTaiSan.Hong)
+        // FR-TL-02: gợi ý = đang hỏng, hoặc quá tuổi thọ kèm hỏng lặp lại / chi phí sửa chữa luỹ kế cao (ngưỡng theo tham số Đề nghị thay thế)
+        var danhGia = (await thayThe.DanhSachAsync(DateTime.Now, tatCa: true)).ToDictionary(x => x.TaiSanId);
+        var tc = thayThe.TieuChi();
+        bool GoiY(DeNghiThayThe x) => x.TrangThai == TrangThaiTaiSan.Hong
+            || (x.TuoiTho > 0 && x.TuoiNam >= x.TuoiTho && ((tc.SoLanHong > 0 && x.SoLanHong12T >= tc.SoLanHong) || (tc.TyLeChiPhi > 0 && x.TyLeChiPhi >= tc.TyLeChiPhi)));
+        var goiY = danhGia.Values.Where(GoiY).Select(x => x.TaiSanId).ToHashSet();
+        ViewBag.GoiY = goiY; ViewBag.DanhGia = danhGia;
+        ViewBag.TaiSan = ds.OrderByDescending(t => goiY.Contains(t.Id)).ThenByDescending(t => t.TrangThai == TrangThaiTaiSan.Hong)
             .ThenByDescending(t => (t.TuoiNam(homNay) ?? 0) - (t.LoaiThietBi?.TuoiThoNam ?? 5)).ToList();
         return View(new DeXuatThanhLy());
     }
@@ -52,6 +59,11 @@ public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuSe
     {
         var p = await Load(id, false);
         if (p is null) return NotFound();
+        ViewBag.ThuHoi = await db.PhieuKhos.AsNoTracking().Include(k => k.Kho).Include(k => k.ChiTiets).ThenInclude(c => c.VatTu)
+            .Where(k => k.DeXuatThanhLyId == id).OrderBy(k => k.Id).ToListAsync();
+        ViewBag.DsVatTu = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(await db.VatTus.AsNoTracking().OrderBy(v => v.Ten)
+            .Select(v => new { v.Id, Ten = v.Ma + " – " + v.Ten + " (" + v.DonViTinh + ")" }).ToListAsync(), "Id", "Ten");
+        ViewBag.DsKho = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(await db.Khos.AsNoTracking().Where(k => k.DangHoatDong).OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
         ViewBag.BatBuocThaoOCung = thamSo.BatTat(TS.ThanhLyBatBuocThaoOCung);
         return View(p);
     }
@@ -154,4 +166,31 @@ public class ThanhLyController(AppDbContext db, SoPhieuService soPhieu, LichSuSe
             lichSu.Ghi(ct.TaiSanId, LoaiSuKien.ThanhLy, $"Thanh lý theo QĐ {p.SoQuyetDinh} ({p.HinhThuc?.Ten()})", User.Identity?.Name);
         return "Đã hoàn tất thanh lý, tài sản được ghi giảm.";
     });
+
+    /// <summary>FR-TL-10: linh kiện còn dùng được (RAM, nguồn, ổ SSD…) tháo từ máy thanh lý → phiếu nhập kho "thu hồi", ghi sổ ngay.</summary>
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> ThuHoiLinhKien(int id, int chiTietId, int vatTuId, int khoId, decimal soLuong, decimal donGia, string? ghiChu)
+    {
+        var p = await Load(id, true);
+        if (p is null) return NotFound();
+        try
+        {
+            if (p.TrangThai is not (TrangThaiThanhLy.ChoHoiDong or TrangThaiThanhLy.DaDanhGia or TrangThaiThanhLy.DaPheDuyet))
+                throw new DomainException("Chỉ thu hồi linh kiện khi đề xuất đang xử lý (trước khi hoàn tất thanh lý).");
+            var ct = p.ChiTiets.FirstOrDefault(c => c.Id == chiTietId) ?? throw new DomainException("Chọn tài sản tháo linh kiện.");
+            if (soLuong <= 0 || soLuong != Math.Floor(soLuong)) throw new DomainException("Số lượng phải là số nguyên dương.");
+            var vt = await db.VatTus.FindAsync(vatTuId) ?? throw new DomainException("Chọn vật tư trong danh mục.");
+            var px = await kho.LapAsync(new PhieuKho
+            {
+                LyDo = LyDoPhieuKho.NhapThuHoi, KhoId = khoId, DeXuatThanhLyId = p.Id,
+                DienGiai = $"Thu hồi linh kiện từ {ct.TaiSan!.MaTaiSan} ({p.SoPhieu}){(string.IsNullOrWhiteSpace(ghiChu) ? "" : " – " + ghiChu.Trim())}",
+                ChiTiets = [new ChiTietPhieuKho { VatTuId = vatTuId, SoLuong = soLuong, DonGia = Math.Max(0, donGia), GhiChu = ct.TaiSan.MaTaiSan }]
+            }, User.Identity?.Name);
+            lichSu.Ghi(ct.TaiSanId, LoaiSuKien.ThanhLy, $"Tháo thu hồi {soLuong:0} {vt.DonViTinh} {vt.Ten} về kho ({px.SoPhieu})", User.Identity?.Name);
+            await db.SaveChangesAsync();
+            TempData["ok"] = $"Đã nhập kho {soLuong:0} {vt.DonViTinh} {vt.Ten} ({px.SoPhieu}).";
+        }
+        catch (DomainException ex) { db.ChangeTracker.Clear(); TempData["err"] = ex.Message; }
+        return RedirectToAction(nameof(Details), new { id });
+    }
 }

@@ -2509,11 +2509,15 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<int>("CapHienTai")
                         .HasColumnType("int");
 
-                    b.Property<int>("DenKhoaPhongId")
+                    b.Property<int?>("DenKhoaPhongId")
                         .HasColumnType("int");
 
                     b.Property<int?>("DenViTriId")
                         .HasColumnType("int");
+
+                    b.Property<string>("DonViNhanNgoai")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("LuotGui")
                         .HasColumnType("int");
@@ -2529,6 +2533,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<DateTime?>("NgayCapNhat")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateOnly?>("NgayQuyetDinh")
+                        .HasColumnType("date");
+
                     b.Property<DateTime>("NgayTao")
                         .HasColumnType("datetime2");
 
@@ -2542,10 +2549,17 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.Property<string>("NguoiTao")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("RaNgoai")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SoPhieu")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SoQuyetDinh")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("TongNguyenGia")
                         .HasPrecision(18)
@@ -2580,6 +2594,9 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DeXuatThanhLyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("DienGiai")
                         .HasMaxLength(1000)
@@ -4579,8 +4596,7 @@ namespace ThietBiCNTT.Infrastructure.Data.Migrations
                     b.HasOne("ThietBiCNTT.Domain.Entities.KhoaPhong", "DenKhoaPhong")
                         .WithMany()
                         .HasForeignKey("DenKhoaPhongId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ThietBiCNTT.Domain.Entities.ViTri", "DenViTri")
                         .WithMany()

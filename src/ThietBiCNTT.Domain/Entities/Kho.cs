@@ -74,6 +74,8 @@ public class PhieuKho : BaseEntity
     public KhoaPhong? KhoaPhong { get; set; }
     [Display(Name = "Phiếu sửa chữa")] public int? PhieuSuaChuaId { get; set; }
     public PhieuSuaChua? PhieuSuaChua { get; set; }
+    /// <summary>Linh kiện thu hồi từ tài sản trong đề xuất thanh lý (FR-TL-10).</summary>
+    [Display(Name = "Đề xuất thanh lý")] public int? DeXuatThanhLyId { get; set; }
     [Display(Name = "Nhà cung cấp")] public int? NhaCungCapId { get; set; }
     public NhaCungCap? NhaCungCap { get; set; }
     [StringLength(50), Display(Name = "Số hoá đơn / chứng từ")] public string? SoChungTu { get; set; }
