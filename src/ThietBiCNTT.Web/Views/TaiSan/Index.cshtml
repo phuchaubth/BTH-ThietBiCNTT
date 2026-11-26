@@ -22,6 +22,15 @@
         <div class="col-6 col-md-2"><div class="form-check"><input class="form-check-input" type="checkbox" name="hetBaoHanh" value="true" id="hbh" @(ViewData["hetBaoHanh"] is true ? "checked" : "") /><label class="form-check-label small" for="hbh">Sắp hết BH (@ngayBh ngày)</label></div></div>
         <div class="col-md-1"><button class="btn btn-sm btn-primary w-100">Lọc</button></div>
     </div>
+    @{ var dsTc = (List<TruongTuyChinh>)ViewBag.TruongTuyChinh; }
+    @if (dsTc.Count > 0)
+    {
+        <div class="row g-2 mt-0 align-items-end">
+            <div class="col-6 col-md-3"><select name="tt" class="form-select form-select-sm" aria-label="Lọc theo thông tin bổ sung"><option value="">— Thông tin bổ sung —</option>
+                @foreach (var t in dsTc) { <option value="@t.Id" selected="@(ViewData["tt"] as int? == t.Id)">@t.Ten</option> }</select></div>
+            <div class="col-6 col-md-3"><input name="ttv" value="@ViewData["ttv"]" class="form-control form-control-sm" placeholder="Giá trị chứa… (trống = có khai báo)" aria-label="Giá trị" /></div>
+        </div>
+    }
 </form>
 <form id="frmChon" method="get"></form>
 <div class="card"><div class="table-responsive">

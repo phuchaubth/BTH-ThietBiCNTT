@@ -17,9 +17,12 @@ public class TaiSanFormVm
     public TaiSan TaiSan { get; set; } = new();
     public CauHinh CauHinh { get; set; } = new();
     public string? LyDoThayDoi { get; set; }
+    /// <summary>Trường tuỳ chỉnh: Id trường → giá trị nhập.</summary>
+    public Dictionary<int, string?> TuyChinh { get; set; } = [];
 }
 
-public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo, TepService tep) : Controller
+public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoService thamSo, TepService tep,
+    MaTaiSanService maTs, TruongTuyChinhService tuyChinh, HoSoVanHanhService hoSo) : Controller
 {
     private IQueryable<TaiSan> PhamViTaiSan()
     {
@@ -28,7 +31,7 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         return q;
     }
 
-    private IQueryable<TaiSan> Loc(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh)
+    private IQueryable<TaiSan> Loc(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh, int? tt = null, string? ttv = null)
     {
         var query = PhamViTaiSan().Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).Include(t => t.CauHinh).AsNoTracking();
         if (!string.IsNullOrWhiteSpace(q))
@@ -41,6 +44,13 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         if (loai is not null) query = query.Where(t => t.LoaiThietBiId == loai);
         if (trangThai is not null) query = query.Where(t => t.TrangThai == trangThai);
         else query = query.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy);
+        if (tt is not null)
+        {
+            // Lọc theo trường tuỳ chỉnh: có nhập giá trị thì so khớp chuỗi con, để trống = có khai báo trường này
+            var v = (ttv ?? "").Trim();
+            query = v.Length == 0 ? query.Where(t => t.GiaTriTuyChinhs.Any(g => g.TruongTuyChinhId == tt))
+                : query.Where(t => t.GiaTriTuyChinhs.Any(g => g.TruongTuyChinhId == tt && g.GiaTri.Contains(v)));
+        }
         if (hetBaoHanh == true)
         {
             var d = DateOnly.FromDateTime(DateTime.Today);
@@ -50,22 +60,23 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         return query;
     }
 
-    public async Task<IActionResult> Index(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh, int page = 1)
+    public async Task<IActionResult> Index(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh, int? tt, string? ttv, int page = 1)
     {
         const int size = 25;
-        var query = Loc(q, khoa, loai, trangThai, hetBaoHanh);
+        var query = Loc(q, khoa, loai, trangThai, hetBaoHanh, tt, ttv);
         var total = await query.CountAsync();
         var items = await query.OrderBy(t => t.MaTaiSan).Skip((page - 1) * size).Take(size).ToListAsync();
         await NapDanhMuc();
         ViewData["q"] = q; ViewData["khoa"] = khoa; ViewData["loai"] = loai; ViewData["trangThai"] = trangThai; ViewData["hetBaoHanh"] = hetBaoHanh;
+        ViewData["tt"] = tt; ViewData["ttv"] = ttv;
         return View(new PagedList<TaiSan>(items, page, size, total));
     }
 
     /// <summary>Xuất Excel (.xlsx) theo bộ lọc hiện tại.</summary>
-    public async Task<IActionResult> Export(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh)
+    public async Task<IActionResult> Export(string? q, int? khoa, int? loai, TrangThaiTaiSan? trangThai, bool? hetBaoHanh, int? tt, string? ttv)
     {
-        var ds = await Loc(q, khoa, loai, trangThai, hetBaoHanh).Include(t => t.NhaCungCap).OrderBy(t => t.MaTaiSan).ToListAsync();
-        return File(ExcelTaiSanService.XuatTaiSan(ds, "DANH SÁCH TÀI SẢN CNTT"),
+        var ds = await Loc(q, khoa, loai, trangThai, hetBaoHanh, tt, ttv).Include(t => t.NhaCungCap).Include(t => t.GiaTriTuyChinhs).OrderBy(t => t.MaTaiSan).ToListAsync();
+        return File(ExcelTaiSanService.XuatTaiSan(ds, "DANH SÁCH TÀI SẢN CNTT", await tuyChinh.DangDungAsync()),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"TaiSan_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
     }
 
@@ -147,6 +158,10 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         ViewBag.SoDo = await db.DiemSoDos.AsNoTracking().Where(d => d.TaiSanId == id && (User.XemToanVien() || d.SoDoMatBang!.KhoaPhongId == null || d.SoDoMatBang.KhoaPhongId == k))
             .Select(d => d.SoDoMatBang!).ToListAsync();
         ViewBag.Agent = await db.MayTramAgents.AsNoTracking().FirstOrDefaultAsync(m => m.TaiSanId == id);
+        var gt = await tuyChinh.GiaTriAsync(id);
+        ViewBag.TuyChinh = (await tuyChinh.DangDungAsync()).Where(t => t.ApDung(ts.LoaiThietBiId) || gt.ContainsKey(t.Id))
+            .Select(t => (Truong: t, GiaTri: t.HienThi(gt.GetValueOrDefault(t.Id)))).ToList();
+        ViewBag.HoSo = await hoSo.LapAsync(ts);
         return View(ts);
     }
 
@@ -190,6 +205,7 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         {
             vm.TaiSan = src; vm.TaiSan.Id = 0; vm.TaiSan.MaTaiSan = ""; vm.TaiSan.SoSerial = null;
             vm.CauHinh = src.CauHinh ?? new(); vm.CauHinh.DiaChiIP = vm.CauHinh.DiaChiMAC = vm.CauHinh.Hostname = null;
+            vm.TuyChinh = (await tuyChinh.GiaTriAsync(cid)).ToDictionary(x => x.Key, x => (string?)x.Value);
         }
         await NapDanhMuc();
         return View("Form", vm);
@@ -201,7 +217,8 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         var ts = await db.TaiSans.Include(t => t.CauHinh).AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
         if (ts is null) return NotFound();
         await NapDanhMuc(id);
-        return View("Form", new TaiSanFormVm { TaiSan = ts, CauHinh = ts.CauHinh ?? new() });
+        return View("Form", new TaiSanFormVm { TaiSan = ts, CauHinh = ts.CauHinh ?? new(),
+            TuyChinh = (await tuyChinh.GiaTriAsync(id)).ToDictionary(x => x.Key, x => (string?)x.Value) });
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = VaiTro.NhomCNTT)]
@@ -209,7 +226,13 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
     {
         ModelState.Remove("TaiSan.LoaiThietBi"); ModelState.Remove("CauHinh.TaiSan");
         var input = vm.TaiSan;
-        if (await db.TaiSans.AnyAsync(t => t.MaTaiSan == input.MaTaiSan && t.Id != input.Id))
+        input.MaTaiSan = (input.MaTaiSan ?? "").Trim().ToUpperInvariant();
+        var tuSinh = input.Id == 0 && input.MaTaiSan.Length == 0 && maTs.TuSinh;
+        if (tuSinh) ModelState.Remove("TaiSan.MaTaiSan");
+        var truong = await tuyChinh.DangDungAsync();
+        var (loiTc, giaTriTc) = TruongTuyChinhService.KiemTra(truong, input.LoaiThietBiId, vm.TuyChinh);
+        foreach (var l in loiTc) ModelState.AddModelError("", l);
+        if (!tuSinh && await db.TaiSans.AnyAsync(t => t.MaTaiSan == input.MaTaiSan && t.Id != input.Id))
             ModelState.AddModelError("TaiSan.MaTaiSan", "Mã tài sản đã tồn tại.");
         if (input.TaiSanChaId == input.Id && input.Id != 0)
             ModelState.AddModelError("TaiSan.TaiSanChaId", "Thiết bị cha không hợp lệ.");
@@ -220,9 +243,20 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         {
             input.CauHinh = CoCauHinh(vm.CauHinh) ? vm.CauHinh : null;
             if (input.CauHinh is not null) input.CauHinh.NgayCapNhat = DateTime.Now;
+            if (tuSinh)
+            {
+                try { input.MaTaiSan = await maTs.TaoAsync(input.LoaiThietBiId, input.KhoaPhongId); }
+                catch (ThietBiCNTT.Domain.Common.DomainException ex) { ModelState.AddModelError("", ex.Message); await NapDanhMuc(); return View("Form", vm); }
+            }
             db.TaiSans.Add(input);
-            await db.SaveChangesAsync();
+            // Hai người thêm cùng lúc có thể trùng mã tự sinh (unique index) → sinh lại và thử lại
+            for (var lan = 1; ; lan++)
+            {
+                try { await db.SaveChangesAsync(); break; }
+                catch (DbUpdateException) when (tuSinh && lan < 4) { input.MaTaiSan = await maTs.TaoAsync(input.LoaiThietBiId, input.KhoaPhongId); }
+            }
             lichSu.Ghi(input.Id, LoaiSuKien.TaoMoi, "Tạo mới hồ sơ tài sản", user);
+            await tuyChinh.GhiAsync(input.Id, truong, giaTriTc, user, ghiLichSu: false);
             await db.SaveChangesAsync();
             TempData["ok"] = $"Đã thêm tài sản {input.MaTaiSan}.";
             return RedirectToAction(nameof(Details), new { id = input.Id });
@@ -241,6 +275,7 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         ts.NgayTao = db.Entry(ts).OriginalValues.GetValue<DateTime>(nameof(TaiSan.NgayTao));
         ts.NguoiTao = db.Entry(ts).OriginalValues.GetValue<string?>(nameof(TaiSan.NguoiTao));
         if (CoCauHinh(vm.CauHinh) || ts.CauHinh is not null) lichSu.CapNhatCauHinh(ts, vm.CauHinh, user);
+        await tuyChinh.GhiAsync(ts.Id, truong, giaTriTc, user);
         var thayDoi = db.Entry(ts).Properties.Where(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)).Select(p => p.Metadata.Name)
                         .Where(n => n is not (nameof(TaiSan.NgayCapNhat) or nameof(TaiSan.NguoiCapNhat))).ToList();
         if (thayDoi.Count > 0)
@@ -248,6 +283,14 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         await db.SaveChangesAsync();
         TempData["ok"] ??= "Đã lưu thay đổi.";
         return RedirectToAction(nameof(Details), new { id = ts.Id });
+    }
+
+    /// <summary>Xem trước mã sẽ sinh (form thêm tài sản).</summary>
+    [Authorize(Roles = VaiTro.NhomCNTT)]
+    public async Task<IActionResult> XemTruocMa(int loai, int? khoa)
+    {
+        try { return Json(new { ma = await maTs.TaoAsync(loai, khoa), tuSinh = maTs.TuSinh }); }
+        catch (ThietBiCNTT.Domain.Common.DomainException ex) { return Json(new { loi = ex.Message }); }
     }
 
     private static bool CoCauHinh(CauHinh c) =>
@@ -259,6 +302,8 @@ public class TaiSanController(AppDbContext db, LichSuService lichSu, ThamSoServi
         ViewBag.DsLoai = new SelectList(await db.LoaiThietBis.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
         ViewBag.DsNcc = new SelectList(await db.NhaCungCaps.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
         ViewBag.DsViTri = new SelectList(await db.ViTris.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten");
+        ViewBag.TruongTuyChinh = await tuyChinh.DangDungAsync();
+        ViewBag.TuSinhMa = maTs.TuSinh;
         ViewBag.DsCha = new SelectList(await db.TaiSans.Where(t => t.Id != boQuaId && t.TrangThai != TrangThaiTaiSan.DaThanhLy)
             .OrderBy(t => t.MaTaiSan).Select(t => new { t.Id, Ten = t.MaTaiSan + " - " + t.Ten }).ToListAsync(), "Id", "Ten");
     }

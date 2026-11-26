@@ -1285,7 +1285,7 @@ gantt
 
 | Hạng mục | Mã yêu cầu chính | Trạng thái | Việc còn lại |
 |---|---|---|---|
-| Hồ sơ tài sản, cấu hình, lịch sử thay đổi cấu hình, QR, import Excel, agent cấu hình | FR-TS-01..09, 11, 12; FR-CH-01..09 | [Đã có] | Trường tuỳ chỉnh, đánh mã thông minh theo quy tắc cấu hình, hồ sơ vận hành (FR-TS-15..17) |
+| Hồ sơ tài sản, cấu hình, lịch sử thay đổi cấu hình, QR, import Excel, agent cấu hình, trường tuỳ chỉnh, mã thông minh, hồ sơ vận hành | FR-TS-01..09, 11, 12, 15..17; FR-CH-01..09 | [Đã có] | — |
 | Phiếu sửa chữa (báo hỏng → tiếp nhận → xử lý → hoàn thành → nghiệm thu) | FR-WR-01..04, FR-WO-01..05, FR-WO-12 | [Đã có] | Giờ công, linh kiện, chi phí chi tiết, gửi hãng, tự đóng (FR-WO-06..11, 13) |
 | SLA theo ưu tiên & khoa trọng yếu, tạm dừng khi chờ, escalation 3 cấp | FR-WO-04, FR-WO-14, BR-WO-02 | [Đã có] | — |
 | Chống trùng yêu cầu, bình luận trong phiếu, Kanban | FR-WR-05, FR-WO-19, FR-WO-15 | [Đã có] | Nhắc tên @, bình luận nội bộ/công khai (nếu chưa có) |

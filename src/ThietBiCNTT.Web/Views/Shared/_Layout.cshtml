@@ -56,6 +56,7 @@
             <a class="nav-item @Act("KhoaPhong")" asp-controller="KhoaPhong" asp-action="Index"><i class="bi bi-diagram-3"></i> Khoa/phòng</a>
             <a class="nav-item @Act("LoaiThietBi")" asp-controller="LoaiThietBi" asp-action="Index"><i class="bi bi-tags"></i> Loại thiết bị</a>
             <a class="nav-item @Act("NhaCungCap")" asp-controller="NhaCungCap" asp-action="Index"><i class="bi bi-building"></i> Nhà cung cấp</a>
+            @if (cntt) { <a class="nav-item @Act("TruongTuyChinh")" asp-controller="TruongTuyChinh" asp-action="Index"><i class="bi bi-ui-checks-grid"></i> Trường bổ sung TS</a> }
         }
         @if (User.IsInRole(VaiTro.QuanTri))
         {

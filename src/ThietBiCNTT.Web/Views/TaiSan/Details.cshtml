@@ -54,6 +54,13 @@
             }
         </div></div>
 
+        @{ var tc = (List<(TruongTuyChinh Truong, string GiaTri)>)ViewBag.TuyChinh; }
+        @if (tc.Count > 0)
+        {
+            <div class="card mb-3"><div class="card-header">Thông tin bổ sung</div><div class="card-body"><dl class="row info mb-0">
+                @foreach (var (t, v) in tc) { <div class="col-sm-4"><dt>@t.Ten</dt><dd>@(string.IsNullOrEmpty(v) ? "—" : v)</dd></div> }
+            </dl></div></div>
+        }
         @if (Model.CauHinh is { } ch)
         {
             <div class="card mb-3"><div class="card-header">Cấu hình <span class="small text-muted fw-normal">· cập nhật @ch.NgayCapNhat?.ToString("dd/MM/yyyy")</span></div><div class="card-body">
@@ -87,16 +94,32 @@
             <img src="/TaiSan/QrImage/@Model.Id" alt="QR" style="width:160px;height:160px" />
             <div class="small text-muted">Quét để mở hồ sơ / báo hỏng</div>
         </div></div>
-        <div class="card mb-3"><div class="card-header">Chỉ số vận hành</div><div class="card-body">
+        @{ var hs = (HoSoVanHanh)ViewBag.HoSo; }
+        <div class="card mb-3"><div class="card-header">Hồ sơ vận hành</div><div class="card-body">
             <dl class="row info mb-0">
                 <div class="col-6"><dt>Tuổi thiết bị</dt><dd>@(tuoi?.ToString() ?? "—") năm @if (tuoi >= Model.LoaiThietBi?.TuoiThoNam) { <span class="badge bg-warning text-dark">Quá tuổi thọ</span> }</dd></div>
-                <div class="col-6"><dt>Số lần hỏng</dt><dd>@sc.Count</dd></div>
-                <div class="col-6"><dt>Tổng chi phí SC/BT</dt><dd>@tongChiPhi.ToString("N0") đ</dd></div>
-                <div class="col-6"><dt>Tổng thời gian dừng</dt><dd>@dungMay.ToString("N1") giờ</dd></div>
-                <div class="col-12"><dt>Tổng chi phí sở hữu (TCO)</dt><dd class="fw-semibold">@((Model.NguyenGia + tongChiPhi).ToString("N0")) đ</dd></div>
+                <div class="col-6"><dt>Phiếu đang mở</dt><dd>@hs.PhieuDangMo</dd></div>
+                <div class="col-6"><dt>Số lần hỏng</dt><dd>@hs.SoLanHong @(hs.LanHongCuoi is { } hc ? $"· gần nhất {hc:dd/MM/yy}" : "")</dd></div>
+                <div class="col-6"><dt>MTBF</dt><dd>@(hs.MtbfNgay is { } mtbf ? $"{mtbf:0.#} ngày" : "—")</dd></div>
+                <div class="col-6"><dt>Thời gian dừng máy</dt><dd>@hs.DungMayGio.ToString("N1") giờ</dd></div>
+                <div class="col-6"><dt>MTTR</dt><dd>@(hs.MttrGio is { } mttr ? $"{mttr:0.#} giờ" : "—")</dd></div>
+                <div class="col-6"><dt>Bảo trì định kỳ</dt><dd>@hs.SoLanBaoTri lần @(hs.LanBaoTriCuoi is { } btc ? $"· gần nhất {btc:dd/MM/yy}" : "")</dd></div>
+                <div class="col-6"><dt>Lần bảo trì tới</dt><dd>@(hs.BaoTriTiepTheo?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+                <div class="col-6"><dt>Chi phí sửa chữa</dt><dd>@hs.ChiPhiSuaChua.ToString("N0") đ</dd></div>
+                <div class="col-6"><dt>Chi phí bảo trì</dt><dd>@hs.ChiPhiBaoTri.ToString("N0") đ</dd></div>
+                <div class="col-6"><dt>Tổng giờ công</dt><dd>@hs.TongGioCong.ToString("0.#") giờ</dd></div>
+                <div class="col-6"><dt>Chỉ số bộ đếm</dt><dd>@(hs.ChiSoBoDem?.ToString("N0") ?? "—")</dd></div>
+                <div class="col-12"><dt>Tổng chi phí sở hữu (TCO)</dt><dd class="fw-semibold">@hs.Tco.ToString("N0") đ <span class="small text-muted fw-normal">· gồm hợp đồng bảo trì & bản quyền phân bổ</span></dd></div>
             </dl>
-            @if (Model.NguyenGia > 0 && tongChiPhi > Model.NguyenGia * nguongPct / 100m) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã vượt @nguongPct% nguyên giá — cân nhắc thay mới/thanh lý.</div> }
-        </div></div>
+            @if (hs.TyLeSuaNguyenGia >= nguongPct) { <div class="alert alert-warning small mb-0 py-2">Chi phí sửa chữa đã bằng @hs.TyLeSuaNguyenGia% nguyên giá (ngưỡng @nguongPct%) — cân nhắc thay mới/thanh lý.</div> }
+        </div>
+        @if (hs.PhuTung.Count > 0)
+        {
+            <div class="card-body border-top pt-2"><div class="small fw-semibold mb-1">Phụ tùng / vật tư đã dùng</div>
+                <table class="table table-sm small mb-0"><tbody>@foreach (var x in hs.PhuTung.Take(8)) {
+                    <tr><td>@x.Ma · @x.Ten</td><td class="text-end text-nowrap">@x.SoLuong.ToString("0.##") @x.DonViTinh</td><td class="text-end">@x.ThanhTien.ToString("N0")</td></tr> }</tbody></table></div>
+        }
+        </div>
         @if (((List<HopDong>)ViewBag.HopDong).Count + ((List<BanQuyenPhanMem>)ViewBag.BanQuyen).Count > 0)
         {
             <div class="card mb-3"><div class="card-header">Hợp đồng & bản quyền</div><div class="list-group list-group-flush small">

@@ -1,7 +1,7 @@
 @model CauHinhBaoCao
 @{
     ViewData["Title"] = "Báo cáo tuỳ biến"; var kq = ViewBag.KetQua as KetQuaBaoCao; var mau = ViewBag.Mau as BaoCaoMau; var dsMau = (List<BaoCaoMau>)ViewBag.DsMau;
-    var truong = BaoCaoTuyBienService.Truong(Model.Nguon); var toi = User.Identity?.Name;
+    var truong = (IReadOnlyList<TruongBaoCao>)ViewBag.Truong; var toi = User.Identity?.Name;
     string Gt(object? v) => v switch { null => "", DateTime d => d.ToString(d.TimeOfDay == TimeSpan.Zero ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"), DateOnly d => d.ToString("dd/MM/yyyy"),
         decimal m => m.ToString("#,0.##"), _ => v.ToString()! };
 }

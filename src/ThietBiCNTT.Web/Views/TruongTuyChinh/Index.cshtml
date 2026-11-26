@@ -1,0 +1,16 @@
+@model List<TruongTuyChinh>
+@{ ViewData["Title"] = "Trường thông tin bổ sung"; var so = (Dictionary<int, int>)ViewBag.SoGiaTri; }
+<div class="page-head"><h1>Trường thông tin bổ sung của tài sản</h1>
+    <div class="actions"><a asp-action="Sua" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm trường</a></div></div>
+<p class="small text-muted">Bổ sung thông tin không có sẵn (VD: số phòng, mã tài sản kế toán, công suất UPS, số cổng switch…). Trường hiển thị trên form & hồ sơ tài sản, dùng được trong lọc, nhập/xuất Excel và báo cáo tuỳ biến.</p>
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0 align-middle">
+    <thead><tr><th>Thứ tự</th><th>Tên</th><th>Mã</th><th>Kiểu</th><th>Áp dụng</th><th>Bắt buộc</th><th class="text-end">Số TS có giá trị</th><th></th></tr></thead>
+    <tbody>@foreach (var t in Model) {
+        <tr class="@(t.DangDung ? "" : "text-muted")"><td>@t.ThuTu</td><td class="fw-semibold">@t.Ten @if (!t.DangDung) { <span class="badge bg-secondary">Ẩn</span> }</td>
+            <td><code>@t.Ma</code></td><td class="small">@t.Kieu.Ten() @if (t.Kieu == KieuTruong.DanhSach) { <div class="text-muted">@string.Join(" / ", t.DsLuaChon)</div> }</td>
+            <td class="small">@(t.LoaiThietBi?.Ten ?? "Mọi loại")</td><td>@(t.BatBuoc ? "Có" : "")</td><td class="text-end">@so.GetValueOrDefault(t.Id)</td>
+            <td class="text-nowrap"><a asp-action="Sua" asp-route-id="@t.Id" class="btn btn-sm btn-link">Sửa</a>
+                @if (User.IsInRole(VaiTro.QuanTri)) { <form asp-action="Xoa" asp-route-id="@t.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá trường?')"><button class="btn btn-sm btn-link text-danger">Xoá</button></form> }</td></tr> }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Chưa có trường bổ sung.</td></tr> }
+    </tbody>
+</table></div></div>

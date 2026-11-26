@@ -25,17 +25,20 @@ public enum NhomTco { TaiSan = 1, Loai, Model, Khoa }
 /// </summary>
 public class TcoService(AppDbContext db)
 {
-    public async Task<List<DongTco>> LapAsync(NhomTco nhom, int? khoaId = null, int? loaiId = null, bool gomThanhLy = false, DateOnly? homNay = null)
+    public async Task<List<DongTco>> LapAsync(NhomTco nhom, int? khoaId = null, int? loaiId = null, bool gomThanhLy = false, DateOnly? homNay = null, int? taiSanId = null)
     {
         var d = homNay ?? DateOnly.FromDateTime(DateTime.Today);
         var q = db.TaiSans.AsNoTracking().Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).AsQueryable();
         if (!gomThanhLy) q = q.Where(t => t.TrangThai != TrangThaiTaiSan.DaThanhLy);
         if (khoaId is not null) q = q.Where(t => t.KhoaPhongId == khoaId);
         if (loaiId is not null) q = q.Where(t => t.LoaiThietBiId == loaiId);
+        if (taiSanId is not null) q = q.Where(t => t.Id == taiSanId);
         var ts = await q.ToListAsync();
         var ids = ts.Select(t => t.Id).ToHashSet();
 
-        var phieu = await db.PhieuSuaChuas.AsNoTracking().Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaHuy).Include(p => p.VatTus)
+        var phieuQ = db.PhieuSuaChuas.AsNoTracking().Where(p => p.TrangThai != TrangThaiPhieuSuaChua.DaHuy);
+        if (taiSanId is not null) phieuQ = phieuQ.Where(p => p.TaiSanId == taiSanId);
+        var phieu = await phieuQ
             .Select(p => new { p.TaiSanId, p.LoaiCongViec, p.ChiPhiThueNgoai, VatTu = p.VatTus.Select(v => v.SoLuong * v.DonGia).ToList() }).ToListAsync();
         var sua = phieu.Where(p => ids.Contains(p.TaiSanId)).GroupBy(p => p.TaiSanId).ToDictionary(g => g.Key, g => (
             Sua: g.Where(p => p.LoaiCongViec == LoaiCongViec.SuaChua).Sum(p => p.ChiPhiThueNgoai + p.VatTu.Sum()),

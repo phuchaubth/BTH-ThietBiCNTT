@@ -74,6 +74,15 @@ public class BaoCaoTuyBienService(AppDbContext db)
     private static PhieuSuaChua P(object o) => (PhieuSuaChua)o;
 
     public static IReadOnlyList<TruongBaoCao> Truong(NguonBaoCao n) => n == NguonBaoCao.TaiSan ? TruongTaiSan : TruongPhieu;
+
+    /// <summary>Trường cố định + trường tuỳ chỉnh (mã "tt_{Mã}") đối với dữ liệu tài sản.</summary>
+    public async Task<IReadOnlyList<TruongBaoCao>> TruongAsync(NguonBaoCao n)
+    {
+        if (n != NguonBaoCao.TaiSan) return TruongPhieu;
+        var tt = await db.TruongTuyChinhs.AsNoTracking().Where(t => t.DangDung).OrderBy(t => t.ThuTu).ThenBy(t => t.Ten).ToListAsync();
+        return [.. TruongTaiSan, .. tt.Select(t => new TruongBaoCao("tt_" + t.Ma, t.Ten + " *", t.Kieu == KieuTruong.So,
+            o => t.GiaTriCoKieu(T(o).GiaTriTuyChinhs.FirstOrDefault(g => g.TruongTuyChinhId == t.Id)?.GiaTri)))];
+    }
     public static string[] TrangThai(NguonBaoCao n) => n == NguonBaoCao.TaiSan ? Enum.GetNames<TrangThaiTaiSan>() : Enum.GetNames<TrangThaiPhieuSuaChua>();
 
     public static CauHinhBaoCao Doc(string json) => JsonSerializer.Deserialize<CauHinhBaoCao>(json) ?? new();
@@ -82,7 +91,7 @@ public class BaoCaoTuyBienService(AppDbContext db)
     /// <param name="ky">Khoảng ngày ghi đè (báo cáo gửi định kỳ có TheoKyGui).</param>
     public async Task<KetQuaBaoCao> ChayAsync(CauHinhBaoCao c, (DateTime Tu, DateTime Den)? ky = null)
     {
-        var dsTruong = Truong(c.Nguon);
+        var dsTruong = await TruongAsync(c.Nguon);
         var cot = c.Truong.Select(m => dsTruong.FirstOrDefault(t => t.Ma == m)).OfType<TruongBaoCao>().DistinctBy(t => t.Ma).ToList();
         if (cot.Count == 0) throw new DomainException("Chọn ít nhất một trường hiển thị.");
         var tu = ky is not null && c.TheoKyGui ? ky.Value.Tu : c.Tu;
@@ -91,7 +100,8 @@ public class BaoCaoTuyBienService(AppDbContext db)
         List<object> nguon;
         if (c.Nguon == NguonBaoCao.TaiSan)
         {
-            var q = db.TaiSans.AsNoTracking().Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).Include(t => t.ViTri).Include(t => t.NhaCungCap).Include(t => t.CauHinh).AsQueryable();
+            var q = db.TaiSans.AsNoTracking().Include(t => t.LoaiThietBi).Include(t => t.KhoaPhong).Include(t => t.ViTri).Include(t => t.NhaCungCap).Include(t => t.CauHinh)
+                .Include(t => t.GiaTriTuyChinhs).AsSplitQuery().AsQueryable();
             if (c.KhoaPhongId is { } k) q = q.Where(t => t.KhoaPhongId == k);
             if (c.LoaiThietBiId is { } l) q = q.Where(t => t.LoaiThietBiId == l);
             if (Enum.TryParse<TrangThaiTaiSan>(c.TrangThai, out var tt)) { q = q.Where(t => t.TrangThai == tt); moTa.Add(Ten(tt)!); }

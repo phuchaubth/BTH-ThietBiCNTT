@@ -41,6 +41,8 @@ public static class TS
     public const string NguongChiPhiSuaPhanTram = "TaiSan.NguongChiPhiSuaPhanTram";
     public const string TuoiThoMacDinhNam = "TaiSan.TuoiThoMacDinhNam";
     public const string HopDongCanhBaoNgay = "HopDong.CanhBaoTruocNgay";
+    public const string MauMaTaiSan = "TaiSan.MauMa";
+    public const string TuSinhMaTaiSan = "TaiSan.TuSinhMa";
     // Kho
     public const string KhoChoXuatAm = "Kho.ChoXuatAm";
     // Mua sắm
@@ -128,6 +130,8 @@ public static class ThamSoMacDinh
         T(70, "Tài sản", TS.CanhBaoBaoHanhNgay, "Cảnh báo sắp hết bảo hành trước", KieuThamSo.SoNguyen, "60", "ngày", 0, 365),
         T(71, "Tài sản", TS.NguongChiPhiSuaPhanTram, "Ngưỡng chi phí sửa chữa / nguyên giá", KieuThamSo.SoNguyen, "50", "%", 1, 500, "Vượt ngưỡng → gợi ý thay mới/thanh lý."),
         T(73, "Tài sản", TS.HopDongCanhBaoNgay, "Cảnh báo hợp đồng / bản quyền sắp hết hạn trước", KieuThamSo.SoNguyen, "60", "ngày", 0, 365),
+        T(74, "Tài sản", TS.TuSinhMaTaiSan, "Tự sinh mã tài sản khi để trống", KieuThamSo.BatTat, "true", moTa: "Áp dụng khi thêm tay, nhập Excel và nhận hàng theo đơn."),
+        T(75, "Tài sản", TS.MauMaTaiSan, "Mẫu mã tài sản", KieuThamSo.VanBan, "{LOAI}-{KHOA}-{NAM}-{STT:5}", moTa: "Thành phần: {LOAI} mã loại, {KHOA} mã khoa (KHO nếu ở kho), {NAM} năm 4 số, {NAM2} năm 2 số, {STT:n} số thứ tự n chữ số (bắt buộc, tự tăng theo phần còn lại của mã). VD PC-CC-2026-00012."),
         T(72, "Tài sản", TS.TuoiThoMacDinhNam, "Tuổi thọ mặc định khi tạo loại thiết bị", KieuThamSo.SoNguyen, "5", "năm", 1, 50),
 
         T(80, "Kho vật tư", TS.KhoChoXuatAm, "Cho phép xuất kho vượt tồn", KieuThamSo.BatTat, "false"),
@@ -266,6 +270,7 @@ public class ThamSoService(AppDbContext db, IMemoryCache cache)
         {
             if (!giaTris.TryGetValue(dn.Ma, out var v)) continue;
             if (KiemTra(dn, ref v) is { } e) { loi.Add($"{dn.Ten}: {e}"); continue; }
+            if (dn.Ma == TS.MauMaTaiSan && MaTaiSanService.KiemTraMau(v) is { } e2) { loi.Add($"{dn.Ten}: {e2}"); continue; }
             var row = dsLuu[dn.Ma];
             if (row.GiaTri == v) continue;
             row.GiaTri = v; row.NgayCapNhat = DateTime.Now; row.NguoiCapNhat = nguoi;

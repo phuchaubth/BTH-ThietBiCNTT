@@ -30,6 +30,9 @@
 - Bảo mật & tích hợp: xác thực 2 lớp (ứng dụng xác thực + mã khôi phục, có thể bắt buộc với Quản trị/CNTT), đăng nhập bằng tài khoản AD (LDAPS), kênh thông báo Zalo OA (tự làm mới token), số liệu chuyển kế toán ghi tăng / ghi giảm / thực chi (Excel, CSV, API)
 - Webhook: phiếu tạo/đóng, tài sản đổi trạng thái/ghi giảm, nhận hàng — ký HMAC-SHA256, gửi lại tự động khi lỗi, gửi thử, xem nội dung đã gửi
 
+**Giai đoạn 5 (hoàn thiện yêu cầu):**
+- Tài sản: trường thông tin bổ sung do Quản trị định nghĩa theo loại thiết bị (văn bản, số, ngày, danh sách, có/không; bắt buộc) — dùng trong form, hồ sơ, lọc, nhập/xuất Excel, báo cáo tuỳ biến; mã tài sản tự sinh theo mẫu (VD `PC-CC-2026-00012`, xem trước khi tạo); hồ sơ vận hành trên trang tài sản (MTBF, MTTR, dừng máy, chi phí, phụ tùng đã dùng, TCO)
+
 ## Tài liệu
 
 | Tài liệu | Đường dẫn |
@@ -46,7 +49,7 @@
 ```bash
 dotnet test tests/ThietBiCNTT.Tests          # unit test quy tắc nghiệp vụ (SLA, nghiệm thu, điều chuyển, thanh lý)
 python3 tests/e2e/e2e.py                      # end-to-end theo vai trò (cần app demo đang chạy, xem đầu file)
-# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, thongbao.py (cần mock.py)
+# các kịch bản khác: nhap.py, kiemke.py, kiemtra.py, hopdong.py, kho.py, muasam.py, ngansach.py, api.py, agent.py, pwa.js, sodo.js (node), baocao.py, baomat.py, taisan2.py, thongbao.py (cần mock.py)
 ```
 
 ## Cấu trúc

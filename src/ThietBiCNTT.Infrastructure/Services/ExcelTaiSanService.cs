@@ -17,18 +17,20 @@ public class DongNhapTaiSan
     public List<string> CanhBao { get; } = [];
     /// <summary>Mã đã tồn tại trong CSDL → cập nhật (nếu người dùng chọn) thay vì thêm mới.</summary>
     public int? IdDaCo { get; set; }
+    /// <summary>Giá trị trường tuỳ chỉnh đã chuẩn hoá (Id trường → giá trị).</summary>
+    public Dictionary<int, string?> TuyChinh { get; } = [];
     public bool HopLe => Loi.Count == 0;
 }
 
 public record KetQuaNhap(int ThemMoi, int CapNhat, int BoQua);
 
 /// <summary>Nhập / xuất danh sách tài sản bằng Excel (.xlsx).</summary>
-public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
+public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu, MaTaiSanService maTs, TruongTuyChinhService tuyChinh)
 {
     // Thứ tự cột của file mẫu. (*) = bắt buộc.
     private static readonly (string Ten, string GhiChu)[] Cot =
     [
-        ("Mã tài sản (*)", "Duy nhất, VD PC-0123"),
+        ("Mã tài sản (*)", "Duy nhất, VD PC-0123. Để trống = hệ thống tự sinh theo mẫu mã (nếu bật tham số)"),
         ("Tên tài sản (*)", ""),
         ("Mã loại thiết bị (*)", "Theo sheet DanhMuc, VD PC, LT, PRN"),
         ("Hãng", ""), ("Model", ""), ("Số serial", ""),
@@ -58,6 +60,18 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
             c.Style.Font.Bold = true;
             c.Style.Fill.BackgroundColor = Cot[i].Ten.Contains("(*)") ? XLColor.FromHtml("#FDE2E1") : XLColor.FromHtml("#DCE8F7");
             if (!string.IsNullOrEmpty(Cot[i].GhiChu)) c.CreateComment().AddText(Cot[i].GhiChu);
+        }
+        // Trường tuỳ chỉnh: thêm cột sau các cột chuẩn, tiêu đề "Tên [Mã]"
+        var tt = await tuyChinh.DangDungAsync();
+        for (var i = 0; i < tt.Count; i++)
+        {
+            var t = tt[i]; var c = ws.Cell(1, Cot.Length + 1 + i);
+            c.Value = $"{t.Ten}{(t.BatBuoc ? " (*)" : "")} [{t.Ma}]";
+            c.Style.Font.Bold = true; c.Style.Fill.BackgroundColor = XLColor.FromHtml("#E8F5E9");
+            c.CreateComment().AddText($"Trường bổ sung · {ExcelTaiSanService.Ten(t.Kieu)}" + (t.LoaiThietBi is null ? "" : $" · chỉ loại {t.LoaiThietBi.Ma}")
+                + (t.Kieu == KieuTruong.DanhSach ? $" · chọn: {string.Join(" / ", t.DsLuaChon)}" : t.Kieu == KieuTruong.Ngay ? " · dd/MM/yyyy" : t.Kieu == KieuTruong.CoKhong ? " · Có/Không" : ""));
+            if (t.Kieu == KieuTruong.DanhSach && t.DsLuaChon.Count > 0)
+                ws.Range(2, Cot.Length + 1 + i, 5001, Cot.Length + 1 + i).CreateDataValidation().List("\"" + string.Join(",", t.DsLuaChon) + "\"", true);
         }
         // Dòng ví dụ
         object[] viDu = ["PC-0999", "Máy tính Dell OptiPlex 7010", "PC", "Dell", "OptiPlex 7010", "SN123456", "KB", "BS. Nguyễn Văn A",
@@ -126,6 +140,18 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
             .GroupBy(x => x.SoSerial!.ToUpperInvariant()).ToDictionary(g => g.Key, g => g.First().MaTaiSan);
         var trongFile = new Dictionary<string, int>();
         var ds = new List<DongNhapTaiSan>();
+        var tuSinh = maTs.TuSinh;
+        // Cột trường tuỳ chỉnh nhận theo "[Mã]" ở tiêu đề (thứ tự cột tuỳ ý)
+        var truong = await tuyChinh.DangDungAsync();
+        var cotTuyChinh = new Dictionary<int, TruongTuyChinh>();
+        var cotCuoi = ws.Row(1).LastCellUsed()?.Address.ColumnNumber ?? Cot.Length;
+        for (var c = Cot.Length + 1; c <= cotCuoi; c++)
+        {
+            var hd = ws.Cell(1, c).GetString();
+            var m = System.Text.RegularExpressions.Regex.Match(hd, @"\[([A-Za-z][A-Za-z0-9_]*)\]\s*$");
+            var t = truong.FirstOrDefault(x => m.Success ? string.Equals(x.Ma, m.Groups[1].Value, StringComparison.OrdinalIgnoreCase) : string.Equals(x.Ten, hd.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (t is not null) cotTuyChinh[c] = t;
+        }
 
         var dongCuoi = ws.LastRowUsed()?.RowNumber() ?? 1;
         if (dongCuoi > 5001) throw new InvalidOperationException("File có quá 5.000 dòng — hãy chia nhỏ.");
@@ -133,13 +159,13 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
         {
             var row = ws.Row(r);
             string S(int c) => row.Cell(c).GetFormattedString().Trim();
-            if (Enumerable.Range(1, Cot.Length).All(c => string.IsNullOrWhiteSpace(S(c)))) continue;
+            if (Enumerable.Range(1, Math.Max(Cot.Length, cotCuoi)).All(c => string.IsNullOrWhiteSpace(S(c)))) continue;
             var d = new DongNhapTaiSan { SoDong = r };
             var t = d.TaiSan;
 
             t.MaTaiSan = S(1).ToUpperInvariant();
             t.Ten = S(2);
-            if (t.MaTaiSan.Length == 0) d.Loi.Add("Thiếu mã tài sản");
+            if (t.MaTaiSan.Length == 0) { if (tuSinh) d.CanhBao.Add("Mã sẽ tự sinh khi nhập"); else d.Loi.Add("Thiếu mã tài sản"); }
             else if (t.MaTaiSan.Length > 30) d.Loi.Add("Mã tài sản quá 30 ký tự");
             if (t.Ten.Length == 0) d.Loi.Add("Thiếu tên tài sản");
             if (t.MaTaiSan.Length > 0)
@@ -184,6 +210,16 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
             t.GhiChu = Null(S(26));
             if (t.GhiChu?.Contains("Dòng ví dụ") == true) d.Loi.Add("Dòng ví dụ của file mẫu — hãy xoá");
             if (t.NgaySuDung < t.NgayMua) d.CanhBao.Add("Ngày sử dụng trước ngày mua");
+            if (t.LoaiThietBiId != 0)
+            {
+                foreach (var (c, tr) in cotTuyChinh.Where(x => x.Value.ApDung(t.LoaiThietBiId)))
+                {
+                    var raw = row.Cell(c).DataType == XLDataType.DateTime ? row.Cell(c).GetDateTime().ToString("dd/MM/yyyy") : S(c);
+                    try { d.TuyChinh[tr.Id] = tr.ChuanHoa(raw); } catch (ThietBiCNTT.Domain.Common.DomainException ex) { d.Loi.Add(ex.Message); }
+                }
+                if (d.IdDaCo is null)
+                    foreach (var tr in truong.Where(x => x.BatBuoc && x.ApDung(t.LoaiThietBiId) && !cotTuyChinh.ContainsValue(x))) d.Loi.Add($"Thiếu cột bắt buộc '{tr.Ten} [{tr.Ma}]'");
+            }
             ds.Add(d);
         }
         return ds;
@@ -194,6 +230,8 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
     {
         if (dong.Any(d => !d.HopLe)) throw new InvalidOperationException("Còn dòng lỗi — sửa file và tải lại.");
         int them = 0, sua = 0, bo = 0;
+        var truong = await tuyChinh.DangDungAsync();
+        var daCap = new Dictionary<string, int>();
         await using var tx = await db.Database.BeginTransactionAsync();
         foreach (var d in dong)
         {
@@ -212,15 +250,18 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
                 if (khoaCu is null) ts.KhoaPhongId = moi.KhoaPhongId; // chỉ gán khoa cho tài sản đang ở kho
                 if (d.CauHinh is not null) lichSu.CapNhatCauHinh(ts, d.CauHinh, nguoi);
                 lichSu.Ghi(ts.Id, LoaiSuKien.CapNhat, "Cập nhật từ file Excel", nguoi);
+                if (d.TuyChinh.Count > 0) await tuyChinh.GhiAsync(ts.Id, truong, d.TuyChinh, nguoi);
                 sua++;
             }
             else
             {
                 var ts = d.TaiSan;
+                if (ts.MaTaiSan.Length == 0) ts.MaTaiSan = await maTs.TaoAsync(ts.LoaiThietBiId, ts.KhoaPhongId, daCap);
                 if (d.CauHinh is not null) { d.CauHinh.NgayCapNhat = DateTime.Now; ts.CauHinh = d.CauHinh; }
                 db.TaiSans.Add(ts);
                 await db.SaveChangesAsync();
                 lichSu.Ghi(ts.Id, LoaiSuKien.TaoMoi, "Nhập từ file Excel", nguoi);
+                if (d.TuyChinh.Count > 0) await tuyChinh.GhiAsync(ts.Id, truong, d.TuyChinh, nguoi, ghiLichSu: false);
                 them++;
             }
         }
@@ -230,14 +271,15 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
     }
 
     // ---------- Xuất ----------
-    public static byte[] XuatTaiSan(IEnumerable<TaiSan> ds, string tieuDe)
+    public static byte[] XuatTaiSan(IEnumerable<TaiSan> ds, string tieuDe, IReadOnlyList<TruongTuyChinh>? truong = null)
     {
         using var wb = new XLWorkbook();
         var ws = wb.AddWorksheet("TaiSan");
         ws.Cell(1, 1).Value = tieuDe; ws.Cell(1, 1).Style.Font.Bold = true; ws.Cell(1, 1).Style.Font.FontSize = 14;
         ws.Cell(2, 1).Value = "Xuất lúc " + DateTime.Now.ToString("HH:mm dd/MM/yyyy");
         string[] hdr = ["Mã TS", "Tên", "Loại", "Hãng", "Model", "Serial", "Khoa/phòng", "Người SD", "Trạng thái", "Nguồn vốn",
-            "Nguyên giá", "Ngày mua", "Ngày SD", "Hạn BH", "Nhà cung cấp", "Số HĐ", "CPU", "RAM", "Ổ cứng", "HĐH", "IP", "MAC", "Hostname"];
+            "Nguyên giá", "Ngày mua", "Ngày SD", "Hạn BH", "Nhà cung cấp", "Số HĐ", "CPU", "RAM", "Ổ cứng", "HĐH", "IP", "MAC", "Hostname",
+            .. (truong ?? []).Select(t => $"{t.Ten} [{t.Ma}]")];
         for (var i = 0; i < hdr.Length; i++) ws.Cell(4, i + 1).Value = hdr[i];
         var r = 5;
         foreach (var t in ds)
@@ -245,7 +287,8 @@ public class ExcelTaiSanService(AppDbContext db, LichSuService lichSu)
             object?[] v = [t.MaTaiSan, t.Ten, t.LoaiThietBi?.Ten, t.Hang, t.Model, t.SoSerial, t.KhoaPhong?.Ten ?? "Kho CNTT", t.NguoiSuDung,
                 Ten(t.TrangThai), Ten(t.NguonVon), t.NguyenGia, t.NgayMua?.ToDateTime(TimeOnly.MinValue), t.NgaySuDung?.ToDateTime(TimeOnly.MinValue),
                 t.HanBaoHanh?.ToDateTime(TimeOnly.MinValue), t.NhaCungCap?.Ten, t.SoHopDong,
-                t.CauHinh?.CPU, t.CauHinh?.RAM, t.CauHinh?.OCung, t.CauHinh?.HeDieuHanh, t.CauHinh?.DiaChiIP, t.CauHinh?.DiaChiMAC, t.CauHinh?.Hostname];
+                t.CauHinh?.CPU, t.CauHinh?.RAM, t.CauHinh?.OCung, t.CauHinh?.HeDieuHanh, t.CauHinh?.DiaChiIP, t.CauHinh?.DiaChiMAC, t.CauHinh?.Hostname,
+                .. (truong ?? []).Select(tr => tr.GiaTriCoKieu(t.GiaTriTuyChinhs.FirstOrDefault(g => g.TruongTuyChinhId == tr.Id)?.GiaTri) is DateOnly dd ? dd.ToDateTime(TimeOnly.MinValue) : tr.GiaTriCoKieu(t.GiaTriTuyChinhs.FirstOrDefault(g => g.TruongTuyChinhId == tr.Id)?.GiaTri))];
             for (var i = 0; i < v.Length; i++) ws.Cell(r, i + 1).Value = XLCellValue.FromObject(v[i]);
             r++;
         }

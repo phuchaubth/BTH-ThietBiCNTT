@@ -52,6 +52,8 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Tài sản | `TaiSan.NguongChiPhiSuaPhanTram` | Ngưỡng chi phí sửa chữa / nguyên giá | Số nguyên | 50 % |
 | Tài sản | `TaiSan.TuoiThoMacDinhNam` | Tuổi thọ mặc định khi tạo loại thiết bị | Số nguyên | 5 năm |
 | Tài sản | `HopDong.CanhBaoTruocNgay` | Cảnh báo hợp đồng / bản quyền sắp hết hạn trước | Số nguyên | 60 ngày |
+| Tài sản | `TaiSan.TuSinhMa` | Tự sinh mã tài sản khi để trống (thêm tay, nhập Excel, nhận hàng) | Bật/Tắt | true |
+| Tài sản | `TaiSan.MauMa` | Mẫu mã tài sản: {LOAI}, {KHOA} (KHO nếu ở kho), {NAM}, {NAM2}, {STT:n} (bắt buộc) | Văn bản | {LOAI}-{KHOA}-{NAM}-{STT:5} |
 | Kho vật tư | `Kho.ChoXuatAm` | Cho phép xuất kho vượt tồn | Bật/Tắt | false |
 | Mua sắm | `MuaSam.NguoiDuyetCNTT` | Người duyệt cấp 1 (Trưởng phòng CNTT) — tên đăng nhập, cách nhau dấu phẩy | Văn bản | admin |
 | Mua sắm | `MuaSam.NguoiDuyetVatTu` | Người duyệt cấp 2 (Phòng Vật tư - TTB); trống = bỏ qua cấp | Văn bản | (trống) |

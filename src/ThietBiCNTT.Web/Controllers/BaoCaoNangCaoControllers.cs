@@ -52,6 +52,7 @@ public class BaoCaoTuyBienController(AppDbContext db, BaoCaoTuyBienService svc) 
         c ??= new CauHinhBaoCao();
         if (c.Truong.Count == 0 && !chay) c.Truong = c.Nguon == NguonBaoCao.TaiSan ? ["MaTaiSan", "Ten", "Loai", "Khoa", "TrangThai", "NguyenGia"] : ["SoPhieu", "MaTaiSan", "Khoa", "TrangThai", "NgayYeuCau", "TongChiPhi"];
         ViewBag.Mau = mau;
+        ViewBag.Truong = await svc.TruongAsync(c.Nguon);
         ViewBag.DsMau = await MauCuaToi().AsNoTracking().OrderBy(m => m.Ten).ToListAsync();
         ViewBag.DsKhoa = new SelectList(await db.KhoaPhongs.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten", c.KhoaPhongId);
         ViewBag.DsLoai = new SelectList(await db.LoaiThietBis.OrderBy(k => k.Ten).ToListAsync(), "Id", "Ten", c.LoaiThietBiId);

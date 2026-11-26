@@ -7,6 +7,9 @@ def check(c, label):
 k=U("ktv1"); a=U("admin"); ld=U("lanhdao")
 # 1. Tự lập đề xuất từ tồn thấp (SSD-256 4/5, TRONG-HP 1/3)
 st,loc,m,_=k.post("/MuaSam/TuDong",{},page=k.get("/MuaSam")[1]); print("tự động:", m)
+if "Không có vật tư" in m:
+    # Bản tin hằng ngày (sau 07:30) có thể đã tự lập đề xuất nháp trước — dùng đề xuất đó
+    loc=re.search(r'href="(/MuaSam/DeXuat/\d+)">[^<]+</a>\s*<span class="badge[^"]*"[^>]*>tự động', k.get("/MuaSam")[1]).group(1)
 auto=k.get(loc)[1]
 check("TRONG-HP" in auto and "RAM-D4-8G" not in auto, "đề xuất tự động gồm vật tư dưới định mức")
 st,loc2,m,_=k.post("/MuaSam/TuDong",{},page=k.get("/MuaSam")[1]); print("chạy lại:", m)

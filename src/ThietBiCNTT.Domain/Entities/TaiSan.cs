@@ -41,6 +41,7 @@ public class TaiSan : BaseEntity
     public CauHinh? CauHinh { get; set; }
     public ICollection<LichSuTaiSan> LichSu { get; set; } = [];
     public ICollection<PhieuSuaChua> PhieuSuaChuas { get; set; } = [];
+    public ICollection<GiaTriTuyChinh> GiaTriTuyChinhs { get; set; } = [];
 
     public bool ConBaoHanh(DateOnly homNay) => HanBaoHanh.HasValue && HanBaoHanh.Value >= homNay;
 

@@ -1,6 +1,7 @@
 @model ThietBiCNTT.Web.Controllers.TaiSanFormVm
 @{
     var moi = Model.TaiSan.Id == 0;
+    var truong = (List<TruongTuyChinh>)ViewBag.TruongTuyChinh; var tuSinh = (bool)ViewBag.TuSinhMa;
     ViewData["Title"] = moi ? "Thêm tài sản" : "Sửa " + Model.TaiSan.MaTaiSan;
 }
 <div class="page-head"><h1>@ViewData["Title"]</h1></div>
@@ -10,7 +11,8 @@
     <div class="row g-3">
         <div class="col-lg-7">
             <div class="card"><div class="card-header">Thông tin tài sản</div><div class="card-body row g-3">
-                <div class="col-md-4"><label asp-for="TaiSan.MaTaiSan" class="form-label"></label><input asp-for="TaiSan.MaTaiSan" class="form-control" placeholder="VD: PC-0123" /><span asp-validation-for="TaiSan.MaTaiSan" class="text-danger small"></span></div>
+                <div class="col-md-4"><label asp-for="TaiSan.MaTaiSan" class="form-label"></label><input asp-for="TaiSan.MaTaiSan" class="form-control" placeholder="@(moi && tuSinh ? "Để trống = tự sinh" : "VD: PC-0123")" data-val-required="@(moi && tuSinh ? null : "Nhập mã tài sản")" data-val="@(moi && tuSinh ? "false" : "true")" /><span asp-validation-for="TaiSan.MaTaiSan" class="text-danger small"></span>
+                    @if (moi && tuSinh) { <div class="form-text" id="xemMa"></div> }</div>
                 <div class="col-md-8"><label asp-for="TaiSan.Ten" class="form-label"></label><input asp-for="TaiSan.Ten" class="form-control" /><span asp-validation-for="TaiSan.Ten" class="text-danger small"></span></div>
                 <div class="col-md-4"><label asp-for="TaiSan.LoaiThietBiId" class="form-label"></label><select asp-for="TaiSan.LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select"></select></div>
                 <div class="col-md-4"><label asp-for="TaiSan.Hang" class="form-label"></label><input asp-for="TaiSan.Hang" class="form-control" /></div>
@@ -45,8 +47,56 @@
                 <div class="col-12"><label asp-for="CauHinh.PhanMem" class="form-label"></label><textarea asp-for="CauHinh.PhanMem" class="form-control" rows="2"></textarea></div>
                 @if (!moi) { <div class="col-12"><label asp-for="LyDoThayDoi" class="form-label">Lý do thay đổi (ghi vào lịch sử)</label><input asp-for="LyDoThayDoi" class="form-control" placeholder="VD: Nâng RAM theo phiếu SC-2611-0012" /></div> }
             </div></div>
+            @if (truong.Count > 0)
+            {
+                <div class="card mt-3" id="theTuyChinh"><div class="card-header">Thông tin bổ sung</div><div class="card-body row g-3">
+                @foreach (var t in truong)
+                {
+                    var v = Model.TuyChinh.GetValueOrDefault(t.Id); var ten = $"TuyChinh[{t.Id}]"; var id = "tc" + t.Id;
+                    <div class="col-md-6 o-tc" data-loai="@t.LoaiThietBiId">
+                        <label class="form-label" for="@id">@t.Ten @if (t.BatBuoc) { <span class="text-danger">*</span> }</label>
+                        @switch (t.Kieu)
+                        {
+                            case KieuTruong.DanhSach:
+                                <select name="@ten" id="@id" class="form-select"><option value="">—</option>@foreach (var c in t.DsLuaChon) { <option value="@c" selected="@(string.Equals(v, c, StringComparison.OrdinalIgnoreCase))">@c</option> }</select>
+                                break;
+                            case KieuTruong.CoKhong:
+                                <select name="@ten" id="@id" class="form-select"><option value="">—</option><option value="true" selected="@(v == "true")">Có</option><option value="false" selected="@(v == "false")">Không</option></select>
+                                break;
+                            case KieuTruong.Ngay:
+                                <input name="@ten" id="@id" type="date" value="@v" class="form-control" />
+                                break;
+                            case KieuTruong.So:
+                                <input name="@ten" id="@id" type="number" step="any" value="@v" class="form-control" />
+                                break;
+                            default:
+                                <input name="@ten" id="@id" value="@v" maxlength="500" class="form-control" />
+                                break;
+                        }
+                        @if (!string.IsNullOrEmpty(t.MoTa)) { <div class="form-text">@t.MoTa</div> }
+                    </div>
+                }
+                </div></div>
+            }
         </div>
     </div>
     <div class="mt-3"><button class="btn btn-primary"><i class="bi bi-save"></i> Lưu</button> <a href="javascript:history.back()" class="btn btn-link">Huỷ</a></div>
 </form>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+(function () {
+    const loai = document.getElementById('TaiSan_LoaiThietBiId'), khoa = document.getElementById('TaiSan_KhoaPhongId');
+    // Chỉ hiện trường bổ sung áp dụng cho loại đang chọn (trường ẩn không gửi lên)
+    const loc = () => { let co = 0; document.querySelectorAll('.o-tc').forEach(o => { const ok = !o.dataset.loai || o.dataset.loai === loai.value;
+        o.hidden = !ok; o.querySelectorAll('input,select').forEach(e => e.disabled = !ok); co += ok; });
+        const the = document.getElementById('theTuyChinh'); if (the) the.hidden = co === 0; };
+    const xem = document.getElementById('xemMa'), ma = document.getElementById('TaiSan_MaTaiSan');
+    const xemTruoc = async () => { if (!xem || ma.value.trim()) { if (xem) xem.textContent = ''; return; }
+        try { const r = await (await fetch(`/TaiSan/XemTruocMa?loai=${loai.value}&khoa=${khoa.value}`)).json();
+            xem.textContent = r.ma ? 'Mã dự kiến: ' + r.ma : (r.loi || ''); } catch { } };
+    loai.addEventListener('change', () => { loc(); xemTruoc(); }); khoa.addEventListener('change', xemTruoc); ma.addEventListener('input', xemTruoc);
+    loc(); xemTruoc();
+})();
+</script>
+}

@@ -13,7 +13,7 @@ public record DongNhanHang(int DongDonHangId, decimal SoLuong, IReadOnlyList<str
 
 /// <summary>Mua sắm: đề xuất (PR) → duyệt nhiều cấp → đơn hàng (PO) → nhận hàng (nhập kho / tạo tài sản).</summary>
 public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoService thamSo, ThongBaoService tb, KhoService kho,
-    LichSuService lichSu, UserManager<AppUser> users, NganSachService nganSach)
+    LichSuService lichSu, UserManager<AppUser> users, NganSachService nganSach, MaTaiSanService maTs)
 {
     private static readonly TrangThaiDeXuat[] DeXuatMo = [TrangThaiDeXuat.Nhap, TrangThaiDeXuat.ChoDuyet, TrangThaiDeXuat.DaDuyet, TrangThaiDeXuat.DatMotPhan];
     private static readonly TrangThaiDonHang[] DonMo = [TrangThaiDonHang.Nhap, TrangThaiDonHang.DaDatHang, TrangThaiDonHang.NhanMotPhan];
@@ -194,7 +194,7 @@ public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
                 {
                     var ts = new TaiSan
                     {
-                        MaTaiSan = await MaTaiSanMoiAsync(loai.Ma, maDaDung), Ten = d.MoTa ?? loai.Ten, LoaiThietBiId = loai.Id,
+                        MaTaiSan = await maTs.TaoAsync(loai.Id, null, maDaDung), Ten = d.MoTa ?? loai.Ten, LoaiThietBiId = loai.Id,
                         SoSerial = serial.ElementAtOrDefault(i), NguyenGia = gia, NgayMua = homNay, NhaCungCapId = dh.NhaCungCapId,
                         HanBaoHanh = dh.BaoHanhThang > 0 ? homNay.AddMonths(dh.BaoHanhThang) : null,
                         SoHopDong = dh.HopDong?.SoHopDong ?? dh.SoPhieu, TrangThai = TrangThaiTaiSan.TrongKho,
@@ -218,19 +218,6 @@ public class MuaSamService(AppDbContext db, SoPhieuService soPhieu, ThamSoServic
         await db.SaveChangesAsync();
         await tx.CommitAsync();
         return pn;
-    }
-
-    /// <summary>Mã tài sản mới: {mã loại}-{yy}-{số thứ tự 4 chữ số}.</summary>
-    private async Task<string> MaTaiSanMoiAsync(string maLoai, Dictionary<string, int> daDung)
-    {
-        var prefix = $"{maLoai}-{DateTime.Now:yy}-";
-        if (!daDung.TryGetValue(prefix, out var n))
-        {
-            var ma = await db.TaiSans.Where(t => t.MaTaiSan.StartsWith(prefix)).Select(t => t.MaTaiSan).ToListAsync();
-            n = ma.Select(m => int.TryParse(m[prefix.Length..], out var k) ? k : 0).DefaultIfEmpty(0).Max();
-        }
-        daDung[prefix] = ++n;
-        return prefix + n.ToString("D4");
     }
 
     // ===== Tự động =====

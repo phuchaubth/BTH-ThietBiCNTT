@@ -56,6 +56,9 @@ public static class DependencyInjection
         services.AddScoped<TichHopService>();
         services.AddScoped<AgentService>();
         services.AddScoped<TcoService>();
+        services.AddScoped<MaTaiSanService>();
+        services.AddScoped<TruongTuyChinhService>();
+        services.AddScoped<HoSoVanHanhService>();
         services.AddScoped<KeToanService>();
         services.AddScoped<BaoCaoTuyBienService>();
         services.AddScoped<WebhookSender>();

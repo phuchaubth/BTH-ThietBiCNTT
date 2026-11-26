@@ -187,6 +187,12 @@ public static class DbSeeder
         await db.SaveChangesAsync();
         await TaoMauKiemTraMau(db, loai, khoa);
         await TaoNganSachMau(db);
+        db.TruongTuyChinhs.AddRange(
+            new TruongTuyChinh { Ma = "SoPhong", Ten = "Số phòng", Kieu = KieuTruong.VanBan, ThuTu = 1, MoTa = "VD: P.204 tầng 2", NguoiTao = "admin" },
+            new TruongTuyChinh { Ma = "MaKeToan", Ten = "Mã tài sản kế toán", Kieu = KieuTruong.VanBan, ThuTu = 2, NguoiTao = "admin" },
+            new TruongTuyChinh { Ma = "CongSuatVA", Ten = "Công suất (VA)", Kieu = KieuTruong.So, ThuTu = 10, LoaiThietBiId = loai["UPS"].Id, NguoiTao = "admin" },
+            new TruongTuyChinh { Ma = "KieuUPS", Ten = "Kiểu UPS", Kieu = KieuTruong.DanhSach, LuaChon = "Offline; Line-interactive; Online", ThuTu = 11, LoaiThietBiId = loai["UPS"].Id, NguoiTao = "admin" });
+        await db.SaveChangesAsync();
     }
 
     private static async Task TaoNganSachMau(AppDbContext db)

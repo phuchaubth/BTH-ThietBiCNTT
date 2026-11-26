@@ -623,3 +623,51 @@ public class BaoMatKeToanTests
         Assert.Equal("u@bth.local", co.Upn("u")); Assert.Equal("a@x.vn", co.Upn("a@x.vn"));
     }
 }
+
+public class TaiSanMoRongTests
+{
+    [Theory]
+    [InlineData(KieuTruong.So, "1.234,5", "1234.5")]
+    [InlineData(KieuTruong.So, "1500", "1500")]
+    [InlineData(KieuTruong.So, "2,5", "2.5")]
+    [InlineData(KieuTruong.So, "1.500", "1500")]
+    [InlineData(KieuTruong.So, "1.500.000", "1500000")]
+    [InlineData(KieuTruong.So, "1.5", "1.5")]
+    [InlineData(KieuTruong.So, "2.50", "2.5")]
+    [InlineData(KieuTruong.Ngay, "05/03/2026", "2026-03-05")]
+    [InlineData(KieuTruong.Ngay, "2026-03-05", "2026-03-05")]
+    [InlineData(KieuTruong.CoKhong, "Có", "true")]
+    [InlineData(KieuTruong.CoKhong, "0", "false")]
+    [InlineData(KieuTruong.DanhSach, "online", "Online")]
+    [InlineData(KieuTruong.VanBan, "  P.204 ", "P.204")]
+    public void ChuanHoaGiaTri(KieuTruong kieu, string vao, string ra) =>
+        Assert.Equal(ra, new TruongTuyChinh { Ten = "x", Kieu = kieu, LuaChon = "Offline; Online" }.ChuanHoa(vao));
+
+    [Fact]
+    public void ChuanHoa_BaoLoi_VaBatBuoc()
+    {
+        Assert.Throws<DomainException>(() => new TruongTuyChinh { Ten = "x", Kieu = KieuTruong.So }.ChuanHoa("abc"));
+        Assert.Throws<DomainException>(() => new TruongTuyChinh { Ten = "x", Kieu = KieuTruong.Ngay }.ChuanHoa("32/13/2026"));
+        Assert.Throws<DomainException>(() => new TruongTuyChinh { Ten = "x", Kieu = KieuTruong.DanhSach, LuaChon = "A;B" }.ChuanHoa("C"));
+        Assert.Throws<DomainException>(() => new TruongTuyChinh { Ten = "x", BatBuoc = true }.ChuanHoa(" "));
+        Assert.Null(new TruongTuyChinh { Ten = "x" }.ChuanHoa(""));
+        Assert.Throws<DomainException>(() => new TruongTuyChinh { Ten = "x", Kieu = KieuTruong.DanhSach }.KiemTraDinhNghia());
+        Assert.Equal("05/03/2026", new TruongTuyChinh { Kieu = KieuTruong.Ngay }.HienThi("2026-03-05"));
+        Assert.True(new TruongTuyChinh { LoaiThietBiId = 3 }.ApDung(3));
+        Assert.False(new TruongTuyChinh { LoaiThietBiId = 3 }.ApDung(4));
+        Assert.False(new TruongTuyChinh { DangDung = false }.ApDung(3));
+    }
+
+    [Fact]
+    public void MauMa_KiemTraVaDung()
+    {
+        Assert.Null(ThietBiCNTT.Infrastructure.Services.MaTaiSanService.KiemTraMau("{LOAI}-{KHOA}-{NAM}-{STT:5}"));
+        Assert.NotNull(ThietBiCNTT.Infrastructure.Services.MaTaiSanService.KiemTraMau("{LOAI}-{NAM}"));          // thiếu STT
+        Assert.NotNull(ThietBiCNTT.Infrastructure.Services.MaTaiSanService.KiemTraMau("{LOAI}-{STT}-{STT}"));    // 2 STT
+        Assert.NotNull(ThietBiCNTT.Infrastructure.Services.MaTaiSanService.KiemTraMau("{XYZ}-{STT}"));           // thành phần lạ
+        var (dau, so, cuoi) = ThietBiCNTT.Infrastructure.Services.MaTaiSanService.Dung("{LOAI}-{KHOA}-{NAM}-{STT:5}", "pc", null, new DateTime(2026, 5, 1));
+        Assert.Equal("PC-KHO-2026-", dau); Assert.Equal(5, so); Assert.Equal("", cuoi);
+        var b = ThietBiCNTT.Infrastructure.Services.MaTaiSanService.Dung("TB{NAM2}/{STT}/{LOAI}", "UPS", "CC", new DateTime(2026, 5, 1));
+        Assert.Equal(("TB26/", 4, "/UPS"), b);
+    }
+}

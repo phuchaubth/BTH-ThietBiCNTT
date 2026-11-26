@@ -1,0 +1,20 @@
+@model TruongTuyChinh
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm trường bổ sung" : "Sửa trường " + Model.Ten; }
+<div class="small text-muted mb-1"><a asp-action="Index">Trường thông tin bổ sung</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="Sua" method="post" class="card" style="max-width:720px"><div class="card-body row g-3">
+    <div asp-validation-summary="All" class="text-danger small col-12"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="col-md-8"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" placeholder="VD: Công suất (VA)" /></div>
+    <div class="col-md-4"><label asp-for="Ma" class="form-label"></label><input asp-for="Ma" class="form-control font-monospace" placeholder="CongSuatVA" /></div>
+    <div class="col-md-4"><label asp-for="Kieu" class="form-label"></label><select asp-for="Kieu" asp-items="@EnumExtensions.ToSelectList<KieuTruong>(Model.Kieu)" class="form-select" id="kieu"></select></div>
+    <div class="col-md-8" id="oLuaChon"><label asp-for="LuaChon" class="form-label"></label><input asp-for="LuaChon" class="form-control" placeholder="Online; Offline; Line-interactive" /></div>
+    <div class="col-md-6"><label asp-for="LoaiThietBiId" class="form-label"></label><select asp-for="LoaiThietBiId" asp-items="ViewBag.DsLoai" class="form-select"><option value="">Mọi loại thiết bị</option></select></div>
+    <div class="col-md-3"><label asp-for="ThuTu" class="form-label"></label><input asp-for="ThuTu" class="form-control" /></div>
+    <div class="col-md-3 d-flex flex-column justify-content-end">
+        <div class="form-check"><input asp-for="BatBuoc" class="form-check-input" /><label asp-for="BatBuoc" class="form-check-label"></label></div>
+        <div class="form-check"><input asp-for="DangDung" class="form-check-input" /><label asp-for="DangDung" class="form-check-label"></label></div></div>
+    <div class="col-12"><label asp-for="MoTa" class="form-label"></label><input asp-for="MoTa" class="form-control" /></div>
+    <div class="col-12"><button class="btn btn-primary">Lưu</button> <a asp-action="Index" class="btn btn-link">Huỷ</a></div>
+</div></form>
+@section Scripts { <script>const k = document.getElementById('kieu'), o = document.getElementById('oLuaChon'); const f = () => o.hidden = k.value !== 'DanhSach'; k.onchange = f; f();</script> }
