@@ -41,7 +41,8 @@
         @if (quanLy) { <a class="nav-item @Act("NganSach")" asp-controller="NganSach" asp-action="Index"><i class="bi bi-piggy-bank"></i> Ngân sách</a> }
         @if (quanLy)
         {
-            <div class="nav-section">Hợp đồng & báo cáo</div>
+            <div class="nav-section">Văn thư, hợp đồng & báo cáo</div>
+            <a class="nav-item @Act("VanThu")" asp-controller="VanThu" asp-action="Index"><i class="bi bi-envelope-paper"></i> Văn thư & tờ trình</a>
             <a class="nav-item @Act("HopDong")" asp-controller="HopDong" asp-action="Index"><i class="bi bi-file-earmark-text"></i> Hợp đồng</a>
             <a class="nav-item @Act("BanQuyen")" asp-controller="BanQuyen" asp-action="Index"><i class="bi bi-key"></i> Bản quyền phần mềm</a>
             <a class="nav-item" asp-controller="PhieuSuaChua" asp-action="GuiHang"><i class="bi bi-truck"></i> Đang gửi hãng</a>

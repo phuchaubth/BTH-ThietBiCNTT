@@ -67,6 +67,7 @@ public static class DbSeeder
         var cc = await db.KhoaPhongs.FirstAsync(k => k.Ma == "CC");
         // Mật khẩu admin lần đầu: lấy từ cấu hình Seed:AdminPassword (chỉ dùng khi tài khoản chưa tồn tại).
         await TaoUser(users, "admin", "Quản trị hệ thống", cntt.Id, VaiTro.QuanTri, matKhauAdmin);
+        await TaoMauVanBan(db);
         if (duLieuMau)
         {
             await TaoUser(users, "ktv1", "Nguyễn Văn An (KTV)", cntt.Id, VaiTro.CanBoCNTT);
@@ -76,6 +77,7 @@ public static class DbSeeder
             await TaoUser(users, "nhanvien", "ĐD. Phạm Thu Hà", cc.Id, VaiTro.NhanVien);
             await TaoDuLieuMau(db);
             await Services.KhoService.DongBoAsync(db);
+            await TaoVanBanMau(db);
         }
     }
 
@@ -199,6 +201,95 @@ public static class DbSeeder
             new TruongTuyChinh { Ma = "MaKeToan", Ten = "Mã tài sản kế toán", Kieu = KieuTruong.VanBan, ThuTu = 2, NguoiTao = "admin" },
             new TruongTuyChinh { Ma = "CongSuatVA", Ten = "Công suất (VA)", Kieu = KieuTruong.So, ThuTu = 10, LoaiThietBiId = loai["UPS"].Id, NguoiTao = "admin" },
             new TruongTuyChinh { Ma = "KieuUPS", Ten = "Kiểu UPS", Kieu = KieuTruong.DanhSach, LuaChon = "Offline; Line-interactive; Online", ThuTu = 11, LoaiThietBiId = loai["UPS"].Id, NguoiTao = "admin" });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Mẫu văn bản mặc định của văn thư CNTT (chỉ tạo khi chưa có mẫu nào).</summary>
+    private static async Task TaoMauVanBan(AppDbContext db)
+    {
+        if (await db.MauVanBans.AnyAsync()) return;
+        db.MauVanBans.AddRange(
+            new MauVanBan { Ten = "Tờ trình đề nghị mua sắm thiết bị, vật tư CNTT", Loai = LoaiVanBan.ToTrinh, TrichYeu = "V/v đề nghị mua sắm thiết bị, vật tư công nghệ thông tin",
+                NoiDung = """
+                Kính gửi: Ban Giám đốc {{BENH_VIEN}}
+
+                Căn cứ nhu cầu sử dụng thực tế và tình trạng trang thiết bị công nghệ thông tin tại các khoa, phòng;
+                Căn cứ kế hoạch, dự toán ngân sách công nghệ thông tin năm được duyệt;
+
+                {{DON_VI}} kính trình Ban Giám đốc xem xét, phê duyệt chủ trương mua sắm với nội dung như sau:
+
+                1. Danh mục, số lượng và dự toán:
+                {{DE_XUAT}}
+
+                2. Mục đích: bảo đảm hoạt động liên tục của hệ thống thông tin bệnh viện, thay thế thiết bị hư hỏng, hết khấu hao.
+
+                3. Nguồn kinh phí: ngân sách CNTT năm (khoản mục mua sắm thiết bị / vật tư linh kiện).
+
+                4. Hình thức lựa chọn nhà thầu: theo quy định hiện hành về đấu thầu.
+
+                Kính trình Ban Giám đốc xem xét, phê duyệt./.
+                """ },
+            new MauVanBan { Ten = "Tờ trình (mẫu chung)", Loai = LoaiVanBan.ToTrinh, TrichYeu = "V/v ",
+                NoiDung = """
+                Kính gửi: Ban Giám đốc {{BENH_VIEN}}
+
+                1. Sự cần thiết:
+                …
+
+                2. Nội dung đề nghị:
+                …
+
+                3. Kinh phí, tổ chức thực hiện:
+                …
+
+                {{DON_VI}} kính trình Ban Giám đốc xem xét, phê duyệt./.
+                """ },
+            new MauVanBan { Ten = "Công văn (mẫu chung)", Loai = LoaiVanBan.CongVan, TrichYeu = "V/v ",
+                NoiDung = """
+                Kính gửi: …
+
+                {{DON_VI}} – {{BENH_VIEN}} nhận được …
+
+                Về việc này, {{DON_VI}} có ý kiến như sau:
+                …
+
+                Trân trọng./.
+                """ },
+            new MauVanBan { Ten = "Báo cáo tình hình hoạt động CNTT", Loai = LoaiVanBan.BaoCao, TrichYeu = "Tình hình hoạt động công nghệ thông tin",
+                NoiDung = """
+                Kính gửi: Ban Giám đốc {{BENH_VIEN}}
+
+                I. KẾT QUẢ THỰC HIỆN
+                1. Hạ tầng, trang thiết bị: …
+                2. Sửa chữa, bảo trì (số yêu cầu, tỷ lệ đúng hạn, thời gian dừng máy): …
+                3. Phần mềm, an toàn thông tin: …
+
+                II. KHÓ KHĂN, VƯỚNG MẮC
+                …
+
+                III. KẾ HOẠCH KỲ TỚI VÀ ĐỀ XUẤT
+                …
+                """ });
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task TaoVanBanMau(AppDbContext db)
+    {
+        if (await db.VanBans.AnyAsync()) return;
+        var now = DateTime.Now; var nam = now.Year;
+        var d1 = new VanBan { Huong = HuongVanBan.Den, Loai = LoaiVanBan.CongVan, SoKyHieu = "215/SYT-NVY", NgayVanBan = now.Date.AddDays(-4), NgayDen = now.AddDays(-3),
+            CoQuanBanHanh = "Sở Y tế", TrichYeu = "V/v báo cáo tình hình triển khai bệnh án điện tử và an toàn thông tin", DoKhan = DoKhanVanBan.Khan, NguoiKy = "Phó Giám đốc Sở", NguoiTao = "admin" };
+        d1.VaoSoDen(1, "admin", now.AddDays(-3));
+        d1.PhanCong("ktv1", "ktv2", now.Date.AddDays(2), "Tổng hợp số liệu máy trạm, sự cố ATTT 6 tháng; dự thảo báo cáo trình trước hạn.", "admin", now.AddDays(-3));
+        d1.CapNhatTienDo(40, "Đã tổng hợp danh sách máy trạm và cấu hình từ hệ thống; đang lấy số liệu sự cố.", "ktv1", now.AddDays(-1));
+        var d2 = new VanBan { Huong = HuongVanBan.Den, Loai = LoaiVanBan.CongVan, SoKyHieu = "37/KHTH", NgayVanBan = now.Date.AddDays(-1), NgayDen = now.AddHours(-5),
+            CoQuanBanHanh = "Phòng Kế hoạch tổng hợp", TrichYeu = "V/v đề nghị bổ sung máy tính, máy in cho phòng khám ngoài giờ", NguoiTao = "admin" };
+        d2.VaoSoDen(2, "admin", now.AddHours(-5));
+        var t1 = new VanBan { Loai = LoaiVanBan.ToTrinh, TrichYeu = "V/v đề nghị thay ắc quy hệ thống UPS phòng máy chủ", NoiNhan = "Ban Giám đốc; Phòng TCKT; Lưu: VT, CNTT",
+            ChucVuNguoiKy = "TRƯỞNG PHÒNG", HanXuLy = now.Date.AddDays(5), NguoiTao = "ktv1",
+            NoiDung = "Kính gửi: Ban Giám đốc\n\nQua kiểm tra định kỳ, thời gian lưu điện của UPS phòng máy chủ giảm còn 5 phút (yêu cầu ≥ 15 phút).\n\nPhòng CNTT kính trình thay 16 bình ắc quy 12V-9Ah, dự toán 6.720.000 đồng từ khoản mục vật tư linh kiện.\n\nKính trình Ban Giám đốc xem xét, phê duyệt./." };
+        t1.KhoiTaoDuThao("ktv1", now.AddDays(-1));
+        db.VanBans.AddRange(d1, d2, t1);
         await db.SaveChangesAsync();
     }
 

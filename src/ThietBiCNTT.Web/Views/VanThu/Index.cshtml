@@ -1,0 +1,51 @@
+@model List<VanBan>
+@{
+    ViewData["Title"] = "Văn thư";
+    dynamic loc = ViewBag.Loc; dynamic dem = ViewBag.Dem; var now = DateTime.Now; var page = (int)ViewBag.Page; var tong = (int)ViewBag.Tong;
+    string Q(int p) => Context.Request.QueryString.Value is { Length: > 0 } qs ? System.Text.RegularExpressions.Regex.Replace(qs.Contains("page=") ? qs : qs + "&page=1", @"page=\d+", $"page={p}") : $"?page={p}";
+}
+<div class="page-head"><h1>Văn thư Phòng CNTT</h1>
+    <div class="actions">
+        <a asp-action="Index" asp-route-cuaToi="true" class="btn btn-sm btn-outline-primary">Việc của tôi <span class="badge bg-primary">@dem.CuaToi</span></a>
+        @if (dem.QuaHan > 0) { <a asp-action="Index" asp-route-quaHan="true" class="btn btn-sm btn-outline-danger">Quá hạn <span class="badge bg-danger">@dem.QuaHan</span></a> }
+        @if ((bool)ViewBag.LaVanThu) { <a asp-action="DenMoi" class="btn btn-sm btn-outline-secondary"><i class="bi bi-inbox"></i> Vào sổ văn bản đến</a> }
+        <a asp-action="SoanMoi" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i> Soạn văn bản / tờ trình</a>
+    </div>
+</div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    @if (loc.huong is not null) { <input type="hidden" name="huong" value="@loc.huong" /> }
+    @if (loc.cuaToi) { <input type="hidden" name="cuaToi" value="true" /> }
+    <input name="q" value="@loc.q" class="form-control form-control-sm" style="width:260px" placeholder="Số, ký hiệu, trích yếu, nơi gửi/nhận…" aria-label="Tìm kiếm" />
+    <select name="loai" class="form-select form-select-sm" style="width:160px" asp-items="@EnumExtensions.ToSelectList((LoaiVanBan?)loc.loai)" aria-label="Loại"><option value="">— Mọi loại —</option></select>
+    <select name="trangThai" class="form-select form-select-sm" style="width:200px" asp-items="@EnumExtensions.ToSelectList((TrangThaiVanBan?)loc.trangThai)" aria-label="Trạng thái"><option value="">— Mọi trạng thái —</option></select>
+    <input name="nam" value="@loc.nam" type="number" class="form-control form-control-sm" style="width:90px" placeholder="Năm" aria-label="Năm" />
+    <input name="nguoi" value="@loc.nguoi" class="form-control form-control-sm" style="width:130px" placeholder="Người xử lý" aria-label="Người xử lý" />
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="quaHan" value="true" id="quaHan" @(loc.quaHan ? "checked" : "") /><label class="form-check-label small" for="quaHan">Quá hạn</label></div>
+    <button class="btn btn-sm btn-outline-secondary">Lọc</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0 align-middle">
+    <thead><tr><th>Số / ký hiệu</th><th>Loại</th><th>Trích yếu</th><th>Nơi gửi / nhận</th><th>Xử lý</th><th>Hạn</th><th style="width:110px">Tiến độ</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+    @foreach (var x in Model)
+    {
+        var qh = x.QuaHan(now);
+        <tr class="@(qh ? "table-danger" : "")">
+            <td class="small text-nowrap"><a asp-action="ChiTiet" asp-route-id="@x.Id" class="fw-semibold">@(x.Huong == HuongVanBan.Den ? $"Đến {x.SoDen}" : x.SoKyHieu ?? "Dự thảo")</a>
+                @if (x.Huong == HuongVanBan.Den && x.SoKyHieu is not null) { <div class="text-muted">@x.SoKyHieu</div> }
+                <div class="text-muted">@((x.NgayDen ?? x.NgayVanBan ?? x.NgayTao).ToString("dd/MM/yyyy"))</div></td>
+            <td class="small">@x.Loai.Ten() @if (x.DoKhan != DoKhanVanBan.Thuong) { <span class="badge bg-danger">@x.DoKhan.Ten()</span> }</td>
+            <td><a asp-action="ChiTiet" asp-route-id="@x.Id" class="text-reset">@x.TrichYeu</a></td>
+            <td class="small">@(x.Huong == HuongVanBan.Den ? x.CoQuanBanHanh : x.NoiNhan)</td>
+            <td class="small">@if (x.TrangThai == TrangThaiVanBan.ChoDuyet) { <span title="Đang chờ duyệt">⏳ @x.BuocDangCho?.NguoiDuyet</span> } else { @(x.NguoiChuTri ?? x.NguoiSoan) }</td>
+            <td class="small text-nowrap @(qh ? "text-danger fw-semibold" : "")">@x.HanXuLy?.ToString("dd/MM/yyyy")</td>
+            <td>@if (x.TrangThai == TrangThaiVanBan.DangXuLy || x.TienDo > 0) { <div class="progress" style="height:8px" title="@x.TienDo%"><div class="progress-bar @(x.TienDo == 100 ? "bg-success" : "")" style="width:@x.TienDo%"></div></div><div class="small text-muted">@x.TienDo%</div> }</td>
+            <td>@Html.Raw(Badge.Html(x.TrangThai))</td>
+        </tr>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="8" class="text-center text-muted py-4">Không có văn bản.</td></tr> }
+    </tbody>
+</table></div></div>
+<div class="mt-2 d-flex gap-2 align-items-center"><span class="small text-muted">@tong văn bản</span>
+    <a class="btn btn-sm btn-outline-secondary @(page <= 1 ? "disabled" : "")" href="@Q(page - 1)">« Trước</a>
+    <a class="btn btn-sm btn-outline-secondary @(page * 50 >= tong ? "disabled" : "")" href="@Q(page + 1)">Sau »</a></div>

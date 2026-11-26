@@ -89,6 +89,14 @@ public static class TS
     public const string ChoGhiNhoVoiKhoa = "BaoMat.ChoGhiNhoVoiKhoa";
     public const string BatBuoc2FA = "BaoMat.BatBuoc2FAQuanTri";
     public const string ZaloBat = "ThongBao.ZaloBat";
+    // Văn thư
+    public const string VanThuNguoiVanThu = "VanThu.NguoiVanThu";
+    public const string VanThuNguoiPhanCong = "VanThu.NguoiPhanCong";
+    public const string VanThuNguoiDuyet = "VanThu.NguoiDuyetMacDinh";
+    public const string VanThuKyHieu = "VanThu.KyHieuDonVi";
+    public const string VanThuDiaDanh = "VanThu.DiaDanh";
+    public const string VanThuNhacTruocNgay = "VanThu.NhacTruocNgay";
+    public const string VanThuHanMacDinh = "VanThu.HanXuLyMacDinhNgay";
 }
 
 public static class ThamSoMacDinh
@@ -182,6 +190,14 @@ public static class ThamSoMacDinh
         T(101, "Bảo mật", TS.PhienCNTTGio, "Thời gian giữ phiên (CNTT, KTV, Lãnh đạo)", KieuThamSo.SoNguyen, "8", "giờ", 1, 24),
         T(103, "Bảo mật", TS.BatBuoc2FA, "Bắt buộc xác thực 2 lớp với Quản trị & Cán bộ CNTT", KieuThamSo.BatTat, "false", moTa: "Bật: tài khoản Quản trị / CNTT chưa bật 2 lớp sẽ phải cài ứng dụng xác thực (Google/Microsoft Authenticator) ngay sau khi đăng nhập."),
         T(102, "Bảo mật", TS.ChoGhiNhoVoiKhoa, "Cho 'Ghi nhớ đăng nhập' với tài khoản khoa", KieuThamSo.BatTat, "false", moTa: "Nên tắt vì máy ở khoa dùng chung."),
+
+        T(170, "Văn thư", TS.VanThuNguoiVanThu, "Văn thư (vào sổ đến, cấp số phát hành)", KieuThamSo.VanBan, "admin", moTa: "Tên đăng nhập, cách nhau dấu phẩy. Quản trị luôn có quyền."),
+        T(171, "Văn thư", TS.VanThuNguoiPhanCong, "Người phân công xử lý văn bản đến", KieuThamSo.VanBan, "admin", moTa: "Thường là Trưởng phòng CNTT. Nhận thông báo khi có văn bản đến mới."),
+        T(172, "Văn thư", TS.VanThuNguoiDuyet, "Người duyệt mặc định văn bản đi / tờ trình", KieuThamSo.VanBan, "admin", moTa: "Theo thứ tự duyệt, cách nhau dấu phẩy. Người soạn có thể thay đổi khi trình. Tờ trình gửi Lãnh đạo thì thêm tài khoản Lãnh đạo ở bước cuối."),
+        T(173, "Văn thư", TS.VanThuKyHieu, "Ký hiệu đơn vị trên số văn bản", KieuThamSo.VanBan, "CNTT", moTa: "Số đi: công văn \"12/CNTT\", loại khác \"12/TTr-CNTT\" (Nghị định 30/2020/NĐ-CP). Số đi đánh liên tục trong năm."),
+        T(174, "Văn thư", TS.VanThuDiaDanh, "Địa danh ghi trên văn bản", KieuThamSo.VanBan, "............", moTa: "VD: Phan Thiết → \"Phan Thiết, ngày … tháng … năm …\"."),
+        T(175, "Văn thư", TS.VanThuNhacTruocNgay, "Nhắc hạn xử lý trước", KieuThamSo.SoNguyen, "2", "ngày", 0, 30, "Nhắc người chủ trì/người duyệt mỗi ngày một lần khi sắp đến hạn và khi quá hạn (sau giờ bản tin tổng hợp)."),
+        T(176, "Văn thư", TS.VanThuHanMacDinh, "Hạn xử lý mặc định văn bản đến", KieuThamSo.SoNguyen, "7", "ngày", 1, 90, "Gợi ý khi phân công; văn bản khẩn = 1/3 thời gian."),
     ];
 }
 

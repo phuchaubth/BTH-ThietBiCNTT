@@ -1,0 +1,30 @@
+@model List<VanBan>
+@{
+    var huong = (HuongVanBan)ViewBag.Huong; var nam = (int)ViewBag.Nam; var cacNam = (List<int>)ViewBag.CacNam; var den = huong == HuongVanBan.Den;
+    ViewData["Title"] = $"Sổ {(den ? "văn bản đến" : "văn bản đi")} {nam}";
+}
+<div class="page-head"><h1>@ViewData["Title"]</h1>
+    <div class="actions"><a asp-action="So" asp-route-huong="@huong" asp-route-nam="@nam" asp-route-xuat="true" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</a></div></div>
+<partial name="_Tabs" />
+<form method="get" class="d-flex gap-2 mb-3">
+    <select name="huong" class="form-select form-select-sm" style="width:200px" aria-label="Loại sổ"><option value="Den" selected="@den">Sổ văn bản đến</option><option value="Di" selected="@(!den)">Sổ văn bản đi</option></select>
+    <select name="nam" class="form-select form-select-sm" style="width:110px" aria-label="Năm">@foreach (var n in cacNam.Append(DateTime.Today.Year).Distinct().OrderDescending()) { <option selected="@(n == nam)">@n</option> }</select>
+    <button class="btn btn-sm btn-outline-secondary">Xem</button>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-bordered mb-0 align-middle small">
+    @if (den)
+    {
+        <thead><tr><th>Ngày đến</th><th>Số đến</th><th>Tác giả</th><th>Số, ký hiệu</th><th>Ngày VB</th><th>Trích yếu</th><th>Người chủ trì</th><th>Hạn</th><th>Trạng thái</th></tr></thead>
+        <tbody>@foreach (var x in Model) {
+            <tr><td>@x.NgayDen?.ToString("dd/MM")</td><td class="fw-semibold"><a asp-action="ChiTiet" asp-route-id="@x.Id">@x.SoDen</a></td><td>@x.CoQuanBanHanh</td><td>@x.SoKyHieu</td><td>@x.NgayVanBan?.ToString("dd/MM/yyyy")</td>
+                <td>@x.TrichYeu</td><td>@x.NguoiChuTri</td><td>@x.HanXuLy?.ToString("dd/MM")</td><td>@Html.Raw(Badge.Html(x.TrangThai))</td></tr> }</tbody>
+    }
+    else
+    {
+        <thead><tr><th>Số, ký hiệu</th><th>Ngày VB</th><th>Loại</th><th>Trích yếu</th><th>Người ký</th><th>Nơi nhận</th><th>Người soạn</th><th>Trạng thái</th></tr></thead>
+        <tbody>@foreach (var x in Model) {
+            <tr><td class="fw-semibold text-nowrap"><a asp-action="ChiTiet" asp-route-id="@x.Id">@x.SoKyHieu</a></td><td>@x.NgayVanBan?.ToString("dd/MM/yyyy")</td><td>@x.Loai.Ten()</td><td>@x.TrichYeu</td>
+                <td>@x.NguoiKy</td><td>@x.NoiNhan</td><td>@x.NguoiSoan</td><td>@Html.Raw(Badge.Html(x.TrangThai))</td></tr> }</tbody>
+    }
+    @if (Model.Count == 0) { <tr><td colspan="9" class="text-center text-muted py-4">Sổ trống.</td></tr> }
+</table></div></div>

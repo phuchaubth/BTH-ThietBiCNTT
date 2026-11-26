@@ -1,0 +1,9 @@
+@{ var a = ViewContext.RouteData.Values["action"]?.ToString(); var h = Context.Request.Query["huong"].ToString(); var ct = Context.Request.Query["cuaToi"] == "true"; }
+<ul class="nav nav-tabs mb-3 d-print-none">
+    <li class="nav-item"><a class="nav-link @(a == "Index" && ct ? "active" : "")" asp-action="Index" asp-route-cuaToi="true">Việc của tôi</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "Index" && !ct && h == "" ? "active" : "")" asp-action="Index">Tất cả</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "Index" && !ct && h == "Den" ? "active" : "")" asp-action="Index" asp-route-huong="Den">Văn bản đến</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "Index" && !ct && h == "Di" ? "active" : "")" asp-action="Index" asp-route-huong="Di">Văn bản đi / tờ trình</a></li>
+    <li class="nav-item"><a class="nav-link @(a == "So" ? "active" : "")" asp-action="So">Sổ văn bản</a></li>
+    @if (User.LaCNTT()) { <li class="nav-item"><a class="nav-link @(a is "Mau" or "MauForm" ? "active" : "")" asp-action="Mau">Mẫu văn bản</a></li> }
+</ul>

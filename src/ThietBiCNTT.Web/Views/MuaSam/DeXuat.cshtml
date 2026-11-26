@@ -11,6 +11,7 @@
             <a asp-action="LapDeXuat" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a>
             <form asp-action="GuiDuyet" asp-route-id="@Model.Id" method="post" class="d-inline"><button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Gửi duyệt</button></form>
         }
+        @if (cntt && Model.TrangThai != TrangThaiDeXuat.DaHuy) { <a asp-controller="VanThu" asp-action="SoanMoi" asp-route-deXuatId="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-envelope-paper"></i> Lập tờ trình</a> }
         @if (cntt && Model.ChoLapDon) { <a asp-action="LapDon" asp-route-deXuatId="@Model.Id" class="btn btn-sm btn-success"><i class="bi bi-cart-plus"></i> Lập đơn hàng</a> }
         @if (cntt && Model.TrangThai is not (TrangThaiDeXuat.DaHuy or TrangThaiDeXuat.DaDatDu) && Model.Dongs.All(d => d.SoLuongDaDat == 0))
         {

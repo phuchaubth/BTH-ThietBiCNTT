@@ -1,0 +1,187 @@
+@model VanBan
+@{
+    var den = Model.Huong == HuongVanBan.Den; var now = DateTime.Now;
+    ViewData["Title"] = den ? $"Văn bản đến {Model.SoDen}/{Model.Nam}" : (Model.SoKyHieu ?? $"Dự thảo {Model.Loai.Ten().ToLower()}");
+    var toi = (string)ViewBag.Toi; var laVanThu = (bool)ViewBag.LaVanThu; var laPhanCong = (bool)ViewBag.LaPhanCong; var quanTri = (bool)ViewBag.QuanTri;
+    var canBo = (List<SelectListItem>)ViewBag.CanBo; var macDinh = (List<string>)ViewBag.NguoiDuyetMacDinh; var traLoi = (List<VanBan>)ViewBag.TraLoi;
+    bool La(string? u) => string.Equals(u, toi, StringComparison.OrdinalIgnoreCase);
+    var laSoan = La(Model.NguoiSoan) || quanTri;
+    var duocSua = Model.DuocSua && (den ? laVanThu : laSoan);
+    var buoc = Model.BuocDangCho;
+    var duocPhanCong = (den && Model.TrangThai is TrangThaiVanBan.ChoPhanCong or TrangThaiVanBan.DangXuLy && laPhanCong)
+        || (!den && Model.TrangThai == TrangThaiVanBan.DangXuLy && (laPhanCong || laSoan));
+    var duocXuLy = Model.TrangThai == TrangThaiVanBan.DangXuLy && (Model.LaNguoiXuLy(toi) || laPhanCong);
+    var duocKetThuc = (Model.TrangThai == TrangThaiVanBan.DangXuLy && (La(Model.NguoiChuTri) || laPhanCong)) || (Model.TrangThai == TrangThaiVanBan.ChoPhanCong && laPhanCong);
+    var qh = Model.QuaHan(now);
+    SelectList Ds(string? chon = null) => new(canBo, "Value", "Text", chon);
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Văn thư</a> › <a asp-action="Index" asp-route-huong="@Model.Huong">@Model.Huong.Ten()</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1> @Html.Raw(Badge.Html(Model.TrangThai))
+    @if (Model.DoKhan != DoKhanVanBan.Thuong) { <span class="badge bg-danger">@Model.DoKhan.Ten()</span> }
+    @if (qh) { <span class="badge bg-danger">Quá hạn</span> }
+    <div class="actions">
+        @if (duocSua) { <a asp-action="Sua" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Sửa</a> }
+        @if (!den) { <a asp-action="In" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> Bản in</a> }
+        @if (den) { <a asp-action="SoanMoi" asp-route-traLoiId="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-reply"></i> Soạn văn bản trả lời</a> }
+    </div>
+</div>
+<div class="row g-3">
+<div class="col-lg-7">
+    <div class="card mb-3"><div class="card-body"><dl class="row info mb-0">
+        <div class="col-12"><dt>Trích yếu</dt><dd class="fw-semibold">@Model.TrichYeu</dd></div>
+        <div class="col-md-4"><dt>Loại</dt><dd>@Model.Loai.Ten()</dd></div>
+        @if (den)
+        {
+            <div class="col-md-4"><dt>Số đến · ngày đến</dt><dd>@Model.SoDen/@Model.Nam · @Model.NgayDen?.ToString("dd/MM/yyyy HH:mm")</dd></div>
+            <div class="col-md-4"><dt>Số, ký hiệu · ngày VB</dt><dd>@Model.SoKyHieu · @Model.NgayVanBan?.ToString("dd/MM/yyyy")</dd></div>
+            <div class="col-md-8"><dt>Nơi gửi</dt><dd>@Model.CoQuanBanHanh</dd></div>
+            <div class="col-md-4"><dt>Người ký</dt><dd>@Model.NguoiKy</dd></div>
+        }
+        else
+        {
+            <div class="col-md-4"><dt>Số, ký hiệu · ngày</dt><dd>@(Model.SoKyHieu ?? "Chưa cấp số") @(Model.NgayVanBan is { } nv ? "· " + nv.ToString("dd/MM/yyyy") : "")</dd></div>
+            <div class="col-md-4"><dt>Người soạn</dt><dd>@Model.NguoiSoan</dd></div>
+            <div class="col-md-8"><dt>Nơi nhận</dt><dd>@Model.NoiNhan</dd></div>
+            <div class="col-md-4"><dt>Người ký</dt><dd>@Model.NguoiKy <span class="small text-muted">@Model.ChucVuNguoiKy</span></dd></div>
+        }
+        <div class="col-md-4"><dt>Hạn</dt><dd class="@(qh ? "text-danger fw-semibold" : "")">@(Model.HanXuLy?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+        <div class="col-md-4"><dt>Chủ trì</dt><dd>@(Model.NguoiChuTri ?? "—")</dd></div>
+        <div class="col-md-4"><dt>Phối hợp</dt><dd>@(Model.NguoiPhoiHop ?? "—")</dd></div>
+        @if (Model.YKienChiDao is not null) { <div class="col-12"><dt>Ý kiến chỉ đạo</dt><dd style="white-space:pre-line">@Model.YKienChiDao</dd></div> }
+        @if (Model.TrangThai == TrangThaiVanBan.DangXuLy || Model.TienDo > 0)
+        {
+            <div class="col-12"><dt>Tiến độ</dt><dd><div class="progress" style="height:14px"><div class="progress-bar @(Model.TienDo == 100 ? "bg-success" : "")" style="width:@Model.TienDo%">@Model.TienDo%</div></div></dd></div>
+        }
+        @if (Model.KetQua is not null) { <div class="col-12"><dt>Kết quả xử lý</dt><dd style="white-space:pre-line">@Model.KetQua <span class="small text-muted">(@Model.NgayHoanThanh?.ToString("dd/MM/yyyy"))</span></dd></div> }
+        @if (Model.LyDoHuy is not null) { <div class="col-12"><dt>Lý do huỷ</dt><dd>@Model.LyDoHuy</dd></div> }
+        @if (Model.VanBanLienQuan is { } lq) { <div class="col-md-6"><dt>@(den ? "Văn bản trả lời" : "Liên quan / trả lời")</dt><dd><a asp-action="ChiTiet" asp-route-id="@lq.Id">@lq.SoHienThi</a> – @lq.TrichYeu</dd></div> }
+        @if (traLoi.Count > 0) { <div class="col-md-6"><dt>Văn bản liên quan</dt><dd>@foreach (var t in traLoi) { <div><a asp-action="ChiTiet" asp-route-id="@t.Id">@t.SoHienThi</a> – @t.TrichYeu</div> }</dd></div> }
+        @if (Model.DeXuatMuaSam is { } dx) { <div class="col-md-6"><dt>Đề xuất mua sắm</dt><dd><a asp-controller="MuaSam" asp-action="DeXuat" asp-route-id="@dx.Id">@dx.SoPhieu</a> – @dx.TieuDe</dd></div> }
+    </dl></div></div>
+    @if (!string.IsNullOrWhiteSpace(Model.NoiDung))
+    {
+        <div class="card mb-3"><div class="card-header">@(den ? "Tóm tắt nội dung" : "Nội dung")</div>
+            <div class="card-body" style="white-space:pre-line;font-family:'Times New Roman',serif;font-size:15px">@Model.NoiDung</div></div>
+    }
+    <partial name="_DinhKem" model="@(("VanBan", Model.Id.ToString(), (List<TepDinhKem>)ViewBag.Teps, Model.TrangThai != TrangThaiVanBan.DaHuy))" />
+</div>
+<div class="col-lg-5">
+    @* ===== Trình duyệt ===== *@
+    @if (!den && Model.TrangThai is TrangThaiVanBan.DuThao or TrangThaiVanBan.TraLai && laSoan)
+    {
+        var goiY = Model.CacBuocLuotNay.Select(b => b.NguoiDuyet).ToList() is { Count: > 0 } cu ? cu : macDinh;
+        <div class="card mb-3 border-primary"><div class="card-header">Trình duyệt @(Model.LuotGui > 0 ? $"lại (lần {Model.LuotGui + 1})" : "")</div><div class="card-body">
+            <form asp-action="TrinhDuyet" asp-route-id="@Model.Id" method="post">
+                <div class="small text-muted mb-2">Duyệt tuần tự theo thứ tự. Bỏ trống ô không dùng.</div>
+                @for (var i = 0; i < 4; i++)
+                {
+                    <div class="input-group input-group-sm mb-1"><span class="input-group-text">Bước @(i + 1)</span>
+                        <select name="nguoiDuyet" class="form-select" aria-label="Người duyệt bước @(i + 1)" asp-items="@Ds(i < goiY.Count ? goiY[i] : null)"><option value="">—</option></select></div>
+                }
+                <button class="btn btn-primary btn-sm mt-2"><i class="bi bi-send"></i> Trình duyệt</button>
+            </form>
+        </div></div>
+    }
+    @* ===== Duyệt ===== *@
+    @if (buoc is not null && La(buoc.NguoiDuyet))
+    {
+        <div class="card mb-3 border-warning"><div class="card-header">Ý kiến duyệt — bước @buoc.ThuTu/@Model.CacBuocLuotNay.Count()</div><div class="card-body">
+            <form asp-action="Duyet" asp-route-id="@Model.Id" method="post">
+                <textarea name="yKien" class="form-control mb-2" rows="2" placeholder="Ý kiến (bắt buộc khi trả lại)" aria-label="Ý kiến"></textarea>
+                <button name="dongY" value="true" class="btn btn-success btn-sm"><i class="bi bi-check2"></i> Đồng ý</button>
+                <button name="dongY" value="false" class="btn btn-outline-danger btn-sm">Trả lại để sửa</button>
+            </form>
+        </div></div>
+    }
+    @* ===== Cấp số, phát hành ===== *@
+    @if (Model.TrangThai == TrangThaiVanBan.DaDuyet && laVanThu)
+    {
+        <div class="card mb-3 border-success"><div class="card-header">Cấp số & phát hành</div><div class="card-body">
+            <form asp-action="PhatHanh" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-6"><label class="form-label small" for="ngay">Ngày ban hành</label><input type="date" name="ngay" id="ngay" value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                <div class="col-6"><label class="form-label small" for="nguoiKy">Người ký</label><input name="nguoiKy" id="nguoiKy" value="@Model.NguoiKy" class="form-control form-control-sm" /></div>
+                <div class="col-12"><label class="form-label small" for="chucVu">Chức vụ</label><input name="chucVu" id="chucVu" value="@Model.ChucVuNguoiKy" class="form-control form-control-sm" /></div>
+                <div class="col-12 small text-muted">Số đi tự cấp liên tục trong năm theo sổ. Sau khi ký, đính kèm bản quét có chữ ký ở mục tệp.</div>
+                <div class="col-12"><button class="btn btn-success btn-sm"><i class="bi bi-123"></i> Cấp số & phát hành</button></div>
+            </form>
+        </div></div>
+    }
+    @* ===== Phân công ===== *@
+    @if (duocPhanCong)
+    {
+        <div class="card mb-3 @(Model.TrangThai == TrangThaiVanBan.ChoPhanCong ? "border-primary" : "")"><div class="card-header">@(Model.NguoiChuTri is null ? "Phân công xử lý" : "Giao lại / điều chỉnh hạn")</div><div class="card-body">
+            <form asp-action="PhanCong" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-12"><label class="form-label small" for="chuTri">Chủ trì</label><select name="chuTri" id="chuTri" class="form-select form-select-sm" asp-items="@Ds(Model.NguoiChuTri)" required><option value="">— Chọn —</option></select></div>
+                <div class="col-12"><label class="form-label small" for="phoiHop">Phối hợp (giữ Ctrl để chọn nhiều)</label>
+                    <select name="phoiHop" id="phoiHop" multiple size="4" class="form-select form-select-sm">@foreach (var c in canBo) { <option value="@c.Value" selected="@Model.NguoiPhoiHopDs.Contains(c.Value)">@c.Text</option> }</select></div>
+                <div class="col-6"><label class="form-label small" for="han">Hạn xử lý</label><input type="date" name="han" id="han" value="@((Model.HanXuLy ?? (DateTime)ViewBag.HanGoiY).ToString("yyyy-MM-dd"))" class="form-control form-control-sm" /></div>
+                <div class="col-12"><label class="form-label small" for="yKienCd">Ý kiến chỉ đạo</label><textarea name="yKien" id="yKienCd" rows="2" class="form-control form-control-sm"></textarea></div>
+                <div class="col-12"><button class="btn btn-primary btn-sm"><i class="bi bi-person-check"></i> Giao việc</button></div>
+            </form>
+        </div></div>
+    }
+    @* ===== Tiến độ & hoàn thành ===== *@
+    @if (duocXuLy)
+    {
+        <div class="card mb-3"><div class="card-header">Cập nhật tiến độ</div><div class="card-body">
+            <form asp-action="TienDo" asp-route-id="@Model.Id" method="post">
+                <div class="d-flex align-items-center gap-2 mb-2"><input type="range" name="tienDo" min="0" max="100" step="5" value="@Model.TienDo" class="form-range" oninput="this.nextElementSibling.textContent=this.value+'%'" aria-label="Tiến độ" /><span class="small fw-semibold" style="width:42px">@Model.TienDo%</span></div>
+                <textarea name="noiDung" rows="2" class="form-control form-control-sm mb-2" placeholder="Đã làm được gì, vướng mắc…" aria-label="Nội dung tiến độ" required></textarea>
+                <button class="btn btn-outline-primary btn-sm">Cập nhật</button>
+            </form>
+        </div></div>
+    }
+    @if (duocKetThuc)
+    {
+        <div class="card mb-3 border-success"><div class="card-header">@(Model.TrangThai == TrangThaiVanBan.ChoPhanCong ? "Lưu hồ sơ (không cần xử lý)" : "Hoàn thành xử lý")</div><div class="card-body">
+            <form asp-action="HoanThanh" asp-route-id="@Model.Id" method="post">
+                <textarea name="ketQua" rows="2" class="form-control form-control-sm mb-2" placeholder="Kết quả xử lý / lý do lưu" aria-label="Kết quả" required></textarea>
+                @if (den && ((List<SelectListItem>)ViewBag.VanBanDi).Count > 0)
+                {
+                    <select name="vanBanTraLoiId" class="form-select form-select-sm mb-2" asp-items="(List<SelectListItem>)ViewBag.VanBanDi" aria-label="Văn bản trả lời"><option value="">— Văn bản đi trả lời (nếu có) —</option></select>
+                }
+                <button class="btn btn-success btn-sm"><i class="bi bi-check2-all"></i> @(Model.TrangThai == TrangThaiVanBan.ChoPhanCong ? "Lưu hồ sơ" : "Hoàn thành")</button>
+            </form>
+        </div></div>
+    }
+    @* ===== Quy trình duyệt ===== *@
+    @if (Model.BuocDuyets.Count > 0)
+    {
+        <div class="card mb-3"><div class="card-header">Quy trình duyệt</div><ul class="list-group list-group-flush">
+            @foreach (var g in Model.BuocDuyets.GroupBy(b => b.LuotGui).OrderByDescending(g => g.Key))
+            {
+                <li class="list-group-item small bg-light fw-semibold">Lần trình @g.Key</li>
+                @foreach (var b in g.OrderBy(b => b.ThuTu))
+                {
+                    <li class="list-group-item small">
+                        <i class="bi @(b.DongY switch { true => "bi-check-circle text-success", false => "bi-x-circle text-danger", _ => g.Key == Model.LuotGui && b.ThuTu == Model.BuocHienTai && Model.TrangThai == TrangThaiVanBan.ChoDuyet ? "bi-hourglass-split text-warning" : "bi-circle text-muted" })"></i>
+                        Bước @b.ThuTu · <b>@b.NguoiDuyet</b> @if (b.ThoiGian is { } tg) { <span class="text-muted">· @tg.ToString("dd/MM HH:mm")</span> }
+                        @if (!string.IsNullOrEmpty(b.YKien)) { <div class="text-muted">“@b.YKien”</div> }
+                    </li>
+                }
+            }
+        </ul></div>
+    }
+    @* ===== Dòng thời gian ===== *@
+    <div class="card mb-3"><div class="card-header">Diễn biến xử lý</div><ul class="list-group list-group-flush">
+        @foreach (var n in Model.NhatKys.OrderByDescending(n => n.ThoiGian).ThenByDescending(n => n.Id))
+        {
+            <li class="list-group-item small"><span class="text-muted">@n.ThoiGian.ToString("dd/MM/yyyy HH:mm") · @n.NguoiDung</span>
+                @if (n.TienDo is { } td) { <span class="badge bg-info-subtle text-info-emphasis border">@td%</span> }
+                <div style="white-space:pre-line">@n.NoiDung</div></li>
+        }
+    </ul>
+    @if (Model.TrangThai != TrangThaiVanBan.DaHuy)
+    {
+        <div class="card-body border-top"><form asp-action="GhiChu" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <input name="noiDung" class="form-control form-control-sm" placeholder="Thêm ghi chú / trao đổi" aria-label="Ghi chú" required /><button class="btn btn-sm btn-outline-secondary">Gửi</button></form></div>
+    }
+    </div>
+    @if (!Model.KetThuc && Model.SoDi is null && Model.TrangThai is not TrangThaiVanBan.HoanThanh && (quanTri || (den ? laVanThu : laSoan)))
+    {
+        <details class="small"><summary class="text-danger">Huỷ văn bản</summary>
+            <form asp-action="Huy" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 mt-2" onsubmit="return confirm('Huỷ văn bản này?')">
+                <input name="lyDo" class="form-control form-control-sm" placeholder="Lý do huỷ" aria-label="Lý do huỷ" required /><button class="btn btn-sm btn-outline-danger">Huỷ</button></form></details>
+    }
+</div>
+</div>

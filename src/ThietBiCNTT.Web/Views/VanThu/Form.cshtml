@@ -1,0 +1,63 @@
+@model ThietBiCNTT.Web.Controllers.VanBanVm
+@{
+    var den = Model.Huong == HuongVanBan.Den;
+    ViewData["Title"] = Model.Id != 0 ? "Sửa văn bản" : den ? "Vào sổ văn bản đến" : "Soạn văn bản đi / tờ trình";
+    var maus = ViewBag.Maus as List<MauVanBan> ?? [];
+}
+<div class="small text-muted mb-1"><a asp-action="Index">Văn thư</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+@if (!den && Model.Id == 0 && maus.Count > 0)
+{
+    <form method="get" asp-action="SoanMoi" class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        @if (Model.DeXuatMuaSamId is not null) { <input type="hidden" name="deXuatId" value="@Model.DeXuatMuaSamId" /> }
+        @if (Model.VanBanLienQuanId is not null) { <input type="hidden" name="traLoiId" value="@Model.VanBanLienQuanId" /> }
+        <label class="small" for="mauId">Soạn từ mẫu:</label>
+        <select name="mauId" id="mauId" class="form-select form-select-sm" style="width:320px">@foreach (var m in maus) { <option value="@m.Id">@m.Loai.Ten() — @m.Ten</option> }</select>
+        <button class="btn btn-sm btn-outline-secondary">Áp dụng mẫu</button>
+    </form>
+}
+<form asp-action="Luu" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="Huong" /><input type="hidden" asp-for="VanBanLienQuanId" /><input type="hidden" asp-for="DeXuatMuaSamId" />
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    <div class="row g-3">
+    <div class="col-lg-8"><div class="card"><div class="card-body row g-3">
+        <div class="col-md-4"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiVanBan>(Model.Loai)" class="form-select"></select></div>
+        <div class="col-md-4"><label asp-for="DoKhan" class="form-label"></label><select asp-for="DoKhan" asp-items="@EnumExtensions.ToSelectList<DoKhanVanBan>(Model.DoKhan)" class="form-select"></select></div>
+        <div class="col-md-4"><label asp-for="HanXuLy" class="form-label">@(den ? "Hạn xử lý (theo văn bản)" : "Hạn trình / hoàn thành")</label><input asp-for="HanXuLy" type="date" class="form-control" /></div>
+        @if (den)
+        {
+            <div class="col-md-8"><label asp-for="CoQuanBanHanh" class="form-label"></label><input asp-for="CoQuanBanHanh" class="form-control" placeholder="VD: Sở Y tế, Phòng KHTH…" /></div>
+            <div class="col-md-4"><label asp-for="SoKyHieu" class="form-label">Số, ký hiệu văn bản</label><input asp-for="SoKyHieu" class="form-control" placeholder="123/SYT-NVY" /></div>
+            <div class="col-md-4"><label asp-for="NgayVanBan" class="form-label"></label><input asp-for="NgayVanBan" type="date" class="form-control" /></div>
+            @if (Model.Id == 0) { <div class="col-md-4"><label asp-for="NgayDen" class="form-label"></label><input asp-for="NgayDen" type="datetime-local" class="form-control" /></div> }
+            <div class="col-md-4"><label asp-for="NguoiKy" class="form-label"></label><input asp-for="NguoiKy" class="form-control" /></div>
+        }
+        <div class="col-12"><label asp-for="TrichYeu" class="form-label"></label><textarea asp-for="TrichYeu" rows="2" class="form-control" placeholder="V/v …"></textarea></div>
+        @if (!den)
+        {
+            <div class="col-12"><label asp-for="NoiNhan" class="form-label"></label><input asp-for="NoiNhan" class="form-control" placeholder="VD: Ban Giám đốc; Phòng TCKT; Lưu: VT, CNTT" /></div>
+        }
+        <div class="col-12"><label asp-for="NoiDung" class="form-label">@(den ? "Tóm tắt nội dung / ghi chú" : "Nội dung văn bản")</label>
+            <textarea asp-for="NoiDung" rows="@(den ? 4 : 18)" class="form-control" style="font-family:'Times New Roman',serif;font-size:14px"></textarea>
+            @if (!den) { <div class="form-text">Xuống dòng để tách đoạn. Bản in theo thể thức Nghị định 30/2020/NĐ-CP (quốc hiệu, số ký hiệu, nơi nhận, chữ ký) tạo tự động.</div> }</div>
+    </div></div></div>
+    <div class="col-lg-4">
+        @if (!den)
+        {
+            <div class="card mb-3"><div class="card-body row g-3">
+                <div class="col-12"><label asp-for="NguoiKy" class="form-label">Người ký (dự kiến)</label><input asp-for="NguoiKy" class="form-control" /></div>
+                <div class="col-12"><label asp-for="ChucVuNguoiKy" class="form-label"></label><input asp-for="ChucVuNguoiKy" class="form-control" placeholder="TRƯỞNG PHÒNG / GIÁM ĐỐC" /></div>
+                <div class="col-12 form-check ms-2"><input asp-for="TheoDoiThucHien" class="form-check-input" /><label asp-for="TheoDoiThucHien" class="form-check-label"></label>
+                    <div class="form-text">Sau khi phát hành, văn bản chuyển sang "Đang xử lý" để cập nhật tiến độ đến khi xong (mặc định với tờ trình).</div></div>
+            </div></div>
+        }
+        <div class="card mb-3"><div class="card-body">
+            <label class="form-label" for="files">@(den ? "Bản quét văn bản" : "Tệp đính kèm (dự thảo Word, phụ lục…)")</label>
+            <input type="file" name="files" id="files" multiple accept="image/jpeg,image/png,image/webp,application/pdf,.docx,.xlsx,.doc,.xls" class="form-control form-control-sm" />
+            <div class="form-text">PDF, ảnh hoặc Word/Excel, tối đa 10 MB mỗi tệp.</div>
+        </div></div>
+        <button class="btn btn-primary w-100 mb-2"><i class="bi bi-save"></i> @(den && Model.Id == 0 ? "Vào sổ" : "Lưu")</button>
+        @if (!den) { <button name="trinhNgay" value="true" class="btn btn-outline-primary w-100"><i class="bi bi-send"></i> Lưu và trình duyệt (người duyệt mặc định)</button> }
+    </div>
+    </div>
+</form>

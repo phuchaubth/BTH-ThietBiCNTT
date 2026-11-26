@@ -11,11 +11,12 @@ namespace ThietBiCNTT.Web.Controllers;
 /// <summary>Tệp đính kèm: tải lên, xem, xoá — kiểm tra quyền theo đối tượng gắn kèm.</summary>
 public class TepController(AppDbContext db, TepService tep) : Controller
 {
-    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "TaiSan", "LanKiemTra"];
+    public static readonly string[] DoiTuongHopLe = ["PhieuSuaChua", "TaiSan", "LanKiemTra", "VanBan"];
 
     /// <summary>Người dùng có được xem đối tượng không (cùng quy tắc phạm vi khoa của từng phân hệ).</summary>
     private async Task<bool> DuocXemAsync(string doiTuong, string id)
     {
+        if (doiTuong == "VanBan") return User.XemToanVien() && int.TryParse(id, out var v) && await db.VanBans.AnyAsync(x => x.Id == v);
         if (User.XemToanVien()) return true;
         var k = User.KhoaPhongId();
         return doiTuong switch

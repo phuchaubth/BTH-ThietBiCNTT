@@ -59,6 +59,13 @@ Mọi thông số nghiệp vụ ở trên đều **không gán cứng trong mã*
 | Mua sắm | `MuaSam.NguoiDuyetVatTu` | Người duyệt cấp 2 (Phòng Vật tư - TTB); trống = bỏ qua cấp | Văn bản | (trống) |
 | Mua sắm | `MuaSam.NguongDuyetLanhDao` | Ngưỡng giá trị đề xuất / đơn hàng cần Lãnh đạo | Số nguyên | 50000000 đ |
 | Mua sắm | `MuaSam.TuDongDeXuatTonThap` | Tự lập đề xuất nháp khi vật tư dưới định mức (hằng ngày) | Bật/Tắt | true |
+| Văn thư | `VanThu.NguoiVanThu` | Văn thư: vào sổ đến, cấp số phát hành (Quản trị luôn có quyền) | Văn bản | admin |
+| Văn thư | `VanThu.NguoiPhanCong` | Người phân công xử lý văn bản đến (Trưởng phòng CNTT) | Văn bản | admin |
+| Văn thư | `VanThu.NguoiDuyetMacDinh` | Người duyệt mặc định văn bản đi / tờ trình, theo thứ tự | Văn bản | admin |
+| Văn thư | `VanThu.KyHieuDonVi` | Ký hiệu đơn vị trên số văn bản ("12/CNTT", "12/TTr-CNTT") | Văn bản | CNTT |
+| Văn thư | `VanThu.DiaDanh` | Địa danh ghi trên văn bản | Văn bản | ............ |
+| Văn thư | `VanThu.NhacTruocNgay` | Nhắc hạn xử lý trước (1 lần/ngày, cả khi quá hạn) | Số nguyên | 2 ngày |
+| Văn thư | `VanThu.HanXuLyMacDinhNgay` | Hạn xử lý gợi ý văn bản đến (khẩn = 1/3) | Số nguyên | 7 ngày |
 | Ngân sách | `NganSach.NguongCanhBaoPhanTram` | Cảnh báo khi khoản mục đã dùng (cam kết + thực chi) đạt | Số nguyên | 80 % dự toán |
 | Ngân sách | `NganSach.ChanVuotDuToan` | Chặn duyệt đề xuất vượt dự toán còn lại (tắt = chỉ cảnh báo) | Bật/Tắt | false |
 | API & tích hợp | `Api.Bat` | Bật API mở /api/v1 | Bật/Tắt | true |

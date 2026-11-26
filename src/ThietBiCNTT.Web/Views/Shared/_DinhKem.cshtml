@@ -10,7 +10,8 @@
                     <div class="border rounded p-1 text-center small" style="width:116px">
                         <a href="/Tep/Xem/@t.Id" target="_blank" rel="noopener">
                             @if (t.LaAnh) { <img src="/Tep/Xem/@t.Id" alt="@t.TenFile" loading="lazy" style="width:106px;height:80px;object-fit:cover;border-radius:4px" /> }
-                            else { <div style="height:80px" class="d-flex align-items-center justify-content-center"><i class="bi bi-file-earmark-pdf fs-1 text-danger"></i></div> }
+                            else { var ic = t.ContentType switch { "application/pdf" => "bi-file-earmark-pdf text-danger", var c when c.Contains("word") => "bi-file-earmark-word text-primary", _ => "bi-file-earmark-excel text-success" };
+                                   <div style="height:80px" class="d-flex align-items-center justify-content-center"><i class="bi @ic fs-1"></i></div> }
                         </a>
                         <div class="text-truncate" title="@t.TenFile">@t.TenFile</div>
                         <div class="text-muted" style="font-size:.7rem">@t.NguoiTai · @t.ThoiGian.ToString("dd/MM")</div>
@@ -27,10 +28,10 @@
         {
             <form asp-controller="Tep" asp-action="TaiLen" method="post" enctype="multipart/form-data" class="d-flex flex-wrap gap-2">
                 <input type="hidden" name="doiTuong" value="@Model.DoiTuong" /><input type="hidden" name="doiTuongId" value="@Model.DoiTuongId" /><input type="hidden" name="quayLai" value="@quayLai#dinh-kem" />
-                <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="form-control form-control-sm" style="flex:1 1 240px" aria-label="Chọn ảnh hoặc PDF" required />
+                <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,application/pdf,.docx,.xlsx,.doc,.xls" class="form-control form-control-sm" style="flex:1 1 240px" aria-label="Chọn ảnh, PDF hoặc Word/Excel" required />
                 <button class="btn btn-sm btn-outline-primary"><i class="bi bi-paperclip"></i> Đính kèm</button>
             </form>
-            <div class="form-text">Ảnh JPG/PNG/WEBP hoặc PDF, tối đa 10 MB mỗi tệp. Trên điện thoại có thể chụp trực tiếp.</div>
+            <div class="form-text">Ảnh JPG/PNG/WEBP, PDF hoặc Word/Excel, tối đa 10 MB mỗi tệp. Trên điện thoại có thể chụp trực tiếp.</div>
         }
     </div>
 </div>

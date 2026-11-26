@@ -1,0 +1,11 @@
+@model List<MauVanBan>
+@{ ViewData["Title"] = "Mẫu văn bản"; }
+<div class="page-head"><h1>Mẫu văn bản</h1><div class="actions"><a asp-action="MauForm" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Thêm mẫu</a></div></div>
+<partial name="_Tabs" />
+<div class="card"><table class="table table-sm mb-0 align-middle">
+    <thead><tr><th>Tên mẫu</th><th>Loại</th><th>Trích yếu gợi ý</th><th>Trạng thái</th><th></th></tr></thead>
+    <tbody>@foreach (var m in Model) {
+        <tr><td><a asp-action="MauForm" asp-route-id="@m.Id">@m.Ten</a></td><td>@m.Loai.Ten()</td><td class="small">@m.TrichYeu</td>
+            <td>@(m.DangDung ? "Đang dùng" : "Ngừng")</td><td><a asp-action="SoanMoi" asp-route-mauId="@m.Id" class="btn btn-sm btn-outline-primary">Soạn từ mẫu</a></td></tr> }
+    @if (Model.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">Chưa có mẫu.</td></tr> }</tbody>
+</table></div>

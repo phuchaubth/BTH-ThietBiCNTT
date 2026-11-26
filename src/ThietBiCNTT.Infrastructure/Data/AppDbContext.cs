@@ -70,6 +70,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<TinNhanCho> TinNhanChos => Set<TinNhanCho>();
     public DbSet<ChiTietKiemKe> ChiTietKiemKes => Set<ChiTietKiemKe>();
     public DbSet<NgayNghi> NgayNghis => Set<NgayNghi>();
+    public DbSet<VanBan> VanBans => Set<VanBan>();
+    public DbSet<BuocDuyetVanBan> BuocDuyetVanBans => Set<BuocDuyetVanBan>();
+    public DbSet<NhatKyVanBan> NhatKyVanBans => Set<NhatKyVanBan>();
+    public DbSet<MauVanBan> MauVanBans => Set<MauVanBan>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -198,6 +202,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
             e.HasIndex(x => new { x.TrangThai, x.NgayTiepTheo });
         });
         b.Entity<KeHoachVatTu>().Property(x => x.SoLuong).HasPrecision(18, 2);
+        b.Entity<VanBan>(e =>
+        {
+            e.Ignore(x => x.CacBuocLuotNay); e.Ignore(x => x.BuocDangCho); e.Ignore(x => x.NguoiPhoiHopDs);
+            e.HasIndex(x => new { x.Nam, x.SoDen }).IsUnique().HasFilter("[SoDen] IS NOT NULL");
+            e.HasIndex(x => new { x.Nam, x.SoDi }).IsUnique().HasFilter("[SoDi] IS NOT NULL");
+            e.HasIndex(x => new { x.Huong, x.TrangThai });
+            e.HasIndex(x => x.NguoiChuTri);
+            e.HasOne(x => x.VanBanLienQuan).WithMany().HasForeignKey(x => x.VanBanLienQuanId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.DeXuatMuaSam).WithMany().HasForeignKey(x => x.DeXuatMuaSamId).OnDelete(DeleteBehavior.SetNull);
+            e.HasMany(x => x.BuocDuyets).WithOne().HasForeignKey(x => x.VanBanId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.NhatKys).WithOne().HasForeignKey(x => x.VanBanId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<BuocDuyetVanBan>().HasIndex(x => new { x.NguoiDuyet, x.DongY });
         b.Entity<LanKiemTra>().HasIndex(x => x.PhieuBaoTriId);
         b.Entity<GiaTriTuyChinh>(e =>
         {

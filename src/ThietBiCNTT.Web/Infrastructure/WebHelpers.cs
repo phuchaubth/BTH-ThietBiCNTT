@@ -63,6 +63,13 @@ public static class Badge
         Domain.Entities.TrangThaiNganSach.DuThao => "warning text-dark",
         Domain.Entities.TrangThaiNganSach.DaDuyet => "success",
         Domain.Entities.TrangThaiNganSach.DaKhoa => "dark",
+        Domain.Entities.TrangThaiVanBan.DuThao => "light text-dark border",
+        Domain.Entities.TrangThaiVanBan.ChoDuyet or Domain.Entities.TrangThaiVanBan.ChoPhanCong => "warning text-dark",
+        Domain.Entities.TrangThaiVanBan.TraLai => "danger",
+        Domain.Entities.TrangThaiVanBan.DaDuyet => "info",
+        Domain.Entities.TrangThaiVanBan.DangXuLy => "primary",
+        Domain.Entities.TrangThaiVanBan.DaPhatHanh or Domain.Entities.TrangThaiVanBan.HoanThanh => "success",
+        Domain.Entities.TrangThaiVanBan.DaHuy => "light text-muted border",
         _ => "secondary"
     };
 
@@ -201,6 +208,7 @@ public class ThongBaoBackgroundService(IServiceScopeFactory scopes, ILogger<Thon
                 {
                     await scope.ServiceProvider.GetRequiredService<CanhBaoService>().ChayAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<BaoCaoDinhKyService>().ChayAsync(DateTime.Now, ct);
+                    await scope.ServiceProvider.GetRequiredService<VanThuService>().NhacHanAsync(DateTime.Now, ct);
                     await scope.ServiceProvider.GetRequiredService<TichHopService>().DonDepAsync(
                         scope.ServiceProvider.GetRequiredService<ThamSoService>().SoNguyen(TS.ApiLuuNhatKyNgay), ct);
                     lanCanhBao = DateTime.Now;

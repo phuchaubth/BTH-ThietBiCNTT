@@ -1,0 +1,32 @@
+@model VanBan
+@{
+    Layout = "_Print"; ViewData["Title"] = Model.SoKyHieu ?? "Dự thảo";
+    var cv = Model.Loai == LoaiVanBan.CongVan; var ngay = Model.NgayVanBan ?? DateTime.Today;
+    var noiNhan = (Model.NoiNhan ?? "").Split([';', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+<style>
+    @@page { size: A4; margin: 20mm 15mm 20mm 30mm; }
+    body { font-size: 14pt; line-height: 1.35; }
+    .tt td { vertical-align: top; text-align: center; padding: 0; }
+    .tt .ga { display: block; width: 35%; margin: 1px auto 0; border-top: 1px solid #000; }
+    .nd { text-align: justify; white-space: pre-line; text-indent: 0; margin-top: 4mm; }
+    .cuoi td { vertical-align: top; padding: 0; }
+    .du-thao { position: fixed; top: 6mm; right: 10mm; border: 2px solid #c00; color: #c00; padding: 1mm 4mm; font-weight: bold; font-size: 12pt; }
+</style>
+@if (Model.SoDi is null) { <div class="du-thao">DỰ THẢO</div> }
+<table class="tt" style="width:100%"><tr>
+    <td style="width:42%;font-size:13pt">@ViewBag.CoQuan.ToUpper()<br /><b>@ViewBag.DonVi.ToUpper()</b><span class="ga"></span>
+        <div style="margin-top:2mm">Số: @(Model.SoKyHieu ?? $"      /{(VanBan.VietTat(Model.Loai) is { Length: > 0 } v ? v + "-" : "")}{ThamSo.Chuoi(TS.VanThuKyHieu)}")</div>
+        @if (cv) { <div style="font-size:12pt;margin-top:1mm">@Model.TrichYeu</div> }</td>
+    <td><b style="font-size:13pt">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br /><b>Độc lập - Tự do - Hạnh phúc</b><span class="ga" style="width:55%"></span>
+        <div style="margin-top:2mm"><i>@ViewBag.DiaDanh, ngày @ngay.ToString("dd") tháng @ngay.ToString("MM") năm @ngay.ToString("yyyy")</i></div></td>
+</tr></table>
+@if (!cv)
+{
+    <div style="text-align:center;margin-top:8mm"><b style="font-size:14pt">@Model.Loai.Ten().ToUpper()</b><br /><b>@Model.TrichYeu</b><span style="display:block;width:20%;margin:1px auto;border-top:1px solid #000"></span></div>
+}
+<div class="nd">@Model.NoiDung</div>
+<table class="cuoi" style="width:100%;margin-top:6mm"><tr>
+    <td style="width:50%;font-size:12pt"><b><i>Nơi nhận:</i></b>@foreach (var n in noiNhan) { <br />@("- " + n.TrimEnd('.', ';') + ";") }</td>
+    <td style="text-align:center"><b>@(Model.ChucVuNguoiKy?.ToUpper())</b><div style="height:28mm"></div><b>@Model.NguoiKy</b></td>
+</tr></table>

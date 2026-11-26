@@ -1,0 +1,16 @@
+@model MauVanBan
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm mẫu văn bản" : "Sửa mẫu văn bản"; }
+<div class="small text-muted mb-1"><a asp-action="Mau">Mẫu văn bản</a> › @ViewData["Title"]</div>
+<div class="page-head"><h1>@ViewData["Title"]</h1></div>
+<form asp-action="LuuMau" method="post" class="card"><div class="card-body row g-3">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger small"></div>
+    <div class="col-md-6"><label asp-for="Ten" class="form-label"></label><input asp-for="Ten" class="form-control" /></div>
+    <div class="col-md-3"><label asp-for="Loai" class="form-label"></label><select asp-for="Loai" asp-items="@EnumExtensions.ToSelectList<LoaiVanBan>(Model.Loai)" class="form-select"></select></div>
+    <div class="col-md-3 form-check pt-4 ps-5"><input asp-for="DangDung" class="form-check-input" /><label asp-for="DangDung" class="form-check-label"></label></div>
+    <div class="col-12"><label asp-for="TrichYeu" class="form-label"></label><input asp-for="TrichYeu" class="form-control" placeholder="V/v …" /></div>
+    <div class="col-12"><label asp-for="NoiDung" class="form-label"></label><textarea asp-for="NoiDung" rows="18" class="form-control" style="font-family:'Times New Roman',serif"></textarea>
+        <div class="form-text">Trường thay thế: <code>{{NGAY}}</code> (ngày … tháng … năm …), <code>{{DIA_DANH}}</code>, <code>{{BENH_VIEN}}</code>, <code>{{DON_VI}}</code>, <code>{{NGUOI_SOAN}}</code>, <code>{{TRICH_YEU}}</code>,
+            <code>{{DE_XUAT}}</code> (bảng hàng hoá + tổng dự toán khi soạn tờ trình từ đề xuất mua sắm).</div></div>
+    <div class="col-12"><button class="btn btn-primary">Lưu</button></div>
+</div></form>

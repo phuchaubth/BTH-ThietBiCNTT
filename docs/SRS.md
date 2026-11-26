@@ -1070,6 +1070,25 @@ flowchart LR
 
 ---
 
+### 4.14. PHÂN HỆ VĂN THƯ PHÒNG CNTT (VĂN BẢN ĐẾN/ĐI, TỜ TRÌNH)
+
+**Mục tiêu:** quản lý tập trung văn bản đến, văn bản đi và tờ trình của Phòng CNTT; soạn theo mẫu, trình duyệt nhiều bước, cấp số theo sổ, phân công xử lý và theo dõi tiến độ đến khi hoàn thành.
+
+| Mã | Chức năng | Mức |
+|---|---|---|
+| FR-VB-01 | Vào sổ văn bản đến: số đến tự tăng liên tục theo năm, nơi gửi, số ký hiệu, ngày văn bản/ngày đến, trích yếu, độ khẩn, đính kèm bản quét (PDF/ảnh/Word/Excel) | M |
+| FR-VB-02 | Phân công xử lý văn bản đến: chủ trì, phối hợp, hạn xử lý (gợi ý theo độ khẩn), ý kiến chỉ đạo; giao lại / điều chỉnh hạn | M |
+| FR-VB-03 | Cập nhật tiến độ (%) và diễn biến xử lý; hoàn thành có kết quả, gắn văn bản đi trả lời; lưu hồ sơ văn bản không cần xử lý | M |
+| FR-VB-04 | Soạn văn bản đi / tờ trình từ mẫu (trường thay thế ngày, đơn vị, người soạn, bảng hàng hoá của đề xuất mua sắm); soạn công văn trả lời từ văn bản đến | M |
+| FR-VB-05 | Trình duyệt tuần tự tối đa 6 bước (mặc định theo tham số, người soạn chỉnh được); trả lại bắt buộc ý kiến; trình lại lưu lịch sử từng lần | M |
+| FR-VB-06 | Văn thư cấp số đi liên tục trong năm, ký hiệu theo Nghị định 30/2020/NĐ-CP ("12/CNTT", "12/TTr-CNTT"), phát hành; tờ trình chuyển sang theo dõi thực hiện | M |
+| FR-VB-07 | Bản in theo thể thức NĐ 30 (quốc hiệu, tiêu ngữ, số ký hiệu, địa danh ngày, tên loại, nơi nhận, chức vụ người ký; dấu DỰ THẢO khi chưa cấp số) | S |
+| FR-VB-08 | Việc của tôi, tìm kiếm (số, ký hiệu, trích yếu, nơi gửi/nhận, nội dung), lọc loại/trạng thái/năm/người xử lý/quá hạn | M |
+| FR-VB-09 | Nhắc hạn mỗi ngày một lần (sắp đến hạn N ngày, quá hạn) tới người đang phải xử lý/duyệt/cấp số; dòng tổng hợp trong bản tin ngày | M |
+| FR-VB-10 | Sổ đăng ký văn bản đến/đi theo năm, xuất Excel; quản lý mẫu văn bản | S |
+
+**Quy tắc:** chỉ văn thư (tham số `VanThu.NguoiVanThu`) vào sổ đến và cấp số; chỉ người phân công (`VanThu.NguoiPhanCong`) giao việc văn bản đến; người chủ trì/phối hợp cập nhật tiến độ, chỉ chủ trì (hoặc người phân công) hoàn thành; văn bản đã cấp số không huỷ được; chỉ giao/trình cho tài khoản Quản trị, CNTT, Lãnh đạo đang hoạt động. Nhân viên/Trưởng khoa không truy cập phân hệ.
+
 ## 5. YÊU CẦU PHI CHỨC NĂNG
 
 ### 5.1. Hiệu năng
@@ -1298,6 +1317,7 @@ gantt
 | Phân quyền 5 vai trò | FR-HT-04, mục 4.11.3 | [Đã có] | Rà soát theo ma trận cập nhật (thêm Kiểm tra, PO, Ngân sách, Cảnh báo, API) |
 | Nhật ký thao tác | FR-HT-07 | [Đã có] | Ghi log xem thông tin nhạy cảm, xuất log |
 | Kiểm tra tài sản, Ngân sách, API mở + webhook, Sơ đồ mặt bằng, Kiểm kê QR (cả ngoại tuyến), NCC-HĐ-BH, PWA, 2FA, AD, Zalo OA, số liệu kế toán | 4.12, 4.13, IF-07..10, FR-VT-05, 4.9, 4.6, NFR-SD-07, FR-HT-16, FR-HT-17 | [Đã có] | Kiểm thử trên hạ tầng thật (SQL Server, AD, Zalo OA, IIS) |
+| Văn thư Phòng CNTT: sổ văn bản đến/đi, tờ trình, trình duyệt nhiều bước, cấp số NĐ 30, phân công, tiến độ, nhắc hạn | FR-VB-01..10 | [Đã có] | Ký số (chữ ký số) văn bản điện tử; liên thông văn bản với hệ thống quản lý văn bản của bệnh viện |
 | Quy tắc cảnh báo tuỳ chỉnh; liên kết HIS | FR-HT-15; IF-08 (phần HIS) | [Chưa] | Hiện cảnh báo theo bộ quy tắc cố định + tham số; HIS cần đặc tả giao tiếp từ nhà cung cấp |
 
 **Công việc xuyên suốt:** khảo sát chi tiết & thiết kế (trước GĐ1), chuẩn hoá dữ liệu Excel hiện có, in và dán tem QR, đào tạo theo vai trò (KTV, Trưởng khoa, Nhân viên), vận hành thử song song, hỗ trợ sau triển khai, hoàn thiện quy chế sử dụng hệ thống ban hành kèm.

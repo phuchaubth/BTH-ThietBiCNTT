@@ -14,7 +14,10 @@ public class TepService(AppDbContext db, IConfiguration config, IHostEnvironment
     public const long KichThuocToiDa = 10 * 1024 * 1024;
     private static readonly Dictionary<string, string> LoaiChoPhep = new(StringComparer.OrdinalIgnoreCase)
     {
-        [".jpg"] = "image/jpeg", [".jpeg"] = "image/jpeg", [".png"] = "image/png", [".webp"] = "image/webp", [".pdf"] = "application/pdf"
+        [".jpg"] = "image/jpeg", [".jpeg"] = "image/jpeg", [".png"] = "image/png", [".webp"] = "image/webp", [".pdf"] = "application/pdf",
+        [".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        [".xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        [".doc"] = "application/msword", [".xls"] = "application/vnd.ms-excel"
     };
 
     public string ThuMucGoc => Directory.CreateDirectory(config["DinhKem:Path"] is { Length: > 0 } p ? p
@@ -23,7 +26,7 @@ public class TepService(AppDbContext db, IConfiguration config, IHostEnvironment
     public async Task<TepDinhKem> LuuAsync(string doiTuong, string doiTuongId, string tenFile, Stream noiDung, long kichThuoc, string? nguoi)
     {
         var ext = Path.GetExtension(tenFile);
-        if (!LoaiChoPhep.TryGetValue(ext, out var ct)) throw new DomainException($"'{tenFile}': chỉ nhận ảnh JPG/PNG/WEBP hoặc PDF.");
+        if (!LoaiChoPhep.TryGetValue(ext, out var ct)) throw new DomainException($"'{tenFile}': chỉ nhận ảnh JPG/PNG/WEBP, PDF hoặc Word/Excel.");
         if (kichThuoc <= 0 || kichThuoc > KichThuocToiDa) throw new DomainException($"'{tenFile}': tối đa 10 MB.");
         using var ms = new MemoryStream();
         await noiDung.CopyToAsync(ms);
@@ -46,6 +49,9 @@ public class TepService(AppDbContext db, IConfiguration config, IHostEnvironment
         "image/png" => b.Length >= 8 && b[..8].SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }),
         "image/webp" => b.Length >= 12 && b[..4].SequenceEqual("RIFF"u8) && b[8..12].SequenceEqual("WEBP"u8),
         "application/pdf" => b.Length >= 5 && b[..5].SequenceEqual("%PDF-"u8),
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            => b.Length >= 4 && b[..4].SequenceEqual(new byte[] { 0x50, 0x4B, 0x03, 0x04 }),
+        "application/msword" or "application/vnd.ms-excel" => b.Length >= 8 && b[..8].SequenceEqual(new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }),
         _ => false
     };
 

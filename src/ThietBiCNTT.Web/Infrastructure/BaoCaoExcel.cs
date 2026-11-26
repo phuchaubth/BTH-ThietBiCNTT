@@ -135,4 +135,25 @@ public static class BaoCaoExcel
         foreach (var r in dong) sb.AppendLine(string.Join(",", r.Select(O)));
         return [.. System.Text.Encoding.UTF8.GetPreamble(), .. System.Text.Encoding.UTF8.GetBytes(sb.ToString())];
     }
+
+    /// <summary>Sổ đăng ký văn bản đến / đi trong năm (mẫu theo Phụ lục IV Nghị định 30/2020/NĐ-CP).</summary>
+    public static byte[] SoVanBan(List<VanBan> ds, HuongVanBan huong, int nam, string tenDonVi)
+    {
+        using var wb = new XLWorkbook();
+        static string T(Enum e) => VanThuService.TenEnum(e);
+        var phu = $"{tenDonVi} · năm {nam} · lập {DateTime.Now:dd/MM/yyyy HH:mm}";
+        if (huong == HuongVanBan.Den)
+            Sheet(wb, "SoDen", $"SỔ ĐĂNG KÝ VĂN BẢN ĐẾN NĂM {nam}", phu,
+                ["Ngày đến", "Số đến", "Tác giả (nơi gửi)", "Số, ký hiệu", "Ngày văn bản", "Loại", "Trích yếu", "Độ khẩn", "Người chủ trì", "Phối hợp", "Hạn xử lý", "Trạng thái", "Tiến độ %", "Ngày hoàn thành", "Kết quả"],
+                ds.OrderBy(x => x.SoDen).Select(x => new object?[] { x.NgayDen, x.SoDen, x.CoQuanBanHanh, x.SoKyHieu, x.NgayVanBan, T(x.Loai), x.TrichYeu, T(x.DoKhan),
+                    x.NguoiChuTri, x.NguoiPhoiHop, x.HanXuLy, T(x.TrangThai), x.TienDo, x.NgayHoanThanh, x.KetQua }),
+                ws => { foreach (var c in new[] { 1, 5, 11, 14 }) ws.Column(c).Style.DateFormat.Format = "dd/MM/yyyy"; });
+        else
+            Sheet(wb, "SoDi", $"SỔ ĐĂNG KÝ VĂN BẢN ĐI NĂM {nam}", phu,
+                ["Số, ký hiệu", "Ngày văn bản", "Loại", "Trích yếu", "Người ký", "Nơi nhận", "Người soạn", "Độ khẩn", "Trạng thái", "Theo dõi đến", "Tiến độ %", "Kết quả"],
+                ds.OrderBy(x => x.SoDi ?? int.MaxValue).ThenBy(x => x.Id).Select(x => new object?[] { x.SoKyHieu ?? "(chưa cấp số)", x.NgayVanBan, T(x.Loai), x.TrichYeu, x.NguoiKy, x.NoiNhan,
+                    x.NguoiSoan, T(x.DoKhan), T(x.TrangThai), x.HanXuLy, x.TienDo, x.KetQua }),
+                ws => { ws.Column(2).Style.DateFormat.Format = "dd/MM/yyyy"; ws.Column(10).Style.DateFormat.Format = "dd/MM/yyyy"; });
+        return Luu(wb);
+    }
 }
